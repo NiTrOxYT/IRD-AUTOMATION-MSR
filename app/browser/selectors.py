@@ -16,13 +16,34 @@ class SelectorRegistry:
         if not sel:
             # Fallback hardcoded list
             defaults = {
-                "login_username": ["input[name='username']", "input[type='email']", "#username"],
-                "login_password": ["input[name='password']", "input[type='password']", "#password"],
-                "login_submit": ["button[type='submit']", "input[type='submit']", "button:has-text('Login')", "button:has-text('Sign In')"],
-                "sync_mymenu": ["text='Sync MyMenu'", "a:has-text('Sync MyMenu')", "button:has-text('Sync MyMenu')"],
-                "fetch_menu": ["button:has-text('Fetch Menu')", "input[value='Fetch Menu']", "text='Fetch Menu'"],
-                "process_latest_menu": ["button:has-text('Process Latest Menu')", "input[value='Process Latest Menu']", "text='Process Latest Menu'"],
-                "download_action_point": ["button:has-text('Download Action Point')", "a:has-text('Download Action Point')", "text='Download Action Point'"]
+                "login_username": [
+                    "input[name='username']", "input[type='email']", "#username", "#userId", "input[name*='user']",
+                    "input[id*='user']", "input[placeholder*='User']", "input[placeholder*='Email']", "input[name='login']"
+                ],
+                "login_password": [
+                    "input[name='password']", "input[type='password']", "#password", "input[id*='pass']",
+                    "input[name*='pass']", "input[placeholder*='Password']"
+                ],
+                "login_submit": [
+                    "button[type='submit']", "input[type='submit']", "button:has-text('Login')", "button:has-text('Sign In')",
+                    "button:has-text('Log In')", "#loginBtn", ".login-button", "button:has-text('Submit')", "button:has-text('Proceed')"
+                ],
+                "sync_mymenu": [
+                    "text='Sync MyMenu'", "a:has-text('Sync MyMenu')", "button:has-text('Sync MyMenu')",
+                    "[aria-label='Sync MyMenu']", "a[href*='sync']", ".nav-link:has-text('Sync')", "text='MyMenu Sync'"
+                ],
+                "fetch_menu": [
+                    "button:has-text('Fetch Menu')", "input[value='Fetch Menu']", "text='Fetch Menu'",
+                    ".fetch-menu-btn", "button[id*='fetch']", "button:has-text('Fetch Latest')", "a:has-text('Fetch Menu')"
+                ],
+                "process_latest_menu": [
+                    "button:has-text('Process Latest Menu')", "input[value='Process Latest Menu']", "text='Process Latest Menu'",
+                    ".process-menu-btn", "button[id*='process']", "button:has-text('Process Menu')", "button:has-text('Process')"
+                ],
+                "download_action_point": [
+                    "button:has-text('Download Action Point')", "a:has-text('Download Action Point')", "text='Download Action Point'",
+                    "a[href*='download']", ".download-btn", "button:has-text('Download')", "a:has-text('Download CSV')"
+                ]
             }
             return defaults.get(step_key, [f"text='{step_key}'"])
 
@@ -48,3 +69,4 @@ class SelectorRegistry:
                 seen.add(s)
                 dedup.append(s)
         return dedup
+

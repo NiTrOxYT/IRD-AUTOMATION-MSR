@@ -659,3 +659,38 @@ input:checked + .slider:before {
   justify-content: flex-end;
   gap: 10px;
 }
+
+/* SAFETY BANNER */
+.safety-banner {
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: var(--accent-amber);
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+
+/* INTEGRATION TEST OUTPUT BOX */
+.test-results-panel h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.test-output-box {
+  background: #050811;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  min-height: 240px;
+  max-height: 480px;
+  overflow-y: auto;
+  line-height: 1.6;
+}
+

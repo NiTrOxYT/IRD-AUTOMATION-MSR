@@ -75,49 +75,138 @@ class WorkflowRunner:
         Launch launcher -> open webpage -> check availability -> login -> confirm Sync MyMenu -> finish.
         Does NOT execute Fetch, Process, or Download.
         """
+        return await self.run_integration_test_stage(site_id, "dry_run")
+
+    async def run_integration_test_stage(self, site_id: int, stage_name: str) -> Dict[str, Any]:
+        """
+        Executes atomic Integration Test stage for a single site (Requirement 2):
+        Stages: 'launcher', 'tunnel_webpage', 'login', 'sync_mymenu', 'fetch_menu', 'process_menu', 'download_csv', 'full_workflow'
+        """
         site = get_site_by_id(site_id)
         if not site:
-            return {"success": False, "message": f"Site ID {site_id} not found."}
+            return {"success": False, "stage": stage_name, "message": f"Site ID {site_id} not found."}
 
-        logger.info(f"--- STARTING SITE CONNECTION TEST: {site.name} ---")
-        browser = BrowserController()
+        clean_stage = stage_name.lower().strip()
+        logger.info(f"\n==========================================")
+        logger.info(f"[{site.name}] RUNNING INTEGRATION TEST STAGE: {clean_stage.upper()}")
+        logger.info(f"==========================================")
+
         settings = get_all_settings()
+        url = site.url or f"https://{site.name.lower().replace(' ', '')}.mymenu.internal"
+        date_str = datetime.now().strftime("%Y-%m-%d")
+        daily_downloads_dir = os.path.join(settings.get("downloads_dir", str(DOWNLOADS_DIR)), date_str)
 
+        # STAGE 1: LAUNCHER
+        if clean_stage == "launcher":
+            res = self.launcher_mgr.test_launcher_stage(site.launcher_button)
+            return {
+                "success": res["overall_status"] == "PASS" or "PASS" in res["overall_status"],
+                "stage": "launcher",
+                "site": site.name,
+                "message": f"Launcher button test '{site.launcher_button}': {res['overall_status']}",
+                "details": res["details"]
+            }
+
+        # BROWSER BASED STAGES
+        browser = BrowserController()
         try:
-            # 1. Launcher
-            self.launcher_mgr.click_site_button(site.launcher_button)
-            await asyncio.sleep(2.0)
+            # Stage: TUNNEL WEBPAGE
+            if clean_stage in ("tunnel_webpage", "login", "sync_mymenu", "fetch_menu", "process_menu", "download_csv", "full_workflow", "dry_run"):
+                self.launcher_mgr.click_site_button(site.launcher_button)
+                await asyncio.sleep(2.0)
 
-            # 2. Browser init
-            await browser.initialize(headless=bool(settings.get("headless", False)))
+                await browser.initialize(headless=bool(settings.get("headless", False)))
+                nav_ok = await browser.navigate_to_url(url, timeout_seconds=int(settings.get("page_load_timeout", 120)))
 
-            # 3. Webpage Navigate
-            url = site.url or f"https://{site.name.lower().replace(' ', '')}.mymenu.internal"
-            nav_ok = await browser.navigate_to_url(url, timeout_seconds=60)
-            if not nav_ok:
-                await browser.close()
-                return {"success": False, "message": f"Webpage unreachable at {url}"}
-
-            # 4. Login
-            if site.idp_username and site.idp_password:
-                login_ok, login_msg = await browser.login(site.idp_username, site.idp_password, timeout_seconds=60)
-                if not login_ok:
+                if not nav_ok:
                     await browser.close()
-                    return {"success": False, "message": f"Login failed: {login_msg}"}
+                    return {"success": False, "stage": clean_stage, "site": site.name, "message": f"[{site.name}] Webpage unreachable at {url}"}
 
-            # 5. Check Sync MyMenu exists
-            sync_ok, sync_msg = await browser.click_sync_mymenu(timeout_seconds=30)
+                if clean_stage == "tunnel_webpage":
+                    await browser.capture_screenshot(site.name, "tunnel_webpage_test")
+                    await browser.close()
+                    return {"success": True, "stage": "tunnel_webpage", "site": site.name, "message": f"[{site.name}] Webpage reachable at {url}"}
+
+            # Stage: LOGIN
+            if clean_stage in ("login", "sync_mymenu", "fetch_menu", "process_menu", "download_csv", "full_workflow", "dry_run"):
+                if site.idp_username and site.idp_password:
+                    login_ok, login_msg = await browser.login(site.idp_username, site.idp_password, timeout_seconds=int(settings.get("login_timeout", 60)))
+                    if not login_ok:
+                        await browser.capture_screenshot(site.name, "login_test_failed")
+                        await browser.close()
+                        return {"success": False, "stage": clean_stage, "site": site.name, "message": f"[{site.name}] Login failed: {login_msg}"}
+
+                if clean_stage == "login":
+                    await browser.capture_screenshot(site.name, "login_test_success")
+                    await browser.close()
+                    return {"success": True, "stage": "login", "site": site.name, "message": f"[{site.name}] IDP Login successful"}
+
+            # Stage: SYNC MYMENU
+            if clean_stage in ("sync_mymenu", "fetch_menu", "process_menu", "download_csv", "full_workflow", "dry_run"):
+                sync_ok, sync_msg = await browser.click_sync_mymenu(timeout_seconds=60)
+                if not sync_ok:
+                    await browser.capture_screenshot(site.name, "sync_mymenu_failed")
+                    await browser.close()
+                    return {"success": False, "stage": clean_stage, "site": site.name, "message": f"[{site.name}] Sync MyMenu failed: {sync_msg}"}
+
+                if clean_stage in ("sync_mymenu", "dry_run"):
+                    await browser.capture_screenshot(site.name, "sync_mymenu_success")
+                    await browser.close()
+                    return {"success": True, "stage": clean_stage, "site": site.name, "message": f"[{site.name}] Sync MyMenu page ready"}
+
+            # Stage: FETCH MENU
+            if clean_stage in ("fetch_menu", "process_menu", "download_csv", "full_workflow"):
+                fetch_ok, fetch_msg = await browser.click_fetch_menu(timeout_seconds=int(settings.get("fetch_menu_timeout", 600)))
+                if not fetch_ok:
+                    await browser.capture_screenshot(site.name, "fetch_menu_failed")
+                    await browser.close()
+                    return {"success": False, "stage": clean_stage, "site": site.name, "message": f"[{site.name}] Fetch Menu failed: {fetch_msg}"}
+
+                if clean_stage == "fetch_menu":
+                    await browser.capture_screenshot(site.name, "fetch_menu_success")
+                    await browser.close()
+                    return {"success": True, "stage": "fetch_menu", "site": site.name, "message": f"[{site.name}] Fetch Menu operation completed"}
+
+            # Stage: PROCESS MENU
+            if clean_stage in ("process_menu", "download_csv", "full_workflow"):
+                proc_res = await browser.click_process_latest_menu(timeout_seconds=int(settings.get("process_menu_timeout", 600)))
+                if not proc_res["success"]:
+                    await browser.capture_screenshot(site.name, "process_menu_failed")
+                    await browser.close()
+                    return {"success": False, "stage": clean_stage, "site": site.name, "message": f"[{site.name}] Process Menu failed: {proc_res['error']}"}
+
+                if clean_stage == "process_menu":
+                    await browser.capture_screenshot(site.name, "process_menu_success")
+                    await browser.close()
+                    return {"success": True, "stage": "process_menu", "site": site.name, "message": f"[{site.name}] Process Latest Menu completed"}
+
+            # Stage: DOWNLOAD CSV
+            if clean_stage in ("download_csv", "full_workflow"):
+                dl_ok, csv_path, dl_err = await browser.download_action_point_csv(daily_downloads_dir, site.name, timeout_seconds=int(settings.get("download_timeout", 120)))
+                await browser.close()
+
+                if not dl_ok or not csv_path:
+                    return {"success": False, "stage": clean_stage, "site": site.name, "message": f"[{site.name}] CSV download failed: {dl_err}"}
+
+                csv_res = analyze_action_point_csv(csv_path)
+                return {
+                    "success": True,
+                    "stage": clean_stage,
+                    "site": site.name,
+                    "csv_path": csv_path,
+                    "action_point_status": csv_res["action_point_status"],
+                    "third_line": csv_res["third_line"],
+                    "message": f"[{site.name}] Stage {clean_stage} completed: {csv_res['action_point_status']} (Line 3: '{csv_res['third_line']}')"
+                }
+
             await browser.close()
-
-            if sync_ok:
-                return {"success": True, "message": f"Site connection test PASSED for '{site.name}'."}
-            else:
-                return {"success": False, "message": f"Sync MyMenu element check failed: {sync_msg}"}
+            return {"success": True, "stage": clean_stage, "site": site.name, "message": f"[{site.name}] Stage test finished"}
 
         except Exception as e:
             if browser:
                 await browser.close()
-            return {"success": False, "message": f"Test exception: {str(e)}"}
+            return {"success": False, "stage": clean_stage, "site": site.name, "message": f"[{site.name}] Exception: {str(e)}"}
+
 
     async def start_batch_sync(self, selected_site_ids: List[int] = None, dry_run: bool = False, resume_run_id: int = None) -> int:
         """

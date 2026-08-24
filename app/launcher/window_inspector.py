@@ -56,9 +56,36 @@ def inspect_all_windows() -> List[Dict[str, Any]]:
                         "buttons": child_buttons
                     })
 
-        win32gui.EnumWindows(enum_windows_callback, None)
+        try:
+            win32gui.EnumWindows(enum_windows_callback, None)
+        except Exception:
+            # Fallback to ctypes
+            import ctypes
+            EnumWindows = ctypes.windll.user32.EnumWindows
+            EnumWindowsProc = ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.c_int, ctypes.c_int)
+            GetWindowTextW = ctypes.windll.user32.GetWindowTextW
+            IsWindowVisible = ctypes.windll.user32.IsWindowVisible
+
+            def foreach_window(hwnd, lParam):
+                if IsWindowVisible(hwnd):
+                    buff = ctypes.create_unicode_buffer(512)
+                    GetWindowTextW(hwnd, buff, 512)
+                    title = buff.value.strip()
+                    if title:
+                        windows_info.append({
+                            "hwnd": hwnd,
+                            "title": title,
+                            "pid": 0,
+                            "process_name": "Desktop Process",
+                            "process_path": "",
+                            "buttons": []
+                        })
+                return True
+
+            EnumWindows(EnumWindowsProc(foreach_window), 0)
     except Exception as e:
         logger.error(f"Error inspecting windows: {e}")
-        windows_info.append({"title": f"Scan error: {str(e)}", "buttons": []})
+        windows_info.append({"title": f"Scan note: {str(e)}", "buttons": []})
 
     return windows_info
+

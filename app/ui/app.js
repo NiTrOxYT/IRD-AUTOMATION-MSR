@@ -128,11 +128,25 @@ async function loadSites() {
     const res = await fetch('/api/sites');
     sitesList = await res.json();
     renderQueueTable();
+    populateTestSiteDropdown();
     updateMetricsSummary();
   } catch (e) {
     console.error("Failed loading sites:", e);
   }
 }
+
+function populateTestSiteDropdown() {
+  const sel = document.getElementById('select-test-site');
+  if (!sel) return;
+  sel.innerHTML = '';
+  sitesList.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.id;
+    opt.textContent = `${s.name} (${s.launcher_button})`;
+    sel.appendChild(opt);
+  });
+}
+
 
 function updateMetricsSummary() {
   document.getElementById('metric-total').textContent = sitesList.length;
@@ -520,10 +534,33 @@ function bindEvents() {
     updateSelectedCount();
   });
 
-  document.getElementById('btn-start-sync').addEventListener('click', () => startAutomation(false));
+  document.getElementById('btn-start-sync').addEventListener('click', () => {
+    const selectedIds = Array.from(document.querySelectorAll('.chk-site-queue:checked')).map(c => parseInt(c.getAttribute('data-id')));
+    if (selectedIds.length === 0) {
+      alert("Please select at least one site to process.");
+      return;
+    }
+    document.getElementById('confirm-site-count').textContent = selectedIds.length;
+    document.getElementById('modal-confirm-real-run').classList.add('active');
+  });
+
+  document.getElementById('btn-proceed-real-run').addEventListener('click', () => {
+    document.getElementById('modal-confirm-real-run').classList.remove('active');
+    startAutomation(false);
+  });
+
+  document.getElementById('btn-close-confirm-modal').addEventListener('click', () => {
+    document.getElementById('modal-confirm-real-run').classList.remove('active');
+  });
+
+  document.getElementById('btn-cancel-confirm-run').addEventListener('click', () => {
+    document.getElementById('modal-confirm-real-run').classList.remove('active');
+  });
+
   document.getElementById('btn-dry-run').addEventListener('click', () => startAutomation(true));
   document.getElementById('btn-stop-automation').addEventListener('click', stopAutomation);
   document.getElementById('btn-resume-run').addEventListener('click', resumeAutomation);
+
 
   document.getElementById('btn-open-add-site-modal').addEventListener('click', openAddSiteModal);
   document.getElementById('btn-close-modal-site').addEventListener('click', () => document.getElementById('modal-site').classList.remove('active'));
@@ -535,6 +572,11 @@ function bindEvents() {
 
   document.getElementById('btn-save-settings').addEventListener('click', saveSettings);
   document.getElementById('btn-scan-windows').addEventListener('click', scanWindows);
+
+  const btnRunStageTest = document.getElementById('btn-run-stage-test');
+  if (btnRunStageTest) {
+    btnRunStageTest.addEventListener('click', runIntegrationTestStage);
+  }
 
   document.getElementById('btn-open-reports-folder').addEventListener('click', () => fetch('/api/open-folder/reports'));
   document.getElementById('btn-open-downloads-folder').addEventListener('click', () => fetch('/api/open-folder/downloads'));
@@ -555,7 +597,59 @@ function bindEvents() {
   });
 }
 
+async function runIntegrationTestStage() {
+  const siteId = document.getElementById('select-test-site').value;
+  const stage = document.getElementById('select-test-stage').value;
+  const box = document.getElementById('test-output-box');
+
+  if (!siteId) {
+    alert("Please select a site to test.");
+    return;
+  }
+
+  box.innerHTML = `<div class="log-row log-warn">Running Integration Test stage '${stage.toUpperCase()}'... Please wait...</div>`;
+
+  try {
+    const res = await fetch('/api/integration-test/run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ site_id: parseInt(siteId), stage: stage })
+    });
+    const data = await res.json();
+
+    let statusColor = data.success ? 'var(--accent-green)' : 'var(--accent-red)';
+    let html = `
+      <div style="font-weight:700; color: ${statusColor}; margin-bottom: 8px;">
+        STATION RESULT: ${data.success ? 'PASS' : 'FAIL'}
+      </div>
+      <div><strong>Site:</strong> ${escapeHtml(data.site || '')}</div>
+      <div><strong>Stage:</strong> ${escapeHtml(data.stage || stage)}</div>
+      <div style="margin-top: 6px;"><strong>Message:</strong> ${escapeHtml(data.message || '')}</div>
+    `;
+
+    if (data.third_line) {
+      html += `<div style="margin-top:4px;"><strong>Line 3 Preview:</strong> <code>${escapeHtml(data.third_line)}</code></div>`;
+    }
+    if (data.action_point_status) {
+      html += `<div><strong>Action Point Status:</strong> ${escapeHtml(data.action_point_status)}</div>`;
+    }
+
+    if (data.details && data.details.length > 0) {
+      html += `<div style="margin-top:10px;"><strong>Diagnostic Steps:</strong><ul>`;
+      data.details.forEach(d => {
+        html += `<li>${escapeHtml(d)}</li>`;
+      });
+      html += `</ul></div>`;
+    }
+
+    box.innerHTML = html;
+  } catch (e) {
+    box.innerHTML = `<div class="log-row log-error">Error running stage test: ${escapeHtml(e.message)}</div>`;
+  }
+}
+
 function escapeHtml(str) {
   if (!str) return '';
   return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
+

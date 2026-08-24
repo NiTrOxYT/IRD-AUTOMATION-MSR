@@ -75,24 +75,27 @@ class BrowserController:
             logger.info("Browser closed.")
 
     async def capture_screenshot(self, site_name: str, step_name: str) -> Optional[str]:
-        """Captures debug screenshot if debug mode is active."""
+        """Captures debug screenshot if debug mode is active. Saved under logs/screenshots/YYYY-MM-DD/<site>/"""
         if not self.page or self.page.is_closed():
             return None
 
         try:
             date_str = time.strftime("%Y-%m-%d")
-            folder = SCREENSHOTS_DIR / date_str
-            folder.mkdir(parents=True, exist_ok=True)
             clean_site = "".join(c if c.isalnum() or c in ('-', '_') else '_' for c in site_name)
             clean_step = "".join(c if c.isalnum() or c in ('-', '_') else '_' for c in step_name)
-            filename = f"{clean_site}_{clean_step}_{int(time.time())}.png"
-            path = folder / filename
+
+            site_folder = SCREENSHOTS_DIR / date_str / clean_site
+            site_folder.mkdir(parents=True, exist_ok=True)
+
+            filename = f"{clean_step}_{int(time.time())}.png"
+            path = site_folder / filename
             await self.page.screenshot(path=str(path), full_page=False)
-            logger.info(f"Captured screenshot: {path}")
+            logger.info(f"[{site_name}] Captured screenshot: {path}")
             return str(path)
         except Exception as e:
-            logger.debug(f"Screenshot capture failed: {e}")
+            logger.debug(f"[{site_name}] Screenshot capture failed: {e}")
             return None
+
 
     async def find_element(self, selectors: List[str], timeout_ms: int = 10000):
         """Attempts to locate an element across multiple selector fallbacks."""

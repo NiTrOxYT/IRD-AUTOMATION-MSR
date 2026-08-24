@@ -40,6 +40,10 @@
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
           <span>Run History</span>
         </button>
+        <button class="nav-btn" data-tab="integration-test">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+          <span>Integration Test</span>
+        </button>
         <button class="nav-btn" data-tab="settings">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
           <span>Settings</span>
@@ -49,6 +53,7 @@
           <span>Diagnostics</span>
         </button>
       </nav>
+
 
       <div class="sidebar-footer">
         <div class="system-status">
@@ -77,6 +82,13 @@
             <button id="btn-start-sync" class="btn btn-primary btn-glow">START SYNC</button>
           </div>
         </div>
+
+        <!-- Safety Notice Banner -->
+        <div class="safety-banner">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <span><strong>REAL RUN NOTICE:</strong> Clicking <strong>START SYNC</strong> will execute Fetch Menu and Process Latest Menu on selected sites against live FNB services.</span>
+        </div>
+
 
         <!-- Metric Cards Grid -->
         <div class="metrics-grid">
@@ -258,8 +270,53 @@
         </div>
       </section>
 
+      <!-- TAB: INTEGRATION TEST -->
+      <section id="tab-integration-test" class="tab-page">
+        <div class="page-header">
+          <div>
+            <h1>Integration Test Console</h1>
+            <p class="subtitle">Validate atomic workflow stages on a single site before executing multi-site runs</p>
+          </div>
+          <div>
+            <button class="btn btn-primary" id="btn-run-stage-test">RUN STAGE TEST</button>
+          </div>
+        </div>
+
+        <div class="glass-panel">
+          <div class="form-row" style="margin-bottom: 20px;">
+            <div class="form-group half">
+              <label>Select Site to Test *</label>
+              <select id="select-test-site" class="form-control">
+                <!-- Rendered dynamically -->
+              </select>
+            </div>
+            <div class="form-group half">
+              <label>Select Test Stage *</label>
+              <select id="select-test-stage" class="form-control">
+                <option value="launcher">1. MSR ZMP Launcher Button</option>
+                <option value="tunnel_webpage">2. Tunnel / Webpage Availability</option>
+                <option value="login">3. IDP Login Authentication</option>
+                <option value="sync_mymenu">4. Sync MyMenu Navigation</option>
+                <option value="fetch_menu">5. Fetch Menu Operation</option>
+                <option value="process_menu">6. Process Latest Menu</option>
+                <option value="download_csv">7. Download Action Point CSV</option>
+                <option value="full_workflow" selected>8. Full Workflow (All Stages)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="test-results-panel">
+            <h3>Stage Diagnostic Output</h3>
+            <div id="test-output-box" class="test-output-box">
+              <p class="log-info">Select a site, choose a test stage, and click RUN STAGE TEST.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- TAB 4: SETTINGS -->
       <section id="tab-settings" class="tab-page">
+
         <div class="page-header">
           <div>
             <h1>System Settings</h1>
@@ -441,8 +498,30 @@
       <div class="modal-body" id="modal-history-body">
         <!-- Rendered dynamically -->
       </div>
+  <!-- REAL RUN CONFIRMATION MODAL -->
+  <div class="modal-overlay" id="modal-confirm-real-run">
+    <div class="modal-card">
+      <div class="modal-header" style="background: rgba(245, 158, 11, 0.15); border-bottom-color: rgba(245, 158, 11, 0.3);">
+        <h3 style="color: var(--accent-amber);">REAL RUN CONFIRMATION</h3>
+        <button class="btn-icon" id="btn-close-confirm-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="margin-bottom: 12px; font-weight: 600;">You are about to run IRD synchronization for <span id="confirm-site-count">21</span> live FNB sites.</p>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">The process will:</p>
+        <ul style="font-size: 13px; color: var(--text-main); margin-left: 20px; line-height: 1.6; margin-bottom: 16px;">
+          <li>Connect each site through MSR ZMP PORTAL LAUNCHER</li>
+          <li>Login using configured IDP credentials</li>
+          <li>Fetch Menu</li>
+          <li>Process Latest Menu</li>
+          <li>Recover from temporary service outages</li>
+          <li>Download Action Point CSV</li>
+          <li>Analyze results</li>
+        </ul>
+        <p style="font-size: 12px; color: var(--accent-amber); font-weight: 500;">Please confirm you wish to proceed with this real batch run.</p>
+      </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" id="btn-close-history-footer">Close</button>
+        <button class="btn btn-secondary" id="btn-cancel-confirm-run">CANCEL</button>
+        <button class="btn btn-primary btn-glow" id="btn-proceed-real-run">START BATCH RUN</button>
       </div>
     </div>
   </div>
@@ -450,3 +529,4 @@
   <script src="/static/app.js"></script>
 </body>
 </html>
+

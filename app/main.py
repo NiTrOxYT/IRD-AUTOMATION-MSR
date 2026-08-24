@@ -153,6 +153,16 @@ async def test_site_connection(site_id: int):
     res = await workflow_runner.run_single_site_test(site_id)
     return res
 
+@app.post("/api/integration-test/run")
+async def run_integration_test(data: dict):
+    site_id = int(data.get("site_id", 0))
+    stage = str(data.get("stage", "full_workflow"))
+    if not site_id:
+        raise HTTPException(status_code=400, detail="Site ID is required for integration test.")
+    res = await workflow_runner.run_integration_test_stage(site_id, stage)
+    return res
+
+
 @app.get("/api/settings")
 async def get_settings():
     return get_all_settings()
