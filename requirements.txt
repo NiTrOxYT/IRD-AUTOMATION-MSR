@@ -1,0 +1,10 @@
+playwright>=1.40.0
+pywebview>=4.0.0
+pywinauto>=0.6.8
+pywin32>=306
+cryptography>=41.0.0
+openpyxl>=3.1.0
+fastapi>=0.100.0
+uvicorn>=0.22.0
+aiohttp>=3.8.0
+keyring>=24.0.0

@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IRD Sync Automation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/>
+            <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
+            <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h2>IRD SYNC</h2>
+          <span class="version-tag">v1.0 Automation</span>
+        </div>
+      </div>
+
+      <nav class="nav-menu">
+        <button class="nav-btn active" data-tab="dashboard">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          <span>Dashboard</span>
+        </button>
+        <button class="nav-btn" data-tab="sites">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
+          <span>Sites Config</span>
+        </button>
+        <button class="nav-btn" data-tab="history">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
+          <span>Run History</span>
+        </button>
+        <button class="nav-btn" data-tab="settings">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+          <span>Settings</span>
+        </button>
+        <button class="nav-btn" data-tab="diagnostics">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <span>Diagnostics</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="system-status">
+          <span class="status-dot online"></span>
+          <span class="status-text">System Engine Ready</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="content-area">
+
+      <!-- TAB 1: DASHBOARD -->
+      <section id="tab-dashboard" class="tab-page active">
+        <div class="page-header">
+          <div>
+            <h1>Daily Automation Dashboard</h1>
+            <p class="subtitle">Multi-site IRD & MyMenu Synchronization Console</p>
+          </div>
+          <div class="action-bar">
+            <button id="btn-select-all" class="btn btn-secondary">Select All</button>
+            <button id="btn-clear-all" class="btn btn-secondary">Clear All</button>
+            <button id="btn-dry-run" class="btn btn-warning">Dry Run</button>
+            <button id="btn-resume-run" class="btn btn-info">Resume Run</button>
+            <button id="btn-stop-automation" class="btn btn-danger" disabled>Stop Automation</button>
+            <button id="btn-start-sync" class="btn btn-primary btn-glow">START SYNC</button>
+          </div>
+        </div>
+
+        <!-- Metric Cards Grid -->
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <span class="metric-title">Total Sites</span>
+            <span class="metric-value" id="metric-total">0</span>
+            <span class="metric-sub">Configured Sites</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-title">Completed</span>
+            <span class="metric-value color-completed" id="metric-completed">0</span>
+            <span class="metric-sub">Finished Tasks</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-title">Processing</span>
+            <span class="metric-value color-active" id="metric-processing">0</span>
+            <span class="metric-sub">Active Site</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-title">Waiting</span>
+            <span class="metric-value color-waiting" id="metric-waiting">0</span>
+            <span class="metric-sub">In Queue</span>
+          </div>
+          <div class="metric-card card-action-found">
+            <span class="metric-title">Action Points</span>
+            <span class="metric-value color-action" id="metric-action-found">0</span>
+            <span class="metric-sub">Action Required</span>
+          </div>
+          <div class="metric-card card-no-action">
+            <span class="metric-title">No Action Point</span>
+            <span class="metric-value color-no-action" id="metric-no-action">0</span>
+            <span class="metric-sub">Menu Cleared</span>
+          </div>
+          <div class="metric-card card-failed">
+            <span class="metric-title">Failed</span>
+            <span class="metric-value color-failed" id="metric-failed">0</span>
+            <span class="metric-sub">Errors Encountered</span>
+          </div>
+        </div>
+
+        <!-- Overall Progress Section -->
+        <div class="glass-panel progress-panel">
+          <div class="progress-header">
+            <div class="progress-title">
+              <span class="pulse-indicator" id="live-indicator"></span>
+              <span id="current-op-title">Ready for Synchronization</span>
+            </div>
+            <div class="progress-percentage" id="progress-percentage-text">0%</div>
+          </div>
+          <div class="progress-bar-container">
+            <div class="progress-bar-fill" id="progress-bar-fill" style="width: 0%;"></div>
+          </div>
+          <div class="current-site-banner" id="current-site-banner">
+            <div class="banner-col">
+              <span class="lbl">Current Site:</span>
+              <span class="val" id="banner-site-name">None</span>
+            </div>
+            <div class="banner-col">
+              <span class="lbl">Operation:</span>
+              <span class="val" id="banner-op-name">Idle</span>
+            </div>
+            <div class="banner-col">
+              <span class="lbl">Status Detail:</span>
+              <span class="val" id="banner-status-detail">Ready to start</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Workspace Split: Sites Table & Streaming Log -->
+        <div class="dashboard-split">
+          <!-- Sites Selection Table -->
+          <div class="glass-panel panel-left">
+            <div class="panel-header">
+              <h3>Site Execution Queue</h3>
+              <span class="badge" id="queue-badge">0 selected</span>
+            </div>
+            <div class="table-container">
+              <table class="data-table" id="table-queue">
+                <thead>
+                  <tr>
+                    <th width="40"><input type="checkbox" id="chk-queue-header" checked></th>
+                    <th>Site Name</th>
+                    <th>Launcher Button</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-queue">
+                  <!-- Rendered dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Streaming Live Log Terminal -->
+          <div class="glass-panel panel-right">
+            <div class="panel-header">
+              <h3>Execution Terminal Log</h3>
+              <button class="btn-icon" id="btn-clear-terminal" title="Clear Terminal">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              </button>
+            </div>
+            <div class="terminal-log" id="terminal-log">
+              <div class="log-row log-info">System initialized and ready. Select sites and click START SYNC.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: SITES CONFIGURATION -->
+      <section id="tab-sites" class="tab-page">
+        <div class="page-header">
+          <div>
+            <h1>Site Configuration System</h1>
+            <p class="subtitle">Manage FNB sites, launcher buttons, URLs, and IDP credentials</p>
+          </div>
+          <div>
+            <button class="btn btn-primary" id="btn-open-add-site-modal">+ Add Site</button>
+          </div>
+        </div>
+
+        <div class="glass-panel">
+          <div class="table-container">
+            <table class="data-table" id="table-sites-config">
+              <thead>
+                <tr>
+                  <th width="60">Order</th>
+                  <th width="60">Enabled</th>
+                  <th>Site Name</th>
+                  <th>Launcher Button</th>
+                  <th>IDP Username</th>
+                  <th>IDP Password</th>
+                  <th width="200">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-sites-config">
+                <!-- Rendered dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: RUN HISTORY -->
+      <section id="tab-history" class="tab-page">
+        <div class="page-header">
+          <div>
+            <h1>Daily Run History</h1>
+            <p class="subtitle">Review past synchronization runs, CSV line 3 results, and export reports</p>
+          </div>
+          <div class="action-bar">
+            <button class="btn btn-secondary" id="btn-open-reports-folder">Open Reports Folder</button>
+            <button class="btn btn-secondary" id="btn-open-downloads-folder">Open Downloads Folder</button>
+          </div>
+        </div>
+
+        <div class="glass-panel">
+          <div class="table-container">
+            <table class="data-table" id="table-history">
+              <thead>
+                <tr>
+                  <th>Run Date</th>
+                  <th>Start Time</th>
+                  <th>End Time</th>
+                  <th>Total Sites</th>
+                  <th>Completed</th>
+                  <th>Action Points</th>
+                  <th>No Action</th>
+                  <th>Failed</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-history">
+                <!-- Rendered dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: SETTINGS -->
+      <section id="tab-settings" class="tab-page">
+        <div class="page-header">
+          <div>
+            <h1>System Settings</h1>
+            <p class="subtitle">Global launcher, browser, timeout, retry, and selector parameters</p>
+          </div>
+          <div>
+            <button class="btn btn-primary" id="btn-save-settings">Save Settings</button>
+          </div>
+        </div>
+
+        <div class="settings-grid">
+          <!-- Launcher Settings Card -->
+          <div class="glass-panel settings-card">
+            <h3>MSR ZMP Launcher Settings</h3>
+            <div class="form-group">
+              <label>Launcher Executable Path:</label>
+              <input type="text" id="setting-launcher-exe" class="form-control">
+            </div>
+            <div class="form-group">
+              <label>Launcher Window Title:</label>
+              <input type="text" id="setting-launcher-title" class="form-control">
+            </div>
+            <button class="btn btn-secondary btn-sm" id="btn-test-launcher">Test Launcher Process</button>
+          </div>
+
+          <!-- Browser Settings Card -->
+          <div class="glass-panel settings-card">
+            <h3>Browser Automation Settings</h3>
+            <div class="form-group">
+              <label>Browser Engine:</label>
+              <select id="setting-browser-type" class="form-control">
+                <option value="chromium">Chromium</option>
+                <option value="msedge">Microsoft Edge</option>
+                <option value="chrome">Google Chrome</option>
+              </select>
+            </div>
+            <div class="form-group checkbox-group">
+              <label class="switch">
+                <input type="checkbox" id="setting-headless">
+                <span class="slider"></span>
+              </label>
+              <span>Headless Mode (OFF allows viewing live browser)</span>
+            </div>
+          </div>
+
+          <!-- Timeout & Retries Settings Card -->
+          <div class="glass-panel settings-card">
+            <h3>Automation Timeouts & Recovery</h3>
+            <div class="form-row">
+              <div class="form-group half">
+                <label>Page Load Timeout (s):</label>
+                <input type="number" id="setting-page-timeout" class="form-control">
+              </div>
+              <div class="form-group half">
+                <label>Login Timeout (s):</label>
+                <input type="number" id="setting-login-timeout" class="form-control">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group half">
+                <label>Fetch Menu Timeout (s):</label>
+                <input type="number" id="setting-fetch-timeout" class="form-control">
+              </div>
+              <div class="form-group half">
+                <label>Process Menu Timeout (s):</label>
+                <input type="number" id="setting-process-timeout" class="form-control">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group half">
+                <label>VM Recovery Timeout (s):</label>
+                <input type="number" id="setting-recovery-timeout" class="form-control">
+              </div>
+              <div class="form-group half">
+                <label>Max Process Retries:</label>
+                <input type="number" id="setting-max-retries" class="form-control">
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 5: DIAGNOSTICS -->
+      <section id="tab-diagnostics" class="tab-page">
+        <div class="page-header">
+          <div>
+            <h1>Window Inspector & Diagnostics</h1>
+            <p class="subtitle">Scans active Windows top-level windows and launcher button controls</p>
+          </div>
+          <div>
+            <button class="btn btn-primary" id="btn-scan-windows">Scan Windows</button>
+          </div>
+        </div>
+
+        <div class="glass-panel">
+          <div class="table-container">
+            <table class="data-table" id="table-diagnostics">
+              <thead>
+                <tr>
+                  <th width="80">HWND</th>
+                  <th width="140">Process</th>
+                  <th>Window Title</th>
+                  <th>Buttons / Controls Found</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-diagnostics">
+                <!-- Rendered dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- SITE ADD/EDIT MODAL -->
+  <div class="modal-overlay" id="modal-site">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modal-site-title">Add New Site</h3>
+        <button class="btn-icon" id="btn-close-modal-site">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="modal-site-id">
+        <div class="form-group">
+          <label>Site Name *</label>
+          <input type="text" id="modal-site-name" class="form-control" placeholder="e.g. FNB or Site 22">
+        </div>
+        <div class="form-group">
+          <label>Launcher Button Name *</label>
+          <input type="text" id="modal-site-button" class="form-control" placeholder="e.g. FNB or SITE22">
+        </div>
+        <div class="form-group">
+          <label>IRD Webpage URL</label>
+          <input type="text" id="modal-site-url" class="form-control" placeholder="https://site22-portal.mymenu.internal">
+        </div>
+        <div class="form-row">
+          <div class="form-group half">
+            <label>IDP Username</label>
+            <input type="text" id="modal-site-username" class="form-control" placeholder="admin@mymenu.local">
+          </div>
+          <div class="form-group half">
+            <label>IDP Password</label>
+            <div class="password-input-wrap">
+              <input type="password" id="modal-site-password" class="form-control" placeholder="Enter password">
+              <button class="btn-eye" id="btn-toggle-password" type="button" title="Show/Hide Password">👁</button>
+            </div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group half">
+            <label>Sort Order</label>
+            <input type="number" id="modal-site-order" class="form-control" value="0">
+          </div>
+          <div class="form-group half checkbox-group">
+            <label class="switch">
+              <input type="checkbox" id="modal-site-enabled" checked>
+              <span class="slider"></span>
+            </label>
+            <span>Enabled</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btn-cancel-modal-site">Cancel</button>
+        <button class="btn btn-primary" id="btn-save-modal-site">Save Site</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RUN DETAILS MODAL -->
+  <div class="modal-overlay" id="modal-history-detail">
+    <div class="modal-card modal-large">
+      <div class="modal-header">
+        <h3 id="modal-history-title">Run Details</h3>
+        <button class="btn-icon" id="btn-close-modal-history">&times;</button>
+      </div>
+      <div class="modal-body" id="modal-history-body">
+        <!-- Rendered dynamically -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btn-close-history-footer">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

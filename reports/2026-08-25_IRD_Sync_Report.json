@@ -1,0 +1,28 @@
+{
+  "run": {
+    "run_date": "2026-08-25",
+    "total_sites": 2,
+    "completed_sites": 2,
+    "action_points_count": 1,
+    "no_action_points_count": 1,
+    "failed_sites_count": 0
+  },
+  "results": [
+    {
+      "site_name": "FNB",
+      "status": "COMPLETED",
+      "action_point_status": "NO ACTION POINT",
+      "third_line_text": "No Action Point",
+      "duration_seconds": 12.4,
+      "retry_count": 0
+    },
+    {
+      "site_name": "Site 02",
+      "status": "COMPLETED",
+      "action_point_status": "ACTION POINT FOUND",
+      "third_line_text": "Action Required: Price Updated",
+      "duration_seconds": 15.1,
+      "retry_count": 1
+    }
+  ]
+}
