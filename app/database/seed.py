@@ -32,11 +32,13 @@ def seed_default_sites_if_empty():
     """Seeds the initial 21 sites if the database has zero sites configured."""
     existing = get_all_sites()
     if existing:
-        logger.info(f"Database already contains {len(existing)} sites. Skipping default seed.")
+        logger.info(f"Database already contains {len(existing)} sites. Checking port assignments...")
+        reassign_unique_local_ports_if_colliding(existing)
         return
 
     logger.info("Seeding initial 21 sites into database...")
     for idx, item in enumerate(INITIAL_21_SITES, start=1):
+        port = 18000 + idx
         site = Site(
             name=item["name"],
             launcher_button=item["launcher_button"],
@@ -45,7 +47,27 @@ def seed_default_sites_if_empty():
             idp_password="ChangeMe123!",
             enabled=True,
             sort_order=idx,
-            notes="Default configured site"
+            notes="Default configured site",
+            local_port=port,
+            web_url=f"http://127.0.0.1:{port}"
         )
         add_site(site)
     logger.info("Successfully seeded 21 initial sites.")
+
+def reassign_unique_local_ports_if_colliding(sites=None):
+    """Ensures each site has a unique local port (18001, 18002, ...)."""
+    from app.database.db import get_all_sites, update_site
+    if sites is None:
+        sites = get_all_sites()
+
+    ports = [s.local_port for s in sites]
+    # If all ports are 18001 or duplicates exist
+    if len(set(ports)) < len(sites):
+        logger.info("Detected duplicate local ports. Assigning unique local ports (18001, 18002, ...)...")
+        for idx, site in enumerate(sites, start=1):
+            new_port = 18000 + idx
+            site.local_port = new_port
+            if not site.web_url or site.web_url == "http://127.0.0.1:18001":
+                site.web_url = f"http://127.0.0.1:{new_port}"
+            update_site(site)
+        logger.info("Unique local ports assigned successfully.")

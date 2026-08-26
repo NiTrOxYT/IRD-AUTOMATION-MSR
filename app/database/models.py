@@ -13,6 +13,19 @@ class Site:
     enabled: bool = True
     sort_order: int = 0
     notes: str = ""
+    # Tunnel / SSH Configurations
+    local_port: int = 18001
+    remote_host: str = "127.0.0.1"
+    remote_port: int = 80
+    ssh_host: str = ""
+    ssh_port: int = 22
+    ssh_username: str = ""
+    ssh_password: str = ""  # Plaintext in memory, stored encrypted in DB
+    ssh_key_path: str = ""
+    auth_type: str = "key"  # key, session, password
+    putty_session: str = ""
+    tunnel_type: str = "reverse"
+    web_url: str = ""
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
 

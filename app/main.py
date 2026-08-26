@@ -1,5 +1,6 @@
 import os
 import sys
+import json
 import asyncio
 import logging
 import threading
@@ -7,6 +8,11 @@ import subprocess
 import webbrowser
 from pathlib import Path
 from typing import List, Dict, Any, Optional
+
+# Ensure project root is in sys.path for top-level app imports
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 import uvicorn
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
@@ -21,10 +27,12 @@ from app.database.db import (
 )
 from app.database.seed import seed_default_sites_if_empty
 from app.database.models import Site
-from app.logging.logger import setup_global_logging, get_recent_logs, memory_log_handler
+from app.app_logging.logger import setup_global_logging, get_recent_logs, memory_log_handler
 from app.automation.workflow_runner import workflow_runner
 from app.launcher.window_inspector import inspect_all_windows
 from app.launcher.launcher_manager import LauncherManager
+from app.tunneling import port_manager, putty_manager, tunnel_manager
+from app.diagnostics import package_validator
 
 # 1. Setup Logging & DB
 setup_global_logging()
@@ -57,24 +65,36 @@ class ConnectionManager:
                 self.disconnect(connection)
 
 ws_manager = ConnectionManager()
+main_event_loop: Optional[asyncio.AbstractEventLoop] = None
+
+@app.on_event("startup")
+async def startup_event():
+    global main_event_loop
+    main_event_loop = asyncio.get_running_loop()
+
+def safe_broadcast(payload: dict):
+    global main_event_loop
+    try:
+        loop = main_event_loop
+        if loop is None or not loop.is_running():
+            loop = asyncio.get_event_loop_policy().get_event_loop()
+        if loop and loop.is_running():
+            asyncio.run_coroutine_threadsafe(ws_manager.broadcast_json(payload), loop)
+    except Exception:
+        pass
 
 # Hook memory log stream to WebSocket broadcast
 def on_new_log(log_entry: dict):
-    asyncio.run_coroutine_threadsafe(
-        ws_manager.broadcast_json({"type": "log", "data": log_entry}),
-        loop=asyncio.get_event_loop()
-    )
+    safe_broadcast({"type": "log", "data": log_entry})
 
 memory_log_handler.add_listener(on_new_log)
 
 # Hook workflow status changes to WebSocket broadcast
 def on_workflow_status(status_payload: dict):
-    asyncio.run_coroutine_threadsafe(
-        ws_manager.broadcast_json({"type": "status", "data": status_payload}),
-        loop=asyncio.get_event_loop()
-    )
+    safe_broadcast({"type": "status", "data": status_payload})
 
 workflow_runner.add_status_listener(on_workflow_status)
+
 
 # --- REST API ENDPOINTS ---
 
@@ -157,10 +177,68 @@ async def test_site_connection(site_id: int):
 async def run_integration_test(data: dict):
     site_id = int(data.get("site_id", 0))
     stage = str(data.get("stage", "full_workflow"))
+    logger.info(f"INFO | Integration test request received | Site ID: {site_id} | Stage: {stage}")
     if not site_id:
         raise HTTPException(status_code=400, detail="Site ID is required for integration test.")
-    res = await workflow_runner.run_integration_test_stage(site_id, stage)
+    try:
+        res = await workflow_runner.run_integration_test_stage(site_id, stage)
+        return res
+    except Exception as e:
+        import traceback
+        tb = traceback.format_exc()
+        logger.error(f"Error executing integration test stage '{stage}': {e}\n{tb}")
+        return {
+            "success": False,
+            "stage": stage,
+            "message": f"Server exception during integration test: {str(e)}",
+            "traceback": tb,
+            "details": [f"Exception: {str(e)}"]
+        }
+
+@app.post("/api/integration-test/stop")
+async def stop_integration_test():
+    logger.info("INFO | Integration test stop request received.")
+    workflow_runner.stop_automation()
+    return {"success": True, "message": "Integration test stop signal sent."}
+
+@app.post("/api/tunnel/detect")
+async def detect_putty():
+    res = putty_manager.detect_executables()
     return res
+
+@app.post("/api/sites/{site_id}/tunnel/test")
+async def test_site_tunnel(site_id: int):
+    site = get_site_by_id(site_id)
+    if not site:
+        raise HTTPException(status_code=404, detail="Site not found.")
+    timeout = int(get_all_settings().get("tunnel_start_timeout", 30))
+    ok, msg, details = await tunnel_manager.start_and_verify_tunnel(site, timeout_seconds=timeout)
+    return {
+        "success": ok,
+        "site": site.name,
+        "message": msg,
+        "details": details
+    }
+
+@app.get("/api/tunnels/status")
+async def get_tunnels_status():
+    sites = get_all_sites()
+    return [tunnel_manager.get_tunnel_status(s) for s in sites]
+
+@app.get("/api/diagnostics/package-health")
+async def get_package_health():
+    return package_validator.validate_package_health()
+
+@app.post("/api/tunnel/test-plink")
+async def test_plink():
+    return putty_manager.test_plink_executable()
+
+@app.get("/api/tunnel/info")
+async def get_tunnel_info():
+    return putty_manager.detect_executables()
+
+
+
 
 
 @app.get("/api/settings")
@@ -251,16 +329,17 @@ async def get_logs():
 @app.get("/api/open-folder/reports")
 async def open_reports_folder():
     path = str(REPORTS_DIR)
-    if os.name == 'nt':
-        os.startfile(path)
+    if hasattr(os, "startfile"):
+        getattr(os, "startfile")(path)
     return {"success": True}
 
 @app.get("/api/open-folder/downloads")
 async def open_downloads_folder():
     path = str(DOWNLOADS_DIR)
-    if os.name == 'nt':
-        os.startfile(path)
+    if hasattr(os, "startfile"):
+        getattr(os, "startfile")(path)
     return {"success": True}
+
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):

@@ -39,4 +39,10 @@ DEFAULT_SETTINGS = {
     "reports_dir": str(REPORTS_DIR),
     "debug_mode": True,          # Capture screenshots on errors/steps
     "port": 18492,               # Internal API bridge port
+    "putty_path": r"C:\Program Files\PuTTY\plink.exe",
+    "default_local_port": 18001,
+    "tunnel_start_timeout": 30,  # seconds
+    "tunnel_retry_count": 3,
+    "auto_stop_tunnel": True,
+    "auto_restart_tunnel": True,
 }

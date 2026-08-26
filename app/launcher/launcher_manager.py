@@ -5,9 +5,23 @@ import logging
 import platform
 from typing import Optional, Dict, Any
 
+# Safe top-level Windows imports
+try:
+    import win32gui
+    import win32con
+except ImportError:
+    win32gui = None
+    win32con = None
+
+try:
+    from pywinauto import Application
+except ImportError:
+    Application = None
+
 from app.database.db import get_setting
 
 logger = logging.getLogger("IRD_LauncherManager")
+
 
 class LauncherManager:
     def __init__(self):
@@ -46,6 +60,10 @@ class LauncherManager:
                     time.sleep(1.0)
             except Exception as e:
                 logger.error(f"Failed to start launcher executable: {e}")
+
+        logger.warning(f"MSR ZMP PORTAL LAUNCHER is not running. (Path: {self.exe_path})")
+        return False
+
 
     def find_launcher_hwnd(self) -> Optional[int]:
         """Finds window handle for launcher matching configured window title or process name."""

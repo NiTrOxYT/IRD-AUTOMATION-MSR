@@ -94,6 +94,29 @@ def init_db():
     );
     """)
 
+    # Non-destructive Migration for Sites Table Tunnel Fields
+    cursor.execute("PRAGMA table_info(sites)")
+    existing_cols = {col[1] for col in cursor.fetchall()}
+
+    tunnel_columns = [
+        ("local_port", "INTEGER DEFAULT 18001"),
+        ("remote_host", "TEXT DEFAULT '127.0.0.1'"),
+        ("remote_port", "INTEGER DEFAULT 80"),
+        ("ssh_host", "TEXT DEFAULT ''"),
+        ("ssh_port", "INTEGER DEFAULT 22"),
+        ("ssh_username", "TEXT DEFAULT ''"),
+        ("ssh_password_encrypted", "TEXT DEFAULT ''"),
+        ("ssh_key_path", "TEXT DEFAULT ''"),
+        ("auth_type", "TEXT DEFAULT 'key'"),
+        ("putty_session", "TEXT DEFAULT ''"),
+        ("tunnel_type", "TEXT DEFAULT 'reverse'"),
+        ("web_url", "TEXT DEFAULT ''")
+    ]
+
+    for col_name, col_type in tunnel_columns:
+        if col_name not in existing_cols:
+            cursor.execute(f"ALTER TABLE sites ADD COLUMN {col_name} {col_type}")
+
     conn.commit()
     conn.close()
 
@@ -149,6 +172,36 @@ def _init_default_selectors():
 
 # --- SITES CRUD ---
 
+def _row_to_site(r: sqlite3.Row) -> Site:
+    keys = r.keys()
+    dec_pass = decrypt_password(r["idp_password_encrypted"])
+    dec_ssh_pass = decrypt_password(r["ssh_password_encrypted"]) if "ssh_password_encrypted" in keys else ""
+    return Site(
+        id=r["id"],
+        name=r["name"],
+        launcher_button=r["launcher_button"],
+        url=r["url"],
+        idp_username=r["idp_username"],
+        idp_password=dec_pass,
+        enabled=bool(r["enabled"]),
+        sort_order=r["sort_order"],
+        notes=r["notes"],
+        local_port=r["local_port"] if "local_port" in keys and r["local_port"] is not None else 18001,
+        remote_host=r["remote_host"] if "remote_host" in keys and r["remote_host"] is not None else "127.0.0.1",
+        remote_port=r["remote_port"] if "remote_port" in keys and r["remote_port"] is not None else 80,
+        ssh_host=r["ssh_host"] if "ssh_host" in keys and r["ssh_host"] is not None else "",
+        ssh_port=r["ssh_port"] if "ssh_port" in keys and r["ssh_port"] is not None else 22,
+        ssh_username=r["ssh_username"] if "ssh_username" in keys and r["ssh_username"] is not None else "",
+        ssh_password=dec_ssh_pass,
+        ssh_key_path=r["ssh_key_path"] if "ssh_key_path" in keys and r["ssh_key_path"] is not None else "",
+        auth_type=r["auth_type"] if "auth_type" in keys and r["auth_type"] is not None else "key",
+        putty_session=r["putty_session"] if "putty_session" in keys and r["putty_session"] is not None else "",
+        tunnel_type=r["tunnel_type"] if "tunnel_type" in keys and r["tunnel_type"] is not None else "reverse",
+        web_url=r["web_url"] if "web_url" in keys and r["web_url"] is not None else "",
+        created_at=r["created_at"],
+        updated_at=r["updated_at"]
+    )
+
 def get_all_sites() -> List[Site]:
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -156,23 +209,7 @@ def get_all_sites() -> List[Site]:
     rows = cursor.fetchall()
     conn.close()
 
-    sites = []
-    for r in rows:
-        dec_pass = decrypt_password(r["idp_password_encrypted"])
-        sites.append(Site(
-            id=r["id"],
-            name=r["name"],
-            launcher_button=r["launcher_button"],
-            url=r["url"],
-            idp_username=r["idp_username"],
-            idp_password=dec_pass,
-            enabled=bool(r["enabled"]),
-            sort_order=r["sort_order"],
-            notes=r["notes"],
-            created_at=r["created_at"],
-            updated_at=r["updated_at"]
-        ))
-    return sites
+    return [_row_to_site(r) for r in rows]
 
 def get_site_by_id(site_id: int) -> Optional[Site]:
     conn = get_db_connection()
@@ -182,24 +219,13 @@ def get_site_by_id(site_id: int) -> Optional[Site]:
     conn.close()
     if not r:
         return None
-    return Site(
-        id=r["id"],
-        name=r["name"],
-        launcher_button=r["launcher_button"],
-        url=r["url"],
-        idp_username=r["idp_username"],
-        idp_password=decrypt_password(r["idp_password_encrypted"]),
-        enabled=bool(r["enabled"]),
-        sort_order=r["sort_order"],
-        notes=r["notes"],
-        created_at=r["created_at"],
-        updated_at=r["updated_at"]
-    )
+    return _row_to_site(r)
 
 def add_site(site: Site) -> int:
     conn = get_db_connection()
     cursor = conn.cursor()
     enc_pass = encrypt_password(site.idp_password)
+    enc_ssh_pass = encrypt_password(site.ssh_password)
     now = datetime.now().isoformat()
 
     # Get max sort_order
@@ -208,19 +234,18 @@ def add_site(site: Site) -> int:
     sort_order = site.sort_order if site.sort_order > 0 else max_order + 1
 
     cursor.execute("""
-    INSERT INTO sites (name, launcher_button, url, idp_username, idp_password_encrypted, enabled, sort_order, notes, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO sites (
+        name, launcher_button, url, idp_username, idp_password_encrypted, enabled, sort_order, notes,
+        local_port, remote_host, remote_port, ssh_host, ssh_port, ssh_username, ssh_password_encrypted,
+        ssh_key_path, auth_type, putty_session, tunnel_type, web_url, created_at, updated_at
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
-        site.name.strip(),
-        site.launcher_button.strip(),
-        site.url.strip(),
-        site.idp_username.strip(),
-        enc_pass,
-        1 if site.enabled else 0,
-        sort_order,
-        site.notes,
-        now,
-        now
+        site.name.strip(), site.launcher_button.strip(), site.url.strip(), site.idp_username.strip(), enc_pass,
+        1 if site.enabled else 0, sort_order, site.notes,
+        site.local_port, site.remote_host.strip(), site.remote_port, site.ssh_host.strip(), site.ssh_port,
+        site.ssh_username.strip(), enc_ssh_pass, site.ssh_key_path.strip(), site.auth_type,
+        site.putty_session.strip(), site.tunnel_type, site.web_url.strip(), now, now
     ))
     conn.commit()
     new_id = cursor.lastrowid
@@ -231,24 +256,31 @@ def update_site(site: Site):
     conn = get_db_connection()
     cursor = conn.cursor()
     now = datetime.now().isoformat()
+    enc_idp = encrypt_password(site.idp_password) if site.idp_password else None
+    enc_ssh = encrypt_password(site.ssh_password) if site.ssh_password else None
 
-    if site.idp_password:
-        enc_pass = encrypt_password(site.idp_password)
-        cursor.execute("""
-        UPDATE sites SET name=?, launcher_button=?, url=?, idp_username=?, idp_password_encrypted=?, enabled=?, sort_order=?, notes=?, updated_at=?
-        WHERE id=?
-        """, (
-            site.name.strip(), site.launcher_button.strip(), site.url.strip(), site.idp_username.strip(),
-            enc_pass, 1 if site.enabled else 0, site.sort_order, site.notes, now, site.id
-        ))
-    else:
-        cursor.execute("""
-        UPDATE sites SET name=?, launcher_button=?, url=?, idp_username=?, enabled=?, sort_order=?, notes=?, updated_at=?
-        WHERE id=?
-        """, (
-            site.name.strip(), site.launcher_button.strip(), site.url.strip(), site.idp_username.strip(),
-            1 if site.enabled else 0, site.sort_order, site.notes, now, site.id
-        ))
+    # Retrieve existing passwords if not provided in update
+    cursor.execute("SELECT idp_password_encrypted, ssh_password_encrypted FROM sites WHERE id=?", (site.id,))
+    row = cursor.fetchone()
+    if row:
+        if not enc_idp:
+            enc_idp = row["idp_password_encrypted"]
+        if not enc_ssh:
+            enc_ssh = row["ssh_password_encrypted"]
+
+    cursor.execute("""
+    UPDATE sites SET
+        name=?, launcher_button=?, url=?, idp_username=?, idp_password_encrypted=?, enabled=?, sort_order=?, notes=?,
+        local_port=?, remote_host=?, remote_port=?, ssh_host=?, ssh_port=?, ssh_username=?, ssh_password_encrypted=?,
+        ssh_key_path=?, auth_type=?, putty_session=?, tunnel_type=?, web_url=?, updated_at=?
+    WHERE id=?
+    """, (
+        site.name.strip(), site.launcher_button.strip(), site.url.strip(), site.idp_username.strip(), enc_idp,
+        1 if site.enabled else 0, site.sort_order, site.notes,
+        site.local_port, site.remote_host.strip(), site.remote_port, site.ssh_host.strip(), site.ssh_port,
+        site.ssh_username.strip(), enc_ssh, site.ssh_key_path.strip(), site.auth_type, site.putty_session.strip(),
+        site.tunnel_type, site.web_url.strip(), now, site.id
+    ))
     conn.commit()
     conn.close()
 

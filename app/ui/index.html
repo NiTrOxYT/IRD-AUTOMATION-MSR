@@ -276,9 +276,14 @@
           <div>
             <h1>Integration Test Console</h1>
             <p class="subtitle">Validate atomic workflow stages on a single site before executing multi-site runs</p>
+            <div style="margin-top: 6px; font-size: 0.85rem; font-family: monospace;">
+              <span id="badge-backend-status" style="display:inline-block; padding: 2px 8px; border-radius: 4px; background: rgba(59, 130, 246, 0.2); color: #60a5fa; margin-right: 8px;">Backend: CONNECTING...</span>
+              <span id="badge-ws-status" style="display:inline-block; padding: 2px 8px; border-radius: 4px; background: rgba(234, 179, 8, 0.2); color: #facc15;">WebSocket: CONNECTING...</span>
+            </div>
           </div>
-          <div>
+          <div style="display: flex; align-items: center; gap: 8px;">
             <button class="btn btn-primary" id="btn-run-stage-test">RUN STAGE TEST</button>
+            <button class="btn" id="btn-stop-stage-test" style="display:none; background-color: var(--accent-red, #ef4444); color: white;">STOP TEST</button>
           </div>
         </div>
 
@@ -293,14 +298,19 @@
             <div class="form-group half">
               <label>Select Test Stage *</label>
               <select id="select-test-stage" class="form-control">
-                <option value="launcher">1. MSR ZMP Launcher Button</option>
-                <option value="tunnel_webpage">2. Tunnel / Webpage Availability</option>
-                <option value="login">3. IDP Login Authentication</option>
-                <option value="sync_mymenu">4. Sync MyMenu Navigation</option>
-                <option value="fetch_menu">5. Fetch Menu Operation</option>
-                <option value="process_menu">6. Process Latest Menu</option>
-                <option value="download_csv">7. Download Action Point CSV</option>
-                <option value="full_workflow" selected>8. Full Workflow (All Stages)</option>
+                <option value="backend_test" selected>0. Diagnostic Backend Test (1s mock)</option>
+                <option value="package_check">1. Package Health Check</option>
+                <option value="plink_check">2. Plink Executable Check (-V)</option>
+                <option value="port_check">3. Local Port Availability Check</option>
+                <option value="start_tunnel">4. Start & Verify PuTTY Reverse SSH Tunnel</option>
+                <option value="tunnel_webpage">5. Tunnel & Webpage Availability</option>
+                <option value="login">6. IDP Login Authentication</option>
+                <option value="sync_mymenu">7. Sync MyMenu Navigation</option>
+                <option value="fetch_menu">8. Fetch Menu Operation</option>
+                <option value="process_menu">9. Process Latest Menu</option>
+                <option value="download_csv">10. Download Action Point CSV</option>
+                <option value="full_workflow">11. Full Workflow (All Stages)</option>
+                <option value="launcher">12. MSR ZMP Launcher Button (Deprecated)</option>
               </select>
             </div>
           </div>
@@ -328,6 +338,57 @@
         </div>
 
         <div class="settings-grid">
+          <!-- PuTTY / Plink Portable Settings Card -->
+          <div class="glass-panel settings-card">
+            <h3>Bundled PuTTY / Plink Executable</h3>
+            <div style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 10px;">
+              Source: <strong style="color: #60a5fa;">Bundled with IRD Sync Automation</strong> (`tools\putty\plink.exe`)
+            </div>
+            <div style="margin-bottom: 12px; font-family: monospace; font-size: 0.85rem;">
+              <span id="badge-plink-status" style="display:inline-block; padding: 3px 8px; border-radius: 4px; background: rgba(34, 197, 94, 0.2); color: #4ade80; margin-right: 8px;">✓ FOUND</span>
+              <span id="badge-plink-version" style="color: #cbd5e1;">Release 0.85 (64-bit)</span>
+            </div>
+            <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+              <button class="btn btn-secondary btn-sm" id="btn-test-plink" type="button">TEST PLINK (-V)</button>
+            </div>
+            <div class="form-group checkbox-group" style="margin-top: 10px;">
+              <label class="switch">
+                <input type="checkbox" id="setting-use-custom-plink">
+                <span class="slider"></span>
+              </label>
+              <span>Use custom Plink executable path (Dev / Debug override)</span>
+            </div>
+            <div class="form-group" id="group-custom-plink" style="display: none; margin-top: 8px;">
+              <label>Custom Plink Executable Path:</label>
+              <input type="text" id="setting-custom-plink-path" class="form-control" placeholder="C:\Custom\plink.exe">
+            </div>
+            <div class="form-row" style="margin-top: 12px;">
+              <div class="form-group half">
+                <label>Default Local Port:</label>
+                <input type="number" id="setting-default-local-port" class="form-control" value="18001">
+              </div>
+              <div class="form-group half">
+                <label>Tunnel Start Timeout (sec):</label>
+                <input type="number" id="setting-tunnel-timeout" class="form-control" value="30">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group half checkbox-group">
+                <label class="switch">
+                  <input type="checkbox" id="setting-auto-stop-tunnel" checked>
+                  <span class="slider"></span>
+                </label>
+                <span>Auto Stop Tunnel</span>
+              </div>
+              <div class="form-group half checkbox-group">
+                <label class="switch">
+                  <input type="checkbox" id="setting-auto-restart-tunnel" checked>
+                  <span class="slider"></span>
+                </label>
+                <span>Auto Restart Tunnel</span>
+              </div>
+            </div>
+          </div>
           <!-- Launcher Settings Card -->
           <div class="glass-panel settings-card">
             <h3>MSR ZMP Launcher Settings</h3>
@@ -403,11 +464,21 @@
       <section id="tab-diagnostics" class="tab-page">
         <div class="page-header">
           <div>
-            <h1>Window Inspector & Diagnostics</h1>
-            <p class="subtitle">Scans active Windows top-level windows and launcher button controls</p>
+            <h1>Package Health & Diagnostics</h1>
+            <p class="subtitle">Validates portable package structure, bundled binaries, data directories, and window controls</p>
           </div>
           <div>
             <button class="btn btn-primary" id="btn-scan-windows">Scan Windows</button>
+          </div>
+        </div>
+
+        <div class="glass-panel" style="margin-bottom: 20px;">
+          <h3 style="margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+            <span>Application Package Health</span>
+            <span id="badge-package-overall" class="status-badge badge-ready">CHECKING...</span>
+          </h3>
+          <div id="package-health-checklist" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px;">
+            <!-- Rendered dynamically -->
           </div>
         </div>
 
@@ -480,8 +551,66 @@
             <span>Enabled</span>
           </div>
         </div>
+
+        <!-- TUNNEL CONFIGURATION SECTION -->
+        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
+          <h4 style="margin-bottom: 12px; color: var(--accent-blue, #3b82f6);">PuTTY / Plink Reverse SSH Tunnel Settings</h4>
+          <div class="form-row">
+            <div class="form-group half">
+              <label>Local Port *</label>
+              <input type="number" id="modal-site-local-port" class="form-control" placeholder="18001">
+            </div>
+            <div class="form-group half">
+              <label>SSH Auth Type</label>
+              <select id="modal-site-auth-type" class="form-control">
+                <option value="key">Private Key (-i)</option>
+                <option value="session">PuTTY Session (-load)</option>
+                <option value="password">Password (-pw)</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group half">
+              <label>SSH Host</label>
+              <input type="text" id="modal-site-ssh-host" class="form-control" placeholder="gateway.internal">
+            </div>
+            <div class="form-group half">
+              <label>SSH Port</label>
+              <input type="number" id="modal-site-ssh-port" class="form-control" value="22">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group half">
+              <label>SSH Username</label>
+              <input type="text" id="modal-site-ssh-user" class="form-control" placeholder="tunnel_user">
+            </div>
+            <div class="form-group half">
+              <label>PuTTY Session Name</label>
+              <input type="text" id="modal-site-session" class="form-control" placeholder="FNB_Session">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group half">
+              <label>Remote Host</label>
+              <input type="text" id="modal-site-remote-host" class="form-control" value="127.0.0.1">
+            </div>
+            <div class="form-group half">
+              <label>Remote Port</label>
+              <input type="number" id="modal-site-remote-port" class="form-control" value="80">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>SSH Key Path / SSH Password</label>
+            <input type="text" id="modal-site-ssh-key-or-pass" class="form-control" placeholder="C:\Keys\id_rsa.ppk or SSH Password">
+          </div>
+          <div class="form-group">
+            <label>Full Web URL (Local Endpoint)</label>
+            <input type="text" id="modal-site-web-url" class="form-control" placeholder="http://127.0.0.1:18001">
+          </div>
+        </div>
       </div>
       <div class="modal-footer">
+        <button class="btn btn-warning" id="btn-test-modal-tunnel" style="margin-right: auto;">TEST TUNNEL</button>
         <button class="btn btn-secondary" id="btn-cancel-modal-site">Cancel</button>
         <button class="btn btn-primary" id="btn-save-modal-site">Save Site</button>
       </div>

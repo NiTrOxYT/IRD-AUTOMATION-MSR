@@ -1,0 +1,3 @@
+00:18:39 | INFO  | IRD_Seed | Database already contains 22 sites. Skipping default seed.
+00:18:39 | INFO  | IRD_Main | IRD Sync Automation server started at http://127.0.0.1:18492
+00:18:40 | INFO  | IRD_Main | Opening PyWebView desktop window...

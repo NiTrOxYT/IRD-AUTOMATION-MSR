@@ -16,6 +16,7 @@ from app.launcher.launcher_manager import LauncherManager
 from app.browser.browser_controller import BrowserController
 from app.csv_analyzer.analyzer import analyze_action_point_csv
 from app.reports.report_generator import export_reports
+from app.tunneling import port_manager, putty_manager, tunnel_manager
 
 logger = logging.getLogger("IRD_WorkflowRunner")
 
@@ -31,7 +32,8 @@ class WorkflowRunner:
         self.current_status_details: str = "Ready to start"
         self.progress_percentage: float = 0.0
 
-        self.launcher_mgr = LauncherManager()
+        self.launcher_mgr = LauncherManager()  # Deprecated in Phase 4
+        self.tunnel_mgr = tunnel_manager
         self.browser_ctrl: Optional[BrowserController] = None
 
         # Event callbacks for UI broadcast
@@ -80,47 +82,133 @@ class WorkflowRunner:
     async def run_integration_test_stage(self, site_id: int, stage_name: str) -> Dict[str, Any]:
         """
         Executes atomic Integration Test stage for a single site (Requirement 2):
-        Stages: 'launcher', 'tunnel_webpage', 'login', 'sync_mymenu', 'fetch_menu', 'process_menu', 'download_csv', 'full_workflow'
+        Stages: 'backend_test', 'launcher', 'tunnel_webpage', 'login', 'sync_mymenu', 'fetch_menu', 'process_menu', 'download_csv', 'full_workflow'
         """
         site = get_site_by_id(site_id)
         if not site:
             return {"success": False, "stage": stage_name, "message": f"Site ID {site_id} not found."}
 
         clean_stage = stage_name.lower().strip()
+        self.stop_requested = False
         logger.info(f"\n==========================================")
         logger.info(f"[{site.name}] RUNNING INTEGRATION TEST STAGE: {clean_stage.upper()}")
         logger.info(f"==========================================")
 
+        # STAGE 0: DIAGNOSTIC BACKEND TEST
+        if clean_stage in ("backend_test", "test_backend"):
+            logger.info(f"[{site.name}] Step 1/3: Received request at backend endpoint.")
+            await asyncio.sleep(0.5)
+            logger.info(f"[{site.name}] Step 2/3: Validated site configuration and database record.")
+            await asyncio.sleep(0.5)
+            logger.info(f"[{site.name}] Step 3/3: Backend infrastructure diagnostic check completed.")
+            return {
+                "success": True,
+                "stage": "backend_test",
+                "site": site.name,
+                "message": f"[{site.name}] Integration Test infrastructure working. Backend test stage passed.",
+                "details": [
+                    "Received request at backend endpoint /api/integration-test/run",
+                    f"Validated site configuration for '{site.name}' (Launcher Button: '{site.launcher_button}')",
+                    "Executed async 1-second diagnostic mock test",
+                    "Status: PASS"
+                ]
+            }
+
         settings = get_all_settings()
-        url = site.url or f"https://{site.name.lower().replace(' ', '')}.mymenu.internal"
+        url = site.web_url or site.url or f"http://127.0.0.1:{site.local_port}"
         date_str = datetime.now().strftime("%Y-%m-%d")
         daily_downloads_dir = os.path.join(settings.get("downloads_dir", str(DOWNLOADS_DIR)), date_str)
 
-        # STAGE 1: LAUNCHER
-        if clean_stage == "launcher":
-            res = self.launcher_mgr.test_launcher_stage(site.launcher_button)
-            return {
-                "success": res["overall_status"] == "PASS" or "PASS" in res["overall_status"],
-                "stage": "launcher",
-                "site": site.name,
-                "message": f"Launcher button test '{site.launcher_button}': {res['overall_status']}",
-                "details": res["details"]
-            }
-
-        # BROWSER BASED STAGES
-        browser = BrowserController()
         try:
+            # STAGE: PACKAGE HEALTH CHECK
+            if clean_stage in ("package_check", "package_health"):
+                from app.diagnostics.package_validator import package_validator
+                health = package_validator.validate_package_health()
+                details = [f"{c['name']}: {c['status']} ({c['path']})" for c in health["checks"]]
+                return {
+                    "success": health["all_ok"],
+                    "stage": "package_check",
+                    "site": site.name,
+                    "message": f"Package Health Status: {health['overall_status']}",
+                    "details": details
+                }
+
+            # STAGE: PLINK EXECUTABLE CHECK
+            if clean_stage in ("plink_check", "test_plink"):
+                p_res = putty_manager.test_plink_executable()
+                return {
+                    "success": p_res["success"],
+                    "stage": "plink_check",
+                    "site": site.name,
+                    "message": p_res["message"],
+                    "details": [
+                        f"Path: {p_res['path']}",
+                        f"Version: {p_res['version']}",
+                        f"Output: {p_res.get('details', '')}"
+                    ]
+                }
+
+            # STAGE: PORT CHECK
+            if clean_stage == "port_check":
+                is_free = port_manager.verify_port_available(site.local_port)
+                return {
+                    "success": is_free,
+                    "stage": "port_check",
+                    "site": site.name,
+                    "message": f"[{site.name}] Local port {site.local_port} is {'AVAILABLE' if is_free else 'OCCUPIED'}",
+                    "details": [
+                        f"Target Local Port: {site.local_port}",
+                        f"Port Status: {'FREE' if is_free else 'IN USE / OCCUPIED'}"
+                    ]
+                }
+
+            # STAGE: START PUTTY TUNNEL
+            if clean_stage in ("start_tunnel", "putty_tunnel"):
+                t_ok, t_msg, t_details = await self.tunnel_mgr.start_and_verify_tunnel(site, timeout_seconds=int(settings.get("tunnel_start_timeout", 30)))
+                return {
+                    "success": t_ok,
+                    "stage": "start_tunnel",
+                    "site": site.name,
+                    "message": t_msg,
+                    "details": t_details
+                }
+
+            # STAGE 1: LAUNCHER (DEPRECATED FALLBACK)
+            if clean_stage == "launcher":
+                logger.info(f"[{site.name}] Step 1/2: Looking for MSR ZMP PORTAL LAUNCHER window (DEPRECATED)...")
+                logger.info(f"[{site.name}] Step 2/2: Checking '{site.launcher_button}' button in Launcher...")
+                res = self.launcher_mgr.test_launcher_stage(site.launcher_button)
+                logger.info(f"[{site.name}] Launcher stage result: {res['overall_status']}")
+                return {
+                    "success": res["overall_status"] == "PASS" or "PASS" in res["overall_status"],
+                    "stage": "launcher",
+                    "site": site.name,
+                    "message": f"Launcher button test '{site.launcher_button}': {res['overall_status']}",
+                    "details": res["details"]
+                }
+
+            # BROWSER BASED STAGES
+            browser = BrowserController()
             # Stage: TUNNEL WEBPAGE
             if clean_stage in ("tunnel_webpage", "login", "sync_mymenu", "fetch_menu", "process_menu", "download_csv", "full_workflow", "dry_run"):
-                self.launcher_mgr.click_site_button(site.launcher_button)
-                await asyncio.sleep(2.0)
+                if self.stop_requested:
+                    return {"success": False, "stage": clean_stage, "site": site.name, "message": "Test stopped by user."}
 
+                # Establish PuTTY / Plink Reverse Tunnel
+                logger.info(f"[{site.name}] Step 1: Starting and verifying PuTTY SSH reverse tunnel on local port {site.local_port}...")
+                t_ok, t_msg, t_details = await self.tunnel_mgr.start_and_verify_tunnel(site, timeout_seconds=int(settings.get("tunnel_start_timeout", 30)))
+                if not t_ok:
+                    return {"success": False, "stage": clean_stage, "site": site.name, "message": f"[{site.name}] Tunnel start failed: {t_msg}", "details": t_details}
+
+                logger.info(f"[{site.name}] Step 2: Initializing Playwright browser controller...")
                 await browser.initialize(headless=bool(settings.get("headless", False)))
+
+                logger.info(f"[{site.name}] Step 3: Navigating to URL: {url} (Timeout: {settings.get('page_load_timeout', 120)}s)...")
                 nav_ok = await browser.navigate_to_url(url, timeout_seconds=int(settings.get("page_load_timeout", 120)))
 
                 if not nav_ok:
                     await browser.close()
-                    return {"success": False, "stage": clean_stage, "site": site.name, "message": f"[{site.name}] Webpage unreachable at {url}"}
+                    return {"success": False, "stage": clean_stage, "site": site.name, "message": f"[{site.name}] Webpage unreachable at {url} within timeout."}
 
                 if clean_stage == "tunnel_webpage":
                     await browser.capture_screenshot(site.name, "tunnel_webpage_test")
@@ -129,7 +217,12 @@ class WorkflowRunner:
 
             # Stage: LOGIN
             if clean_stage in ("login", "sync_mymenu", "fetch_menu", "process_menu", "download_csv", "full_workflow", "dry_run"):
+                if self.stop_requested:
+                    await browser.close()
+                    return {"success": False, "stage": clean_stage, "site": site.name, "message": "Test stopped by user."}
+
                 if site.idp_username and site.idp_password:
+                    logger.info(f"[{site.name}] Step 4: Authenticating IDP user '{site.idp_username}'...")
                     login_ok, login_msg = await browser.login(site.idp_username, site.idp_password, timeout_seconds=int(settings.get("login_timeout", 60)))
                     if not login_ok:
                         await browser.capture_screenshot(site.name, "login_test_failed")
@@ -143,6 +236,11 @@ class WorkflowRunner:
 
             # Stage: SYNC MYMENU
             if clean_stage in ("sync_mymenu", "fetch_menu", "process_menu", "download_csv", "full_workflow", "dry_run"):
+                if self.stop_requested:
+                    await browser.close()
+                    return {"success": False, "stage": clean_stage, "site": site.name, "message": "Test stopped by user."}
+
+                logger.info(f"[{site.name}] Step 5: Navigating to Sync MyMenu page...")
                 sync_ok, sync_msg = await browser.click_sync_mymenu(timeout_seconds=60)
                 if not sync_ok:
                     await browser.capture_screenshot(site.name, "sync_mymenu_failed")
@@ -156,6 +254,11 @@ class WorkflowRunner:
 
             # Stage: FETCH MENU
             if clean_stage in ("fetch_menu", "process_menu", "download_csv", "full_workflow"):
+                if self.stop_requested:
+                    await browser.close()
+                    return {"success": False, "stage": clean_stage, "site": site.name, "message": "Test stopped by user."}
+
+                logger.info(f"[{site.name}] Step 6: Executing Fetch Menu operation...")
                 fetch_ok, fetch_msg = await browser.click_fetch_menu(timeout_seconds=int(settings.get("fetch_menu_timeout", 600)))
                 if not fetch_ok:
                     await browser.capture_screenshot(site.name, "fetch_menu_failed")
@@ -169,6 +272,11 @@ class WorkflowRunner:
 
             # Stage: PROCESS MENU
             if clean_stage in ("process_menu", "download_csv", "full_workflow"):
+                if self.stop_requested:
+                    await browser.close()
+                    return {"success": False, "stage": clean_stage, "site": site.name, "message": "Test stopped by user."}
+
+                logger.info(f"[{site.name}] Step 7: Processing latest menu...")
                 proc_res = await browser.click_process_latest_menu(timeout_seconds=int(settings.get("process_menu_timeout", 600)))
                 if not proc_res["success"]:
                     await browser.capture_screenshot(site.name, "process_menu_failed")
@@ -182,6 +290,11 @@ class WorkflowRunner:
 
             # Stage: DOWNLOAD CSV
             if clean_stage in ("download_csv", "full_workflow"):
+                if self.stop_requested:
+                    await browser.close()
+                    return {"success": False, "stage": clean_stage, "site": site.name, "message": "Test stopped by user."}
+
+                logger.info(f"[{site.name}] Step 8: Downloading Action Point CSV...")
                 dl_ok, csv_path, dl_err = await browser.download_action_point_csv(daily_downloads_dir, site.name, timeout_seconds=int(settings.get("download_timeout", 120)))
                 await browser.close()
 
@@ -203,9 +316,22 @@ class WorkflowRunner:
             return {"success": True, "stage": clean_stage, "site": site.name, "message": f"[{site.name}] Stage test finished"}
 
         except Exception as e:
-            if browser:
-                await browser.close()
-            return {"success": False, "stage": clean_stage, "site": site.name, "message": f"[{site.name}] Exception: {str(e)}"}
+            try:
+                if 'browser' in locals() and browser:
+                    await browser.close()
+            except Exception:
+                pass
+            import traceback
+            tb = traceback.format_exc()
+            logger.error(f"[{site.name}] Integration test stage '{clean_stage}' failed with exception: {e}\n{tb}")
+            return {
+                "success": False,
+                "stage": clean_stage,
+                "site": site.name,
+                "message": f"[{site.name}] Integration test stage exception: {str(e)}",
+                "traceback": tb,
+                "details": [f"Exception: {str(e)}"]
+            }
 
 
     async def start_batch_sync(self, selected_site_ids: List[int] = None, dry_run: bool = False, resume_run_id: int = None) -> int:

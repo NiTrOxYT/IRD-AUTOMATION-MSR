@@ -26,12 +26,44 @@ function initTabs() {
 
       if (tabId === 'sites') loadSitesConfigTable();
       if (tabId === 'history') loadHistory();
-      if (tabId === 'diagnostics') scanWindows();
+      if (tabId === 'settings') loadPuTTYInfo();
+      if (tabId === 'diagnostics') {
+        scanWindows();
+        loadPackageHealth();
+      }
     });
   });
 }
 
 // WEBSOCKET REAL-TIME CONNECTION
+function updateWebSocketBadge(connected) {
+  const badge = document.getElementById('badge-ws-status');
+  if (!badge) return;
+  if (connected) {
+    badge.textContent = 'WebSocket: CONNECTED';
+    badge.style.background = 'rgba(34, 197, 94, 0.2)';
+    badge.style.color = '#4ade80';
+  } else {
+    badge.textContent = 'WebSocket: DISCONNECTED';
+    badge.style.background = 'rgba(239, 68, 68, 0.2)';
+    badge.style.color = '#f87171';
+  }
+}
+
+function updateBackendBadge(connected) {
+  const badge = document.getElementById('badge-backend-status');
+  if (!badge) return;
+  if (connected) {
+    badge.textContent = 'Backend: CONNECTED';
+    badge.style.background = 'rgba(59, 130, 246, 0.2)';
+    badge.style.color = '#60a5fa';
+  } else {
+    badge.textContent = 'Backend: DISCONNECTED';
+    badge.style.background = 'rgba(239, 68, 68, 0.2)';
+    badge.style.color = '#f87171';
+  }
+}
+
 function initWebSocket() {
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
   const wsUrl = `${protocol}//${window.location.host}/ws`;
@@ -40,6 +72,7 @@ function initWebSocket() {
 
   ws.onopen = () => {
     console.log("WebSocket connected.");
+    updateWebSocketBadge(true);
   };
 
   ws.onmessage = (event) => {
@@ -47,6 +80,7 @@ function initWebSocket() {
       const msg = JSON.parse(event.data);
       if (msg.type === 'log') {
         appendLogToTerminal(msg.data);
+        appendLogToTestConsole(msg.data);
       } else if (msg.type === 'status') {
         updateAutomationStatusUI(msg.data);
       }
@@ -56,8 +90,25 @@ function initWebSocket() {
   };
 
   ws.onclose = () => {
+    updateWebSocketBadge(false);
     setTimeout(initWebSocket, 3000); // Auto reconnect
   };
+}
+
+function appendLogToTestConsole(log) {
+  const liveLogs = document.getElementById('test-live-logs');
+  if (!liveLogs) return;
+
+  const row = document.createElement('div');
+  let levelClass = 'log-info';
+  if (log.level === 'WARNING' || log.level === 'WARN') levelClass = 'log-warn';
+  if (log.level === 'ERROR' || log.level === 'CRITICAL') levelClass = 'log-error';
+
+  row.className = `log-row ${levelClass}`;
+  const timestamp = log.timestamp || new Date().toLocaleTimeString();
+  row.textContent = `[${timestamp}] ${log.logger ? `[${log.logger}] ` : ''}${log.message}`;
+  liveLogs.appendChild(row);
+  liveLogs.scrollTop = liveLogs.scrollHeight;
 }
 
 function appendLogToTerminal(log) {
@@ -126,11 +177,14 @@ function getStatusBadgeClass(statusStr) {
 async function loadSites() {
   try {
     const res = await fetch('/api/sites');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     sitesList = await res.json();
+    updateBackendBadge(true);
     renderQueueTable();
     populateTestSiteDropdown();
     updateMetricsSummary();
   } catch (e) {
+    updateBackendBadge(false);
     console.error("Failed loading sites:", e);
   }
 }
@@ -291,6 +345,18 @@ function openAddSiteModal() {
   document.getElementById('modal-site-order').value = sitesList.length + 1;
   document.getElementById('modal-site-enabled').checked = true;
 
+  const nextPort = 18001 + sitesList.length;
+  document.getElementById('modal-site-local-port').value = nextPort;
+  document.getElementById('modal-site-auth-type').value = "key";
+  document.getElementById('modal-site-ssh-host').value = "";
+  document.getElementById('modal-site-ssh-port').value = 22;
+  document.getElementById('modal-site-ssh-user').value = "";
+  document.getElementById('modal-site-session').value = "";
+  document.getElementById('modal-site-remote-host').value = "127.0.0.1";
+  document.getElementById('modal-site-remote-port').value = 80;
+  document.getElementById('modal-site-ssh-key-or-pass').value = "";
+  document.getElementById('modal-site-web-url').value = `http://127.0.0.1:${nextPort}`;
+
   document.getElementById('modal-site').classList.add('active');
 }
 
@@ -308,11 +374,25 @@ function openEditSiteModal(siteId) {
   document.getElementById('modal-site-order').value = site.sort_order;
   document.getElementById('modal-site-enabled').checked = site.enabled;
 
+  document.getElementById('modal-site-local-port').value = site.local_port || 18001;
+  document.getElementById('modal-site-auth-type').value = site.auth_type || "key";
+  document.getElementById('modal-site-ssh-host').value = site.ssh_host || "";
+  document.getElementById('modal-site-ssh-port').value = site.ssh_port || 22;
+  document.getElementById('modal-site-ssh-user').value = site.ssh_username || "";
+  document.getElementById('modal-site-session').value = site.putty_session || "";
+  document.getElementById('modal-site-remote-host').value = site.remote_host || "127.0.0.1";
+  document.getElementById('modal-site-remote-port').value = site.remote_port || 80;
+  document.getElementById('modal-site-ssh-key-or-pass').value = site.ssh_key_path || site.ssh_password || "";
+  document.getElementById('modal-site-web-url').value = site.web_url || site.url || `http://127.0.0.1:${site.local_port || 18001}`;
+
   document.getElementById('modal-site').classList.add('active');
 }
 
 async function saveSiteModal() {
   const siteId = document.getElementById('modal-site-id').value;
+  const authType = document.getElementById('modal-site-auth-type').value;
+  const keyOrPass = document.getElementById('modal-site-ssh-key-or-pass').value.trim();
+
   const payload = {
     name: document.getElementById('modal-site-name').value.trim(),
     launcher_button: document.getElementById('modal-site-button').value.trim(),
@@ -320,7 +400,18 @@ async function saveSiteModal() {
     idp_username: document.getElementById('modal-site-username').value.trim(),
     idp_password: document.getElementById('modal-site-password').value,
     sort_order: parseInt(document.getElementById('modal-site-order').value) || 0,
-    enabled: document.getElementById('modal-site-enabled').checked
+    enabled: document.getElementById('modal-site-enabled').checked,
+    local_port: parseInt(document.getElementById('modal-site-local-port').value) || 18001,
+    auth_type: authType,
+    ssh_host: document.getElementById('modal-site-ssh-host').value.trim(),
+    ssh_port: parseInt(document.getElementById('modal-site-ssh-port').value) || 22,
+    ssh_username: document.getElementById('modal-site-ssh-user').value.trim(),
+    putty_session: document.getElementById('modal-site-session').value.trim(),
+    remote_host: document.getElementById('modal-site-remote-host').value.trim() || "127.0.0.1",
+    remote_port: parseInt(document.getElementById('modal-site-remote-port').value) || 80,
+    ssh_key_path: authType === 'key' ? keyOrPass : "",
+    ssh_password: authType === 'password' ? keyOrPass : "",
+    web_url: document.getElementById('modal-site-web-url').value.trim()
   };
 
   if (!payload.name || !payload.launcher_button) {
@@ -454,6 +545,12 @@ async function loadSettings() {
     document.getElementById('setting-browser-type').value = settings.browser_type || 'chromium';
     document.getElementById('setting-headless').checked = settings.headless === true || settings.headless === 'true';
 
+    document.getElementById('setting-putty-path').value = settings.putty_path || '';
+    document.getElementById('setting-default-local-port').value = settings.default_local_port || 18001;
+    document.getElementById('setting-tunnel-timeout').value = settings.tunnel_start_timeout || 30;
+    document.getElementById('setting-auto-stop-tunnel').checked = settings.auto_stop_tunnel !== false && settings.auto_stop_tunnel !== 'false';
+    document.getElementById('setting-auto-restart-tunnel').checked = settings.auto_restart_tunnel !== false && settings.auto_restart_tunnel !== 'false';
+
     document.getElementById('setting-page-timeout').value = settings.page_load_timeout || 120;
     document.getElementById('setting-login-timeout').value = settings.login_timeout || 60;
     document.getElementById('setting-fetch-timeout').value = settings.fetch_menu_timeout || 600;
@@ -471,6 +568,11 @@ async function saveSettings() {
     launcher_window_title: document.getElementById('setting-launcher-title').value.trim(),
     browser_type: document.getElementById('setting-browser-type').value,
     headless: document.getElementById('setting-headless').checked,
+    putty_path: document.getElementById('setting-putty-path').value.trim(),
+    default_local_port: parseInt(document.getElementById('setting-default-local-port').value) || 18001,
+    tunnel_start_timeout: parseInt(document.getElementById('setting-tunnel-timeout').value) || 30,
+    auto_stop_tunnel: document.getElementById('setting-auto-stop-tunnel').checked,
+    auto_restart_tunnel: document.getElementById('setting-auto-restart-tunnel').checked,
     page_load_timeout: parseInt(document.getElementById('setting-page-timeout').value),
     login_timeout: parseInt(document.getElementById('setting-login-timeout').value),
     fetch_menu_timeout: parseInt(document.getElementById('setting-fetch-timeout').value),
@@ -488,6 +590,115 @@ async function saveSettings() {
     alert("Settings saved successfully!");
   } catch (e) {
     alert("Save settings failed: " + e.message);
+  }
+}
+
+async function detectPuTTYExecutable() {
+  try {
+    const res = await fetch('/api/tunnel/detect', { method: 'POST' });
+    const data = await res.json();
+    if (data.plink) {
+      document.getElementById('setting-putty-path').value = data.plink;
+      alert(`PuTTY/Plink detected successfully at:\n${data.plink}`);
+    } else {
+      alert("Plink executable was not found automatically in standard PATH or directories. Please specify path manually.");
+    }
+  } catch (e) {
+    alert("Detection failed: " + e.message);
+  }
+}
+
+async function loadPuTTYInfo() {
+  try {
+    const res = await fetch('/api/tunnel/info');
+    const data = await res.json();
+
+    const badgeStatus = document.getElementById('badge-plink-status');
+    const badgeVersion = document.getElementById('badge-plink-version');
+
+    if (data.found) {
+      badgeStatus.textContent = `✓ ${data.relative_plink || 'FOUND'}`;
+      badgeStatus.style.background = 'rgba(34, 197, 94, 0.2)';
+      badgeStatus.style.color = '#4ade80';
+      badgeVersion.textContent = data.version || 'Release 0.85';
+    } else {
+      badgeStatus.textContent = '✕ PLINK NOT FOUND';
+      badgeStatus.style.background = 'rgba(239, 68, 68, 0.2)';
+      badgeStatus.style.color = '#f87171';
+      badgeVersion.textContent = 'Expected: tools/putty/plink.exe';
+    }
+  } catch (e) {
+    console.error("Failed loading PuTTY info:", e);
+  }
+}
+
+async function testPlinkClick() {
+  alert("Running 'plink.exe -V' version test...");
+  try {
+    const res = await fetch('/api/tunnel/test-plink', { method: 'POST' });
+    const data = await res.json();
+    alert(`PLINK TEST RESULT:\n\nExecutable Path:\n${data.path}\n\nVersion Output:\n${data.version}\n\nResult: ${data.success ? 'PASS' : 'FAIL'}`);
+  } catch (e) {
+    alert("Plink test failed: " + e.message);
+  }
+}
+
+async function loadPackageHealth() {
+  const container = document.getElementById('package-health-checklist');
+  const badgeOverall = document.getElementById('badge-package-overall');
+
+  if (!container) return;
+  container.innerHTML = '<div style="color:#94a3b8;">Validating package components...</div>';
+
+  try {
+    const res = await fetch('/api/diagnostics/package-health');
+    const data = await res.json();
+
+    badgeOverall.textContent = data.overall_status;
+    badgeOverall.className = `status-badge ${data.all_ok ? 'badge-no-action' : 'badge-failed'}`;
+
+    let html = '';
+    (data.checks || []).forEach(item => {
+      const isPass = item.ok;
+      const statusColor = isPass ? '#4ade80' : (item.status === 'INFO' ? '#60a5fa' : '#f87171');
+      const icon = isPass ? '✓' : (item.status === 'INFO' ? 'ℹ' : '✕');
+
+      html += `
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <strong style="font-size: 0.9rem; color: #f8fafc;">${item.name}</strong>
+            <span style="font-weight: 700; color: ${statusColor}; font-size: 0.85rem;">${icon} ${item.status}</span>
+          </div>
+          <div style="font-family: monospace; font-size: 0.8rem; color: var(--accent-cyan); margin-bottom: 4px; word-break: break-all;">
+            ${escapeHtml(item.path)}
+          </div>
+          <div style="font-size: 0.75rem; color: #94a3b8;">
+            ${escapeHtml(item.description)}
+          </div>
+        </div>
+      `;
+    });
+
+    container.innerHTML = html;
+  } catch (e) {
+    container.innerHTML = `<div style="color:#f87171;">Health check failed: ${e.message}</div>`;
+  }
+}
+
+async function testModalTunnel() {
+  const siteId = document.getElementById('modal-site-id').value;
+  if (!siteId) {
+    alert("Please save the site configuration first before running an active SSH tunnel test.");
+    return;
+  }
+
+  alert(`Initiating SSH reverse tunnel test for Site ID ${siteId}... Please check Integration Test console or wait for notification.`);
+  try {
+    const res = await fetch(`/api/sites/${siteId}/tunnel/test`, { method: 'POST' });
+    const data = await res.json();
+    alert(`Tunnel Test Result for ${data.site}:\nStatus: ${data.success ? 'PASS' : 'FAIL'}\nMessage: ${data.message}\nDetails:\n${(data.details || []).join('\n')}`);
+  } catch (e) {
+    alert("Tunnel test failed: " + e.message);
   }
 }
 
@@ -573,9 +784,37 @@ function bindEvents() {
   document.getElementById('btn-save-settings').addEventListener('click', saveSettings);
   document.getElementById('btn-scan-windows').addEventListener('click', scanWindows);
 
+  const btnDetectPuTTY = document.getElementById('btn-detect-putty');
+  if (btnDetectPuTTY) {
+    btnDetectPuTTY.addEventListener('click', detectPuTTYExecutable);
+  }
+
+  const btnTestPlink = document.getElementById('btn-test-plink');
+  if (btnTestPlink) {
+    btnTestPlink.addEventListener('click', testPlinkClick);
+  }
+
+  const chkUseCustom = document.getElementById('setting-use-custom-plink');
+  if (chkUseCustom) {
+    chkUseCustom.addEventListener('change', (e) => {
+      const grp = document.getElementById('group-custom-plink');
+      if (grp) grp.style.display = e.target.checked ? 'block' : 'none';
+    });
+  }
+
+  const btnTestModalTunnel = document.getElementById('btn-test-modal-tunnel');
+  if (btnTestModalTunnel) {
+    btnTestModalTunnel.addEventListener('click', testModalTunnel);
+  }
+
   const btnRunStageTest = document.getElementById('btn-run-stage-test');
   if (btnRunStageTest) {
     btnRunStageTest.addEventListener('click', runIntegrationTestStage);
+  }
+
+  const btnStopStageTest = document.getElementById('btn-stop-stage-test');
+  if (btnStopStageTest) {
+    btnStopStageTest.addEventListener('click', stopIntegrationTest);
   }
 
   document.getElementById('btn-open-reports-folder').addEventListener('click', () => fetch('/api/open-folder/reports'));
@@ -597,17 +836,61 @@ function bindEvents() {
   });
 }
 
+async function stopIntegrationTest() {
+  console.log("Stop test button clicked");
+  const liveLogs = document.getElementById('test-live-logs');
+  if (liveLogs) {
+    const row = document.createElement('div');
+    row.className = 'log-row log-warn';
+    row.textContent = `[${new Date().toLocaleTimeString()}] Sending stop signal to server...`;
+    liveLogs.appendChild(row);
+  }
+  try {
+    await fetch('/api/integration-test/stop', { method: 'POST' });
+  } catch (e) {
+    console.error("Failed to send stop signal:", e);
+  }
+}
+
 async function runIntegrationTestStage() {
-  const siteId = document.getElementById('select-test-site').value;
-  const stage = document.getElementById('select-test-stage').value;
+  console.log("Integration test button clicked");
+  const siteSelect = document.getElementById('select-test-site');
+  const stageSelect = document.getElementById('select-test-stage');
   const box = document.getElementById('test-output-box');
+  const btnRun = document.getElementById('btn-run-stage-test');
+  const btnStop = document.getElementById('btn-stop-stage-test');
+
+  const siteId = siteSelect ? siteSelect.value : '';
+  const stage = stageSelect ? stageSelect.value : 'backend_test';
+  const siteText = siteSelect && siteSelect.options[siteSelect.selectedIndex] ? siteSelect.options[siteSelect.selectedIndex].text : `Site ID ${siteId}`;
 
   if (!siteId) {
     alert("Please select a site to test.");
     return;
   }
 
-  box.innerHTML = `<div class="log-row log-warn">Running Integration Test stage '${stage.toUpperCase()}'... Please wait...</div>`;
+  // 1. Immediate UI Feedback & Diagnostic Logging
+  if (btnRun) {
+    btnRun.disabled = true;
+    btnRun.textContent = 'RUNNING...';
+  }
+  if (btnStop) {
+    btnStop.style.display = 'inline-block';
+  }
+
+  const startTime = new Date().toLocaleTimeString();
+  box.innerHTML = `
+    <div style="font-weight:700; color: #3b82f6; margin-bottom: 8px;">
+      TEST STARTED
+    </div>
+    <div><strong>Target Site:</strong> ${escapeHtml(siteText)}</div>
+    <div><strong>Test Stage:</strong> ${escapeHtml(stage.toUpperCase())}</div>
+    <div><strong>Status:</strong> <span style="color: #eab308; font-weight:700;">RUNNING...</span></div>
+    <div style="margin-top: 10px; font-weight: 600;">Live Execution Logs:</div>
+    <div id="test-live-logs" style="margin-top: 6px; font-family: monospace; font-size: 0.85rem; max-height: 250px; overflow-y: auto; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);">
+      <div class="log-row log-info">[${startTime}] Integration test button clicked. Requesting stage '${stage}' from backend...</div>
+    </div>
+  `;
 
   try {
     const res = await fetch('/api/integration-test/run', {
@@ -615,36 +898,68 @@ async function runIntegrationTestStage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ site_id: parseInt(siteId), stage: stage })
     });
-    const data = await res.json();
 
-    let statusColor = data.success ? 'var(--accent-green)' : 'var(--accent-red)';
-    let html = `
-      <div style="font-weight:700; color: ${statusColor}; margin-bottom: 8px;">
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    let statusColor = data.success ? 'var(--accent-green, #22c55e)' : 'var(--accent-red, #ef4444)';
+
+    let resultHtml = `
+      <div style="font-weight:700; font-size: 1.1rem; color: ${statusColor}; margin-bottom: 8px;">
         STATION RESULT: ${data.success ? 'PASS' : 'FAIL'}
       </div>
-      <div><strong>Site:</strong> ${escapeHtml(data.site || '')}</div>
+      <div><strong>Site:</strong> ${escapeHtml(data.site || siteText)}</div>
       <div><strong>Stage:</strong> ${escapeHtml(data.stage || stage)}</div>
       <div style="margin-top: 6px;"><strong>Message:</strong> ${escapeHtml(data.message || '')}</div>
     `;
 
     if (data.third_line) {
-      html += `<div style="margin-top:4px;"><strong>Line 3 Preview:</strong> <code>${escapeHtml(data.third_line)}</code></div>`;
+      resultHtml += `<div style="margin-top:4px;"><strong>Line 3 Preview:</strong> <code>${escapeHtml(data.third_line)}</code></div>`;
     }
     if (data.action_point_status) {
-      html += `<div><strong>Action Point Status:</strong> ${escapeHtml(data.action_point_status)}</div>`;
+      resultHtml += `<div><strong>Action Point Status:</strong> ${escapeHtml(data.action_point_status)}</div>`;
     }
 
     if (data.details && data.details.length > 0) {
-      html += `<div style="margin-top:10px;"><strong>Diagnostic Steps:</strong><ul>`;
+      resultHtml += `<div style="margin-top:10px;"><strong>Diagnostic Steps:</strong><ul style="margin-top:4px; padding-left:20px;">`;
       data.details.forEach(d => {
-        html += `<li>${escapeHtml(d)}</li>`;
+        resultHtml += `<li>${escapeHtml(d)}</li>`;
       });
-      html += `</ul></div>`;
+      resultHtml += `</ul></div>`;
     }
 
-    box.innerHTML = html;
+    if (data.traceback) {
+      resultHtml += `<div style="margin-top:10px; color:#ef4444;"><strong>Traceback:</strong><pre style="margin-top:4px; background:rgba(0,0,0,0.5); padding:8px; border-radius:4px; font-size:0.8rem; overflow-x:auto;">${escapeHtml(data.traceback)}</pre></div>`;
+    }
+
+    // Retain live log container at bottom
+    const currentLiveLogs = document.getElementById('test-live-logs') ? document.getElementById('test-live-logs').innerHTML : '';
+    resultHtml += `
+      <div style="margin-top: 12px; font-weight: 600;">Execution Log Stream:</div>
+      <div id="test-live-logs" style="margin-top: 6px; font-family: monospace; font-size: 0.85rem; max-height: 250px; overflow-y: auto; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);">
+        ${currentLiveLogs}
+        <div class="log-row ${data.success ? 'log-info' : 'log-error'}">[${new Date().toLocaleTimeString()}] Test completed with status: ${data.success ? 'PASS' : 'FAIL'}</div>
+      </div>
+    `;
+
+    box.innerHTML = resultHtml;
   } catch (e) {
-    box.innerHTML = `<div class="log-row log-error">Error running stage test: ${escapeHtml(e.message)}</div>`;
+    box.innerHTML = `
+      <div style="font-weight:700; color: var(--accent-red, #ef4444); margin-bottom: 8px;">INTEGRATION TEST ERROR</div>
+      <div><strong>Stage:</strong> ${escapeHtml(stage)}</div>
+      <div><strong>Error Message:</strong> ${escapeHtml(e.message)}</div>
+      ${e.stack ? `<pre style="margin-top:8px; background:rgba(0,0,0,0.4); padding:8px; border-radius:4px; font-size:0.8rem; overflow-x:auto;">${escapeHtml(e.stack)}</pre>` : ''}
+    `;
+  } finally {
+    if (btnRun) {
+      btnRun.disabled = false;
+      btnRun.textContent = 'RUN STAGE TEST';
+    }
+    if (btnStop) {
+      btnStop.style.display = 'none';
+    }
   }
 }
 
