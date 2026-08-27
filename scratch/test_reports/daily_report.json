@@ -1,0 +1,31 @@
+{
+  "run": {
+    "id": 999,
+    "run_date": "2026-08-27",
+    "start_time": "08:00:00",
+    "end_time": "08:05:00",
+    "status": "COMPLETED",
+    "total_sites": 1,
+    "completed_sites": 1,
+    "action_points_count": 0,
+    "no_action_points_count": 1,
+    "failed_sites_count": 0
+  },
+  "results": [
+    {
+      "site_id": 22,
+      "site_name": "ITC Grand Chola",
+      "site_ip": "14.142.185.130",
+      "site_port": 8089,
+      "local_port": 58430,
+      "status": "COMPLETED",
+      "action_point_status": "NO ACTION POINT",
+      "start_time": "08:00:00",
+      "end_time": "08:05:00",
+      "duration_seconds": 300.0,
+      "csv_path": "scratch\\test_no_action.csv",
+      "third_line_text": "No Action Point",
+      "error_message": ""
+    }
+  ]
+}

@@ -86,4 +86,5 @@ def mask_password(password: str) -> str:
     """Returns a masked representation of the password for UI rendering."""
     if not password:
         return ""
-    return "●" * min(len(password), 12)
+    return "********"
+

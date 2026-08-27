@@ -56,12 +56,17 @@
 
 
       <div class="sidebar-footer">
-        <div class="system-status">
-          <span class="status-dot online"></span>
-          <span class="status-text">System Engine Ready</span>
+        <div class="system-status" style="flex-direction: column; align-items: flex-start; gap: 4px;">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span class="status-dot online"></span>
+            <span class="status-text">System Engine Ready</span>
+          </div>
+          <span id="badge-ui-health" class="status-badge badge-no-action" style="font-size: 0.75rem;">UI: READY</span>
+          <span id="badge-ws-status" class="status-badge badge-ready" style="font-size: 0.75rem; background: rgba(59, 130, 246, 0.2); color: #60a5fa;">WebSocket: CONNECTED</span>
         </div>
       </div>
     </aside>
+
 
     <!-- Main Content Area -->
     <main class="content-area">
@@ -141,20 +146,33 @@
           <div class="progress-bar-container">
             <div class="progress-bar-fill" id="progress-bar-fill" style="width: 0%;"></div>
           </div>
-          <div class="current-site-banner" id="current-site-banner">
+          <div class="current-site-banner" id="current-site-banner" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 12px;">
             <div class="banner-col">
               <span class="lbl">Current Site:</span>
               <span class="val" id="banner-site-name">None</span>
             </div>
             <div class="banner-col">
-              <span class="lbl">Operation:</span>
+              <span class="lbl">Step:</span>
               <span class="val" id="banner-op-name">Idle</span>
             </div>
             <div class="banner-col">
-              <span class="lbl">Status Detail:</span>
-              <span class="val" id="banner-status-detail">Ready to start</span>
+              <span class="lbl">Site IP:</span>
+              <span class="val" id="banner-site-ip" style="color: #4ade80;">N/A</span>
+            </div>
+            <div class="banner-col">
+              <span class="lbl">Site Port:</span>
+              <span class="val" id="banner-site-port" style="color: #cbd5e1;">N/A</span>
+            </div>
+            <div class="banner-col">
+              <span class="lbl">Local Port:</span>
+              <span class="val" id="banner-local-port" style="color: #cbd5e1;">N/A</span>
+            </div>
+            <div class="banner-col" style="grid-column: span 3;">
+              <span class="lbl">URL:</span>
+              <span class="val" id="banner-url" style="color: #60a5fa; font-family: monospace;">http://localhost:58430/zmp/main-menu.do</span>
             </div>
           </div>
+
         </div>
 
         <!-- Main Workspace Split: Sites Table & Streaming Log -->
@@ -282,10 +300,26 @@
             </div>
           </div>
           <div style="display: flex; align-items: center; gap: 8px;">
-            <button class="btn btn-primary" id="btn-run-stage-test">RUN STAGE TEST</button>
-            <button class="btn" id="btn-stop-stage-test" style="display:none; background-color: var(--accent-red, #ef4444); color: white;">STOP TEST</button>
+            <button class="btn btn-info" id="btn-test-ui" type="button">TEST UI BUTTON</button>
+            <button class="btn btn-primary" id="btn-run-stage-test" type="button">RUN STAGE TEST</button>
+            <button class="btn" id="btn-stop-stage-test" type="button" style="display:none; background-color: var(--accent-red, #ef4444); color: white;">STOP TEST</button>
           </div>
         </div>
+
+        <!-- INTEGRATION TEST UI HEALTH PANEL -->
+        <div class="glass-panel" style="margin-bottom: 20px; border-color: rgba(16, 185, 129, 0.4);">
+          <h4 style="margin: 0 0 10px 0; color: #f8fafc;">INTEGRATION TEST UI HEALTH</h4>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; font-size: 0.82rem; font-family: monospace;">
+            <div><span style="color: #94a3b8;">JavaScript:</span> <strong id="it-health-js" style="color: #4ade80;">PASS</strong></div>
+            <div><span style="color: #94a3b8;">Initialization:</span> <strong id="it-health-init" style="color: #4ade80;">PASS</strong></div>
+            <div><span style="color: #94a3b8;">Buttons Found:</span> <strong id="it-health-found" style="color: #60a5fa;">11 / 11</strong></div>
+            <div><span style="color: #94a3b8;">Buttons Bound:</span> <strong id="it-health-bound" style="color: #4ade80;">11 / 11</strong></div>
+            <div><span style="color: #94a3b8;">Click Events:</span> <strong id="it-health-clicks" style="color: #4ade80;">READY</strong></div>
+            <div><span style="color: #94a3b8;">Overlay Blocking:</span> <strong id="it-health-overlay" style="color: #4ade80;">NO</strong></div>
+            <div><span style="color: #94a3b8;">Backend:</span> <strong id="it-health-backend" style="color: #60a5fa;">CONNECTED</strong></div>
+          </div>
+        </div>
+
 
         <div class="glass-panel">
           <div class="form-row" style="margin-bottom: 20px;">
@@ -322,7 +356,134 @@
             </div>
           </div>
         </div>
+
+        <!-- PHASE 5E: REAL FNB ENDPOINT VALIDATION PANEL -->
+        <div class="glass-panel" style="margin-top: 20px; border-color: rgba(59, 130, 246, 0.4);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px;">
+            <div>
+              <h2 style="color: #60a5fa; margin: 0; font-size: 1.25rem;">Phase 5E: REAL FNB ENDPOINT VALIDATION</h2>
+              <p style="font-size: 0.85rem; color: #94a3b8; margin: 4px 0 0 0;">3-tier validation (TCP, HTTP GET, Service Inspection) and Playwright browser navigation</p>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button class="btn btn-primary btn-glow" id="btn-fnb-start-test" type="button">START FNB TUNNEL TEST</button>
+              <button class="btn btn-secondary" id="btn-fnb-open-webpage" type="button">OPEN FNB WEBPAGE</button>
+              <button class="btn btn-info" id="btn-fnb-test-playwright" type="button">TEST PLAYWRIGHT</button>
+              <button class="btn btn-warning" id="btn-fnb-run-login-workflow" type="button">RUN LOGIN WORKFLOW</button>
+              <button class="btn btn-success" id="btn-fnb-run-fetch-workflow" type="button">RUN FETCH MENU WORKFLOW</button>
+              <button class="btn btn-warning" id="btn-test-remote-connectivity" type="button">TEST OFFICE → SITE</button>
+              <button class="btn btn-primary" id="btn-fnb-run-fetch-test" type="button">RUN FNB FETCH TEST</button>
+            </div>
+          </div>
+
+
+
+
+          <!-- Configuration & Status Card Grid -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+            <!-- FNB Configuration Card -->
+            <div style="background: rgba(15, 23, 42, 0.6); padding: 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
+              <h4 style="margin-top: 0; margin-bottom: 12px; color: #f8fafc;">FNB Site Configuration</h4>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.85rem; font-family: monospace;">
+                <div><span style="color: #94a3b8;">Site Name:</span> <strong style="color: #60a5fa;">FNB</strong></div>
+                <div><span style="color: #94a3b8;">Site IP:</span> <span id="fnb-cfg-site-ip" style="color: #4ade80;">CONFIGURED</span></div>
+                <div><span style="color: #94a3b8;">Local Port:</span> <span id="fnb-cfg-local-port" style="color: #cbd5e1;">18001</span></div>
+                <div><span style="color: #94a3b8;">Office SSH:</span> <span id="fnb-cfg-ssh-host" style="color: #cbd5e1;">111.93.205.187:22</span></div>
+                <div><span style="color: #94a3b8;">Forwarding:</span> <span id="fnb-cfg-tunnel-type" style="color: #cbd5e1;">REVERSE SSH</span></div>
+                <div style="grid-column: span 2;"><span style="color: #94a3b8;">Browser URL:</span> <span id="fnb-cfg-web-url" style="color: #cbd5e1;">http://localhost:58430/zmp/main-menu.do</span></div>
+
+              </div>
+              <div style="margin-top: 12px; font-size: 0.85rem; display: flex; align-items: center; gap: 8px;">
+                <label class="switch" style="transform: scale(0.8);">
+                  <input type="checkbox" id="chk-keep-tunnel-running">
+                  <span class="slider"></span>
+                </label>
+                <span>[✓] Keep tunnel running after successful test</span>
+              </div>
+            </div>
+
+            <!-- FNB Tunnel Status Card -->
+            <div style="background: rgba(15, 23, 42, 0.6); padding: 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h4 style="margin: 0; color: #f8fafc;">3-TIER ENDPOINT STATUS</h4>
+                <span id="fnb-status-badge" style="padding: 4px 10px; border-radius: 4px; font-weight: 600; font-size: 0.8rem; background: rgba(148, 163, 184, 0.2); color: #94a3b8;">STOPPED</span>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.85rem; font-family: monospace;">
+                <div><span style="color: #94a3b8;">Plink:</span> <span id="fnb-status-plink" style="color: #cbd5e1;">tools\putty\plink.exe</span></div>
+                <div><span style="color: #94a3b8;">PID:</span> <span id="fnb-status-pid" style="color: #cbd5e1;">N/A</span></div>
+                <div><span style="color: #94a3b8;">TCP:</span> <span id="fnb-status-tcp" style="color: #cbd5e1;">UNTESTED</span></div>
+                <div><span style="color: #94a3b8;">HTTP:</span> <span id="fnb-status-http" style="color: #cbd5e1;">UNTESTED</span></div>
+                <div><span style="color: #94a3b8;">FNB Service:</span> <span id="fnb-status-webpage" style="color: #cbd5e1;">UNTESTED</span></div>
+                <div><span style="color: #94a3b8;">Playwright:</span> <span id="fnb-status-playwright" style="color: #cbd5e1;">UNTESTED</span></div>
+              </div>
+              <div style="margin-top: 14px; display: flex; gap: 8px;">
+                <button class="btn btn-secondary btn-sm" id="btn-fnb-restart-tunnel" type="button">RESTART</button>
+                <button class="btn btn-danger btn-sm" id="btn-fnb-stop-tunnel" type="button">STOP TUNNEL</button>
+              </div>
+            </div>
+          </div>
+
+
+          <!-- Immediate UI Feedback Banner -->
+          <div id="fnb-feedback-banner" style="display: none; padding: 10px 14px; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 6px; color: #60a5fa; font-weight: 600; font-size: 0.9rem; margin-bottom: 16px;">
+            FNB TUNNEL TEST STARTED
+          </div>
+
+          <!-- Live Output Log Stream & Formatted Summary Grid -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+            <div>
+              <h4 style="margin-top: 0; margin-bottom: 8px; color: #f8fafc;">Live Output Log Stream</h4>
+              <div id="fnb-live-logs" class="test-output-box" style="height: 220px; font-size: 0.8rem;">
+                <p class="log-info">Click [ START FNB TUNNEL TEST ] to execute sequence...</p>
+              </div>
+            </div>
+
+            <div>
+              <h4 style="margin-top: 0; margin-bottom: 8px; color: #f8fafc;">Formatted Test Result Summary</h4>
+              <pre id="fnb-formatted-summary" style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 14px; font-family: monospace; font-size: 0.82rem; color: #4ade80; height: 220px; overflow-y: auto; margin: 0;">========================================
+
+FNB TUNNEL TEST
+
+Plink:
+NOT TESTED
+
+SSH:
+NOT TESTED
+
+Forwarding:
+NOT TESTED
+
+Local Endpoint:
+NOT TESTED
+
+FNB Webpage:
+NOT TESTED
+
+RESULT:
+NOT TESTED
+
+========================================</pre>
+            </div>
+          </div>
+
+          <!-- Raw Diagnostic Command View -->
+          <div style="margin-bottom: 16px;">
+            <h4 style="margin-top: 0; margin-bottom: 8px; color: #f8fafc;">Raw Diagnostic Command View (Secrets Scrubbed)</h4>
+            <div id="fnb-diagnostic-cmd" style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 12px; font-family: monospace; font-size: 0.85rem; color: #f1f5f9; word-break: break-all;">
+              tools\putty\plink.exe -batch -N -ssh -P 22 -l username -R 80:127.0.0.1:18001 host
+            </div>
+          </div>
+
+          <!-- Database Site Count Audit Box -->
+          <div style="background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 12px; font-size: 0.85rem;">
+            <h4 style="margin: 0 0 6px 0; color: #f8fafc;">Database Site Count Audit</h4>
+            <div id="fnb-db-audit-text" style="color: #94a3b8; font-family: monospace;">
+              Total Records: 22 | Enabled: 22 | Expected Production: 21 | Discrepancy: Record #22 'ITC Grand Chola' extra in database.
+            </div>
+          </div>
+
+        </div>
       </section>
+
 
       <!-- TAB 4: SETTINGS -->
       <section id="tab-settings" class="tab-page">
@@ -338,8 +499,114 @@
         </div>
 
         <div class="settings-grid">
+          <!-- OFFICE SSH SERVER SETTINGS CARD -->
+          <div class="glass-panel settings-card" style="border-color: rgba(59, 130, 246, 0.4); grid-column: span 2;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <h3 style="color: #60a5fa; margin: 0;">OFFICE SSH SERVER</h3>
+              <span id="badge-ssh-pass-status" style="font-size: 0.8rem; padding: 2px 8px; border-radius: 4px; background: rgba(34, 197, 94, 0.2); color: #4ade80;">DPAPI Encrypted</span>
+            </div>
+            <p style="font-size: 0.85rem; color: #94a3b8; margin-top: 0; margin-bottom: 14px;">Configures office SSH endpoint for FNB tunnels. Passwords protected with Windows DPAPI.</p>
+
+            <div class="form-row">
+              <div class="form-group half">
+                <label>Server (SSH Host) *</label>
+                <input type="text" id="setting-ssh-host" class="form-control" value="111.93.205.187">
+              </div>
+              <div class="form-group half">
+                <label>SSH Port *</label>
+                <input type="number" id="setting-ssh-port" class="form-control" value="22">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group half">
+                <label>Username *</label>
+                <input type="text" id="setting-ssh-user" class="form-control" value="sourik">
+              </div>
+              <div class="form-group half">
+                <label>Password (DPAPI Protected) *</label>
+                <div class="password-input-wrap">
+                  <input type="password" id="setting-ssh-pass" class="form-control" placeholder="Leave empty to keep existing">
+                  <button class="btn-eye" id="btn-toggle-ssh-pass" type="button" title="Show/Hide Password">👁</button>
+                </div>
+                <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 4px;">Status: <span id="lbl-ssh-pass-state" style="color: #4ade80;">******** (Configured)</span></div>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group half">
+                <label>Authentication Mode</label>
+                <div style="display: flex; gap: 16px; margin-top: 6px;">
+                  <label style="font-size: 0.85rem; cursor: pointer;"><input type="radio" name="ssh_auth_mode" value="password" id="rad-ssh-auth-pass" checked> Password</label>
+                  <label style="font-size: 0.85rem; cursor: pointer;"><input type="radio" name="ssh_auth_mode" value="key" id="rad-ssh-auth-key"> Private Key</label>
+                </div>
+              </div>
+              <div class="form-group half">
+                <label>Private Key Path (-i)</label>
+                <input type="text" id="setting-ssh-key-path" class="form-control" placeholder="C:\Keys\id_rsa.ppk">
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 10px;">
+              <label>Verified SSH Host Key Fingerprint</label>
+              <div style="display: flex; gap: 8px;">
+                <input type="text" id="setting-ssh-host-key" class="form-control" placeholder="e.g. ssh-ed25519@22:111.93.205.187">
+                <button class="btn btn-secondary btn-sm" id="btn-verify-host-key" type="button">Detect / Verify</button>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 12px; margin-top: 16px;">
+              <button class="btn btn-primary" id="btn-save-office-ssh" type="button">SAVE SSH SETTINGS</button>
+              <button class="btn btn-info" id="btn-test-office-ssh" type="button">TEST SSH CONNECTION</button>
+            </div>
+
+            <!-- SSH Connection Test Live Status Panel -->
+            <div id="ssh-test-panel" style="margin-top: 16px; display: none;">
+              <h4 style="margin-bottom: 6px; font-size: 0.9rem; color: #f8fafc;">SSH Connection Test Live Status</h4>
+              <div id="ssh-test-live-logs" class="test-output-box" style="height: 120px; font-size: 0.8rem;"></div>
+              <pre id="ssh-test-summary" style="margin-top: 10px; background: rgba(15, 23, 42, 0.9); padding: 10px; border-radius: 6px; font-family: monospace; font-size: 0.8rem; color: #4ade80;"></pre>
+            </div>
+          </div>
+
+          <!-- REVERSE TUNNEL GLOBAL CONFIGURATION CARD -->
+          <div class="glass-panel settings-card" style="border-color: rgba(168, 85, 247, 0.4); grid-column: span 2;">
+            <h3 style="color: #c084fc; margin-top: 0; margin-bottom: 8px;">REVERSE SSH TUNNEL (GLOBAL CONFIGURATION)</h3>
+            <p style="font-size: 0.85rem; color: #94a3b8; margin-top: 0; margin-bottom: 14px;">Common SSH reverse forwarding parameters used across all 21 site tunnels.</p>
+
+            <div class="form-row">
+              <div class="form-group half">
+                <label>Reverse Tunnel Remote Port</label>
+                <input type="number" id="setting-tunnel-remote-port" class="form-control" value="80">
+              </div>
+              <div class="form-group half">
+                <label>FNB Service Port</label>
+                <input type="number" id="setting-fnb-service-port" class="form-control" value="80">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group half">
+                <label>Web URL Template</label>
+                <input type="text" id="setting-web-url-template" class="form-control" value="http://127.0.0.1:{local_port}">
+              </div>
+              <div class="form-group half">
+                <label>Forwarding Mode</label>
+                <div style="display: flex; gap: 16px; margin-top: 6px;">
+                  <label style="font-size: 0.85rem; cursor: pointer;"><input type="radio" name="global_tunnel_type" value="reverse" id="rad-tunnel-type-rev" checked> Reverse SSH (-R)</label>
+                  <label style="font-size: 0.85rem; cursor: pointer;"><input type="radio" name="global_tunnel_type" value="local" id="rad-tunnel-type-loc"> Local SSH (-L)</label>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top: 14px;">
+              <button class="btn btn-primary" id="btn-save-global-tunnel" type="button">SAVE TUNNEL SETTINGS</button>
+            </div>
+          </div>
+
           <!-- PuTTY / Plink Portable Settings Card -->
           <div class="glass-panel settings-card">
+
+
             <h3>Bundled PuTTY / Plink Executable</h3>
             <div style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 10px;">
               Source: <strong style="color: #60a5fa;">Bundled with IRD Sync Automation</strong> (`tools\putty\plink.exe`)
@@ -513,18 +780,34 @@
       </div>
       <div class="modal-body">
         <input type="hidden" id="modal-site-id">
-        <div class="form-group">
-          <label>Site Name *</label>
-          <input type="text" id="modal-site-name" class="form-control" placeholder="e.g. FNB or Site 22">
+        <div class="form-row">
+          <div class="form-group half">
+            <label>Site Name *</label>
+            <input type="text" id="modal-site-name" class="form-control" placeholder="e.g. FNB or Site 02">
+          </div>
+          <div class="form-group half">
+            <label>Site IP Address *</label>
+            <input type="text" id="modal-site-ip" class="form-control" placeholder="e.g. 10.x.x.x">
+          </div>
         </div>
-        <div class="form-group">
-          <label>Launcher Button Name *</label>
-          <input type="text" id="modal-site-button" class="form-control" placeholder="e.g. FNB or SITE22">
+
+        <div class="form-row">
+          <div class="form-group third">
+            <label>Site Port *</label>
+            <input type="number" id="modal-site-port" class="form-control" min="1" max="65535" value="80" placeholder="80">
+          </div>
+          <div class="form-group third">
+            <label>Local Port *</label>
+            <input type="number" id="modal-site-local-port" class="form-control" placeholder="18001">
+            <div id="lbl-port-status" style="font-size: 0.75rem; margin-top: 4px; color: #94a3b8;">18001 - 18021</div>
+          </div>
+          <div class="form-group third">
+            <label>Sort Order</label>
+            <input type="number" id="modal-site-order" class="form-control" value="0">
+          </div>
         </div>
-        <div class="form-group">
-          <label>IRD Webpage URL</label>
-          <input type="text" id="modal-site-url" class="form-control" placeholder="https://site22-portal.mymenu.internal">
-        </div>
+
+
         <div class="form-row">
           <div class="form-group half">
             <label>IDP Username</label>
@@ -538,78 +821,17 @@
             </div>
           </div>
         </div>
-        <div class="form-row">
-          <div class="form-group half">
-            <label>Sort Order</label>
-            <input type="number" id="modal-site-order" class="form-control" value="0">
-          </div>
-          <div class="form-group half checkbox-group">
-            <label class="switch">
-              <input type="checkbox" id="modal-site-enabled" checked>
-              <span class="slider"></span>
-            </label>
-            <span>Enabled</span>
-          </div>
-        </div>
 
-        <!-- TUNNEL CONFIGURATION SECTION -->
-        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
-          <h4 style="margin-bottom: 12px; color: var(--accent-blue, #3b82f6);">PuTTY / Plink Reverse SSH Tunnel Settings</h4>
-          <div class="form-row">
-            <div class="form-group half">
-              <label>Local Port *</label>
-              <input type="number" id="modal-site-local-port" class="form-control" placeholder="18001">
-            </div>
-            <div class="form-group half">
-              <label>SSH Auth Type</label>
-              <select id="modal-site-auth-type" class="form-control">
-                <option value="key">Private Key (-i)</option>
-                <option value="session">PuTTY Session (-load)</option>
-                <option value="password">Password (-pw)</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group half">
-              <label>SSH Host</label>
-              <input type="text" id="modal-site-ssh-host" class="form-control" placeholder="gateway.internal">
-            </div>
-            <div class="form-group half">
-              <label>SSH Port</label>
-              <input type="number" id="modal-site-ssh-port" class="form-control" value="22">
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group half">
-              <label>SSH Username</label>
-              <input type="text" id="modal-site-ssh-user" class="form-control" placeholder="tunnel_user">
-            </div>
-            <div class="form-group half">
-              <label>PuTTY Session Name</label>
-              <input type="text" id="modal-site-session" class="form-control" placeholder="FNB_Session">
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group half">
-              <label>Remote Host</label>
-              <input type="text" id="modal-site-remote-host" class="form-control" value="127.0.0.1">
-            </div>
-            <div class="form-group half">
-              <label>Remote Port</label>
-              <input type="number" id="modal-site-remote-port" class="form-control" value="80">
-            </div>
-          </div>
-          <div class="form-group">
-            <label>SSH Key Path / SSH Password</label>
-            <input type="text" id="modal-site-ssh-key-or-pass" class="form-control" placeholder="C:\Keys\id_rsa.ppk or SSH Password">
-          </div>
-          <div class="form-group">
-            <label>Full Web URL (Local Endpoint)</label>
-            <input type="text" id="modal-site-web-url" class="form-control" placeholder="http://127.0.0.1:18001">
-          </div>
+        <div class="form-group checkbox-group" style="margin-top: 10px;">
+          <label class="switch">
+            <input type="checkbox" id="modal-site-enabled" checked>
+            <span class="slider"></span>
+          </label>
+          <span>Site Automation Enabled</span>
         </div>
       </div>
       <div class="modal-footer">
+
         <button class="btn btn-warning" id="btn-test-modal-tunnel" style="margin-right: auto;">TEST TUNNEL</button>
         <button class="btn btn-secondary" id="btn-cancel-modal-site">Cancel</button>
         <button class="btn btn-primary" id="btn-save-modal-site">Save Site</button>
@@ -655,7 +877,9 @@
     </div>
   </div>
 
-  <script src="/static/app.js"></script>
+  <script src="/static/app.js?v=phase7fix2"></script>
+
+
 </body>
 </html>
 

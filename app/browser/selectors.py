@@ -16,25 +16,60 @@ class SelectorRegistry:
         if not sel:
             # Fallback hardcoded list
             defaults = {
+                "idp_username": [
+                    "input[name='username']", "input[type='text']", "input[type='email']", "input[autocomplete='username']",
+                    "#username", "#user", "#email", "#userId", "input[name*='user']", "input[id*='user']",
+                    "input[placeholder*='User']", "input[placeholder*='Email']", "input[name='login']"
+                ],
                 "login_username": [
-                    "input[name='username']", "input[type='email']", "#username", "#userId", "input[name*='user']",
-                    "input[id*='user']", "input[placeholder*='User']", "input[placeholder*='Email']", "input[name='login']"
+                    "input[name='username']", "input[type='text']", "input[type='email']", "input[autocomplete='username']",
+                    "#username", "#user", "#email", "#userId", "input[name*='user']", "input[id*='user']",
+                    "input[placeholder*='User']", "input[placeholder*='Email']", "input[name='login']"
+                ],
+                "idp_password": [
+                    "input[name='password']", "input[type='password']", "input[autocomplete='current-password']",
+                    "#password", "#pass", "input[id*='pass']", "input[name*='pass']", "input[placeholder*='Password']"
                 ],
                 "login_password": [
-                    "input[name='password']", "input[type='password']", "#password", "input[id*='pass']",
-                    "input[name*='pass']", "input[placeholder*='Password']"
+                    "input[name='password']", "input[type='password']", "input[autocomplete='current-password']",
+                    "#password", "#pass", "input[id*='pass']", "input[name*='pass']", "input[placeholder*='Password']"
+                ],
+                "login_button": [
+                    "button[type='submit']", "input[type='submit']", "button:has-text('Sign In')", "button:has-text('Log In')",
+                    "button:has-text('Login')", "a:has-text('Log In')", "#loginBtn", ".login-button", "button:has-text('Submit')", "button:has-text('Proceed')"
                 ],
                 "login_submit": [
-                    "button[type='submit']", "input[type='submit']", "button:has-text('Login')", "button:has-text('Sign In')",
-                    "button:has-text('Log In')", "#loginBtn", ".login-button", "button:has-text('Submit')", "button:has-text('Proceed')"
+                    "button[type='submit']", "input[type='submit']", "button:has-text('Sign In')", "button:has-text('Log In')",
+                    "button:has-text('Login')", "a:has-text('Log In')", "#loginBtn", ".login-button", "button:has-text('Submit')", "button:has-text('Proceed')"
                 ],
                 "sync_mymenu": [
                     "text='Sync MyMenu'", "a:has-text('Sync MyMenu')", "button:has-text('Sync MyMenu')",
-                    "[aria-label='Sync MyMenu']", "a[href*='sync']", ".nav-link:has-text('Sync')", "text='MyMenu Sync'"
+                    "[data-testid='sync-mymenu']", "#sync-mymenu", "[aria-label='Sync MyMenu']", "a[href*='sync']",
+                    ".nav-link:has-text('Sync')", "text='MyMenu Sync'", "a[href*='main-menu']", "text='Sync'", "text='MyMenu'",
+                    "a:has-text('Sync')", "button:has-text('Sync')", "a[href*='zmp']"
                 ],
+
                 "fetch_menu": [
-                    "button:has-text('Fetch Menu')", "input[value='Fetch Menu']", "text='Fetch Menu'",
-                    ".fetch-menu-btn", "button[id*='fetch']", "button:has-text('Fetch Latest')", "a:has-text('Fetch Menu')"
+                    "button:has-text('Fetch Menu')",
+                    "input[value='Fetch Menu']",
+                    "a:has-text('Fetch Menu')",
+                    ".fetch-menu-btn",
+                    "button[id*='fetch']",
+                    "text='Fetch Menu'",
+                    "a:has-text('Fetch')",
+                    "button:has-text('Fetch')",
+                    "input[value*='Fetch']",
+                    "a[href*='fetch']",
+                    "[aria-label*='Fetch']"
+                ],
+                "fetch_menu_loading": [
+                    ".spinner", ".loading", ".loader", "[aria-busy='true']", "button[disabled]",
+                    "text='Loading'", "text='Fetching'", "text='Please wait'"
+                ],
+                "invalid_credentials_notice": [
+
+                    ".alert-danger", ".error-message", ".invalid-feedback", "text='Invalid username or password'",
+                    "text='Authentication failed'", "text='Invalid credentials'", "text='Login failed'"
                 ],
                 "process_latest_menu": [
                     "button:has-text('Process Latest Menu')", "input[value='Process Latest Menu']", "text='Process Latest Menu'",

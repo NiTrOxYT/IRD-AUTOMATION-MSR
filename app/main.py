@@ -117,36 +117,58 @@ async def list_sites():
             "idp_password_masked": "●●●●●●●●" if s.idp_password else "",
             "enabled": s.enabled,
             "sort_order": s.sort_order,
-            "notes": s.notes
+            "notes": s.notes,
+            "site_ip": s.site_ip or s.remote_host,
+            "site_port": getattr(s, "site_port", 80) or 80,
+            "local_port": s.local_port or 18001,
+            "web_url": s.web_url or f"http://127.0.0.1:{s.local_port or 18001}"
         })
     return res
 
 @app.post("/api/sites")
 async def create_site(data: dict):
+    from app.database.db import validate_site_port, validate_local_port_collision
+
+    site_port_raw = data.get("site_port", 80)
+    p_ok, p_err = validate_site_port(site_port_raw)
+    if not p_ok:
+        raise HTTPException(status_code=400, detail=p_err)
+
+    local_port = int(data.get("local_port", 18001))
+    enabled = bool(data.get("enabled", True))
+    c_ok, c_err = validate_local_port_collision(None, local_port, enabled)
+    if not c_ok:
+        raise HTTPException(status_code=400, detail=c_err)
+
     site = Site(
         name=data.get("name", "").strip(),
-        launcher_button=data.get("launcher_button", "").strip(),
+        launcher_button=data.get("launcher_button", data.get("name", "")).strip(),
         url=data.get("url", "").strip(),
         idp_username=data.get("idp_username", "").strip(),
         idp_password=data.get("idp_password", ""),
-        enabled=data.get("enabled", True),
+        enabled=enabled,
         sort_order=int(data.get("sort_order", 0)),
-        notes=data.get("notes", "")
+        notes=data.get("notes", ""),
+        site_ip=data.get("site_ip", "").strip(),
+        site_port=int(site_port_raw),
+        local_port=local_port
     )
-    if not site.name or not site.launcher_button:
-        raise HTTPException(status_code=400, detail="Site Name and Launcher Button are required.")
+    if not site.name:
+        raise HTTPException(status_code=400, detail="Site Name is required.")
 
     new_id = add_site(site)
     return {"success": True, "site_id": new_id}
 
 @app.put("/api/sites/{site_id}")
 async def edit_site(site_id: int, data: dict):
+    from app.database.db import validate_site_port, validate_local_port_collision
+
     existing = get_site_by_id(site_id)
     if not existing:
         raise HTTPException(status_code=404, detail="Site not found.")
 
     existing.name = data.get("name", existing.name).strip()
-    existing.launcher_button = data.get("launcher_button", existing.launcher_button).strip()
+    existing.launcher_button = data.get("launcher_button", existing.name).strip()
     existing.url = data.get("url", existing.url).strip()
     existing.idp_username = data.get("idp_username", existing.idp_username).strip()
     if "idp_password" in data and data["idp_password"]:
@@ -155,13 +177,34 @@ async def edit_site(site_id: int, data: dict):
     existing.sort_order = int(data.get("sort_order", existing.sort_order))
     existing.notes = data.get("notes", existing.notes)
 
+    if "site_ip" in data:
+        existing.site_ip = data["site_ip"].strip()
+
+    if "site_port" in data:
+        p_ok, p_err = validate_site_port(data["site_port"])
+        if not p_ok:
+            raise HTTPException(status_code=400, detail=p_err)
+        existing.site_port = int(data["site_port"])
+
+    if "local_port" in data:
+        target_local_port = int(data["local_port"])
+        c_ok, c_err = validate_local_port_collision(site_id, target_local_port, existing.enabled)
+        if not c_ok:
+            raise HTTPException(status_code=400, detail=c_err)
+        existing.local_port = target_local_port
+
+    if "web_url" in data:
+        existing.web_url = data["web_url"].strip()
+
     update_site(existing)
     return {"success": True}
+
 
 @app.delete("/api/sites/{site_id}")
 async def remove_site(site_id: int):
     delete_site(site_id)
     return {"success": True}
+
 
 @app.post("/api/sites/reorder")
 async def reorder_sites(data: list):
@@ -172,6 +215,15 @@ async def reorder_sites(data: list):
 async def test_site_connection(site_id: int):
     res = await workflow_runner.run_single_site_test(site_id)
     return res
+
+@app.post("/api/sites/{site_id}/remote-connectivity-test")
+async def test_remote_connectivity_endpoint(site_id: int):
+    site = get_site_by_id(site_id)
+    if not site:
+        raise HTTPException(status_code=404, detail="Site not found.")
+    res = await tunnel_manager.test_remote_site_connectivity(site)
+    return res
+
 
 @app.post("/api/integration-test/run")
 async def run_integration_test(data: dict):
@@ -339,6 +391,297 @@ async def open_downloads_folder():
     if hasattr(os, "startfile"):
         getattr(os, "startfile")(path)
     return {"success": True}
+
+# --- PHASE 5B: REAL FNB TUNNEL ENDPOINTS ---
+
+@app.get("/api/fnb-tunnel/config")
+async def get_fnb_config():
+    from app.database.db import get_site_by_id, get_site_by_name, get_all_sites, get_office_ssh_config
+    all_s = get_all_sites()
+    site = get_site_by_id(1) or get_site_by_name("FNB") or (all_s[0] if all_s else None)
+    if not site:
+        raise HTTPException(status_code=404, detail="FNB Site configuration not found.")
+
+    off_ssh = get_office_ssh_config()
+    return {
+        "site_id": site.id,
+        "name": site.name,
+        "enabled": site.enabled,
+        "site_ip": site.site_ip or site.remote_host or "127.0.0.1",
+        "ssh_host": site.ssh_host or off_ssh.get("ssh_host") or "111.93.205.187",
+        "ssh_port": site.ssh_port or off_ssh.get("ssh_port") or 22,
+        "ssh_username": site.ssh_username or off_ssh.get("ssh_username") or "sourik",
+        "auth_type": site.auth_type or off_ssh.get("auth_type") or "password",
+        "ssh_key_path": site.ssh_key_path or off_ssh.get("ssh_key_path") or "",
+        "has_ssh_password": bool(site.ssh_password or off_ssh.get("password_configured")),
+        "local_port": site.local_port or 18001,
+        "web_url": site.web_url or f"http://127.0.0.1:{site.local_port or 18001}"
+    }
+
+
+@app.post("/api/fnb-tunnel/config")
+async def update_fnb_config(data: dict):
+    from app.database.db import get_site_by_id, get_site_by_name, update_site
+    site = get_site_by_id(1) or get_site_by_name("FNB")
+    if not site:
+        raise HTTPException(status_code=404, detail="FNB Site configuration not found.")
+
+    if "ssh_host" in data:
+        site.ssh_host = data["ssh_host"].strip()
+    if "ssh_port" in data:
+        site.ssh_port = int(data["ssh_port"])
+    if "ssh_username" in data:
+        site.ssh_username = data["ssh_username"].strip()
+    if "auth_type" in data:
+        site.auth_type = data["auth_type"].strip()
+    if "ssh_key_path" in data:
+        site.ssh_key_path = data["ssh_key_path"].strip()
+    if "ssh_password" in data and data["ssh_password"]:
+        site.ssh_password = data["ssh_password"]
+    if "local_port" in data:
+        site.local_port = int(data["local_port"])
+    if "remote_host" in data:
+        site.remote_host = data["remote_host"].strip()
+    if "remote_port" in data:
+        site.remote_port = int(data["remote_port"])
+    if "tunnel_type" in data:
+        site.tunnel_type = data["tunnel_type"].strip()
+    if "web_url" in data:
+        site.web_url = data["web_url"].strip()
+
+    update_site(site)
+    return {"success": True, "message": "FNB SSH Tunnel configuration updated successfully."}
+
+# --- OFFICE SSH SERVER ENDPOINTS ---
+
+@app.get("/api/settings/ssh")
+async def get_office_ssh_settings():
+    from app.database.db import get_office_ssh_config
+    return get_office_ssh_config()
+
+@app.post("/api/settings/ssh")
+async def update_office_ssh_settings(data: dict):
+    from app.database.db import set_office_ssh_config
+    set_office_ssh_config(data)
+    return {"success": True, "message": "Office SSH configuration saved."}
+
+@app.post("/api/settings/ssh/test")
+async def test_office_ssh():
+    res = await tunnel_manager.test_office_ssh_connection()
+    return res
+
+@app.get("/api/settings/tunnel")
+async def get_global_tunnel_settings():
+    from app.database.db import get_global_tunnel_config
+    return get_global_tunnel_config()
+
+@app.post("/api/settings/tunnel")
+async def update_global_tunnel_settings(data: dict):
+    from app.database.db import set_global_tunnel_config
+    set_global_tunnel_config(data)
+    return {"success": True, "message": "Global Reverse SSH Tunnel configuration saved."}
+
+
+
+@app.post("/api/fnb-tunnel/test")
+async def run_fnb_tunnel_test(data: dict = None):
+    from app.database.db import get_site_by_id, get_site_by_name
+    site = get_site_by_id(1) or get_site_by_name("FNB")
+    if not site:
+        raise HTTPException(status_code=404, detail="FNB site record not found.")
+
+    keep_running = bool((data or {}).get("keep_running", False))
+    res = await tunnel_manager.run_fnb_tunnel_test(site, keep_running=keep_running)
+    return res
+
+@app.post("/api/fnb-tunnel/webpage-test")
+async def run_fnb_webpage_test():
+    from app.database.db import get_site_by_id, get_site_by_name
+    site = get_site_by_id(1) or get_site_by_name("FNB")
+    if not site:
+        raise HTTPException(status_code=404, detail="FNB site record not found.")
+
+    res = await tunnel_manager.open_fnb_webpage_test(site)
+    return res
+
+@app.post("/api/fnb-tunnel/playwright-test")
+async def run_fnb_playwright_test():
+    from app.database.db import get_site_by_id, get_site_by_name, get_all_sites
+    all_s = get_all_sites()
+    site = get_site_by_id(1) or get_site_by_name("FNB") or (all_s[0] if all_s else None)
+    if not site:
+        raise HTTPException(status_code=404, detail="FNB site record not found.")
+
+    res = await tunnel_manager.test_playwright_tunnel(site)
+    return res
+
+@app.post("/api/fnb-tunnel/login-workflow")
+async def run_fnb_login_workflow(data: dict = None):
+    from app.database.db import get_site_by_id, get_site_by_name, get_all_sites, get_global_tunnel_config
+    all_s = get_all_sites()
+    site = get_site_by_id(1) or get_site_by_name("FNB") or (all_s[0] if all_s else None)
+    if not site:
+        raise HTTPException(status_code=404, detail="FNB site record not found.")
+
+    # 1. Ensure Reverse Tunnel is started and 3-tier validated
+    t_res = await tunnel_manager.run_fnb_tunnel_test(site, keep_running=True)
+    if t_res["result_status"] != "REAL FNB TUNNEL — PASS" and t_res["checks"].get("fnb_service") != "PASS":
+        # Do NOT open browser if tunnel validation failed
+        return {
+            "success": False,
+            "result_status": "TUNNEL_FAILED",
+            "failure_code": t_res.get("failure_code", "TUNNEL_ESTABLISH_FAILED"),
+            "logs": t_res.get("logs", []) + ["CRITICAL: Reverse SSH Tunnel validation failed. Aborting browser login workflow."],
+            "formatted_summary": t_res.get("formatted_summary", "")
+        }
+
+    # 2. Compute Target Web URL
+    g_tunnel = get_global_tunnel_config()
+    local_port = site.local_port or 18001
+    tmpl = g_tunnel.get("web_url_template", "http://127.0.0.1:{local_port}")
+    web_url = tmpl.format(local_port=local_port) if "{local_port}" in tmpl else f"http://127.0.0.1:{local_port}"
+
+    # 3. Execute Phase 6 Browser Login + Sync MyMenu Sequence
+    from app.browser.browser_controller import browser_controller
+    res = await browser_controller.run_fnb_login_and_sync_mymenu(site, web_url)
+    return res
+
+@app.post("/api/fnb-tunnel/fetch-workflow")
+async def run_fnb_fetch_workflow(data: dict = None):
+    from app.database.db import get_site_by_id, get_site_by_name, get_all_sites, get_global_tunnel_config
+    all_s = get_all_sites()
+    site = get_site_by_id(1) or get_site_by_name("FNB") or (all_s[0] if all_s else None)
+    if not site:
+        raise HTTPException(status_code=404, detail="FNB site record not found.")
+
+    # 1. Ensure Reverse Tunnel is started and 3-tier validated
+    t_res = await tunnel_manager.run_fnb_tunnel_test(site, keep_running=True)
+    if t_res["result_status"] != "REAL FNB TUNNEL — PASS" and t_res["checks"].get("fnb_service") != "PASS":
+        # Do NOT open browser if tunnel validation failed
+        return {
+            "success": False,
+            "result_status": "TUNNEL_FAILED",
+            "failure_code": t_res.get("failure_code", "TUNNEL_ESTABLISH_FAILED"),
+            "logs": t_res.get("logs", []) + ["CRITICAL: Reverse SSH Tunnel validation failed. Aborting Fetch Menu workflow."],
+            "formatted_summary": t_res.get("formatted_summary", "")
+        }
+
+    # 2. Compute Target Web URL
+    from app.database.models import get_site_web_url
+    web_url = get_site_web_url(site)
+
+    # 3. Execute Phase 7 FNB Fetch Menu Sequence
+    from app.browser.browser_controller import browser_controller
+    res = await browser_controller.run_fnb_fetch_menu_workflow(site, web_url)
+    return res
+
+@app.post("/api/diagnostics/stage-test")
+async def run_stage_test(data: dict = None):
+    data = data or {}
+    site_id = data.get("site_id", 1)
+    stage_key = data.get("stage_key", "backend_test")
+
+    from app.database.db import get_site_by_id, get_all_sites
+    from app.database.models import get_site_web_url
+    all_s = get_all_sites()
+    site = get_site_by_id(site_id) or (all_s[0] if all_s else None)
+    if not site:
+        raise HTTPException(status_code=404, detail="Site record not found.")
+
+    web_url = get_site_web_url(site)
+
+
+    logs = [f"Executing Integration Test Stage: '{stage_key}' for Site '{site.name}'..."]
+
+    if stage_key == "backend_test":
+        await asyncio.sleep(1.0)
+        logs.append("✓ Diagnostic Backend Test PASS. Backend API is responsive.")
+        return {"success": True, "stage": stage_key, "logs": logs, "result": "PASS"}
+
+    elif stage_key == "package_check":
+        from app.diagnostics.package_validator import package_validator
+        res = package_validator.run_full_validation()
+        logs.append(f"Package Validation Result: {res['overall_status']}")
+        return {"success": res["all_ok"], "stage": stage_key, "logs": logs, "result": res["overall_status"]}
+
+    elif stage_key == "plink_check":
+        res = await tunnel_manager.test_office_ssh_connection()
+        return {"success": res.get("success", False), "stage": stage_key, "logs": logs + res.get("logs", []), "result": res.get("result_message", "COMPLETED")}
+
+    elif stage_key in ("start_tunnel", "port_check"):
+        res = await tunnel_manager.run_fnb_tunnel_test(site, keep_running=True)
+        return {"success": res["result_status"] == "REAL FNB TUNNEL — PASS", "stage": stage_key, "logs": logs + res.get("logs", []), "result": res["result_status"]}
+
+    elif stage_key == "tunnel_webpage":
+        res = await tunnel_manager.open_fnb_webpage_test(site)
+        return {"success": res.get("result") == "PASS", "stage": stage_key, "logs": logs + res.get("logs", []), "result": res.get("result", "COMPLETED")}
+
+    elif stage_key in ("login", "sync_mymenu"):
+        from app.browser.browser_controller import browser_controller
+        res = await browser_controller.run_fnb_login_and_sync_mymenu(site, web_url)
+        return {"success": res.get("result_status") == "PASS", "stage": stage_key, "logs": logs + res.get("logs", []), "result": res.get("result_status", "COMPLETED")}
+
+    elif stage_key in ("fetch_menu", "full_workflow"):
+        from app.browser.browser_controller import browser_controller
+        res = await browser_controller.run_fnb_fetch_menu_workflow(site, web_url)
+        return {"success": res.get("result_status") == "PASS", "stage": stage_key, "logs": logs + res.get("logs", []), "result": res.get("result_status", "COMPLETED")}
+
+    else:
+        logs.append(f"Stage '{stage_key}' is not executed in Phase 7.")
+        return {"success": True, "stage": stage_key, "logs": logs, "result": "NOT EXECUTED"}
+
+
+
+
+@app.get("/api/fnb-tunnel/status")
+async def get_fnb_tunnel_status():
+    from app.database.db import get_site_by_id, get_site_by_name
+    site = get_site_by_id(1) or get_site_by_name("FNB")
+    if not site:
+        return {"status": "STOPPED", "message": "FNB site record not found."}
+
+    return tunnel_manager.get_tunnel_status(site)
+
+@app.post("/api/fnb-tunnel/stop")
+async def stop_fnb_tunnel():
+    from app.database.db import get_site_by_id, get_site_by_name
+    site = get_site_by_id(1) or get_site_by_name("FNB")
+    if site:
+        tunnel_manager.stop_tunnel(site)
+    return {"success": True, "status": "STOPPED"}
+
+@app.get("/api/fnb-tunnel/command")
+async def get_fnb_tunnel_command():
+    from app.database.db import get_site_by_id, get_site_by_name
+    site = get_site_by_id(1) or get_site_by_name("FNB")
+    if not site:
+        return {"command": "FNB Site not found"}
+
+    try:
+        detected = putty_manager.detect_executables()
+        plink_path = detected["plink"] or "tools/putty/plink.exe"
+        cmd = putty_manager.build_plink_command(site, plink_path)
+        scrubbed = putty_manager.scrub_sensitive_info(" ".join(cmd))
+        return {"command": scrubbed, "raw_args": [putty_manager.scrub_sensitive_info(arg) for arg in cmd]}
+    except Exception as e:
+        return {"command": f"Error constructing command: {e}"}
+
+@app.get("/api/database/site-count-audit")
+async def site_count_audit():
+    sites = get_all_sites()
+    total = len(sites)
+    enabled = len([s for s in sites if s.enabled])
+    expected = 21
+    extra_sites = [s.name for s in sites[21:]] if total > 21 else []
+
+    return {
+        "total_database_records": total,
+        "enabled_sites": enabled,
+        "expected_production_sites": expected,
+        "extra_sites": extra_sites,
+        "explanation": f"Database has {total} records ({enabled} enabled). Sites 1 to 21 correspond to standard 21 production sites (FNB, Site 02..21). Record #22 '{', '.join(extra_sites)}' is an extra record present in database."
+    }
+
 
 
 @app.websocket("/ws")

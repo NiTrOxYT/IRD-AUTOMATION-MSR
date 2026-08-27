@@ -29,12 +29,16 @@ INITIAL_21_SITES = [
 ]
 
 def seed_default_sites_if_empty():
-    """Seeds the initial 21 sites if the database has zero sites configured."""
+    """Seeds the initial 21 sites and Office SSH credentials if empty."""
+    from app.database.db import seed_office_ssh_credentials_if_empty
+    seed_office_ssh_credentials_if_empty()
+
     existing = get_all_sites()
     if existing:
         logger.info(f"Database already contains {len(existing)} sites. Checking port assignments...")
         reassign_unique_local_ports_if_colliding(existing)
         return
+
 
     logger.info("Seeding initial 21 sites into database...")
     for idx, item in enumerate(INITIAL_21_SITES, start=1):
@@ -49,25 +53,28 @@ def seed_default_sites_if_empty():
             sort_order=idx,
             notes="Default configured site",
             local_port=port,
-            web_url=f"http://127.0.0.1:{port}"
+            web_url=f"http://localhost:{port}/zmp/main-menu.do"
         )
         add_site(site)
     logger.info("Successfully seeded 21 initial sites.")
 
 def reassign_unique_local_ports_if_colliding(sites=None):
-    """Ensures each site has a unique local port (18001, 18002, ...)."""
+    """Ensures each site has a unique local port (18001, 18002, ...) and web_url = http://localhost:<local_port>/zmp/main-menu.do."""
     from app.database.db import get_all_sites, update_site
     if sites is None:
         sites = get_all_sites()
 
     ports = [s.local_port for s in sites]
-    # If all ports are 18001 or duplicates exist
-    if len(set(ports)) < len(sites):
-        logger.info("Detected duplicate local ports. Assigning unique local ports (18001, 18002, ...)...")
+    target_web_url = lambda s: f"http://localhost:{s.local_port}/zmp/main-menu.do"
+    needs_update = len(set(ports)) < len(sites) or any(s.web_url != target_web_url(s) for s in sites)
+
+    if needs_update:
+        logger.info("Syncing local ports and web_url endpoints...")
         for idx, site in enumerate(sites, start=1):
-            new_port = 18000 + idx
-            site.local_port = new_port
-            if not site.web_url or site.web_url == "http://127.0.0.1:18001":
-                site.web_url = f"http://127.0.0.1:{new_port}"
+            if len(set(ports)) < len(sites):
+                site.local_port = 18000 + idx
+            site.web_url = f"http://localhost:{site.local_port}/zmp/main-menu.do"
             update_site(site)
-        logger.info("Unique local ports assigned successfully.")
+        logger.info("Local ports and web_url endpoints synced successfully.")
+
+

@@ -36,6 +36,11 @@ class WorkflowRunner:
         self.tunnel_mgr = tunnel_manager
         self.browser_ctrl: Optional[BrowserController] = None
 
+        self.current_site_ip: str = ""
+        self.current_site_port: int = 80
+        self.current_local_port: int = 18001
+        self.current_url: str = ""
+
         # Event callbacks for UI broadcast
         self.status_listeners: List[Callable[[Dict[str, Any]], None]] = []
 
@@ -49,11 +54,16 @@ class WorkflowRunner:
             "run_id": self.current_run_id,
             "current_site_id": self.current_site_id,
             "current_site_name": self.current_site_name,
+            "current_site_ip": self.current_site_ip,
+            "current_site_port": self.current_site_port,
+            "current_local_port": self.current_local_port,
+            "current_url": self.current_url,
             "status": str(self.current_status),
             "operation": self.current_operation,
             "details": self.current_status_details,
             "progress_percentage": self.progress_percentage
         }
+
         if extra:
             payload.update(extra)
 
@@ -474,211 +484,59 @@ class WorkflowRunner:
         return self.current_run_id
 
     async def _process_single_site_workflow(self, site: Site, result_rec: RunSiteResult, dry_run: bool, settings: Dict[str, Any], download_dir: str) -> RunSiteResult:
-        """Executes full single-site workflow with VM crash recovery and retries."""
-        browser = BrowserController()
-        max_retries = int(settings.get("max_process_retries", 3))
-        rec_timeout = int(settings.get("service_recovery_timeout", 600))
-        retry_interval = int(settings.get("retry_interval", 10))
+        """Executes full single-site workflow using reverse SSH tunnel and Playwright automation."""
+        from app.browser.browser_controller import browser_controller
+        from app.database.db import get_global_tunnel_config
+
+        from app.database.models import get_site_web_url
+        local_port = site.local_port or 18001
+        browser_url = get_site_web_url(site)
+
+        self.current_site_ip = getattr(site, "site_ip", "")
+        self.current_site_port = getattr(site, "site_port", 80)
+        self.current_local_port = local_port
+        self.current_url = browser_url
 
         try:
-            # 1. Launch MSR ZMP PORTAL LAUNCHER button
             self.current_status = SiteStatus.TUNNELING
-            self.current_operation = f"Launching tunnel for {site.name}"
-            self.current_status_details = f"Clicking launcher button '{site.launcher_button}'"
+            self.current_operation = f"Establishing SSH Tunnel for {site.name}"
+            self.current_status_details = f"Local Port: {local_port} | Browser URL: {browser_url}"
             self._broadcast_status()
 
-            self.launcher_mgr.click_site_button(site.launcher_button)
-            await asyncio.sleep(3.0)
 
-            # 2. Initialize Browser
-            self.current_status = SiteStatus.WAITING_FOR_WEBPAGE
-            self.current_operation = "Opening browser"
-            self.current_status_details = "Initializing Playwright instance"
-            self._broadcast_status()
-
-            await browser.initialize(headless=bool(settings.get("headless", False)))
-
-            # 3. Wait for webpage availability
-            url = site.url or f"https://{site.name.lower().replace(' ', '')}.mymenu.internal"
-            self.current_status_details = f"Navigating to {url}"
-            self._broadcast_status()
-
-            nav_ok = await browser.navigate_to_url(url, timeout_seconds=int(settings.get("page_load_timeout", 120)))
-            if not nav_ok:
-                result_rec.status = SiteStatus.FAILED
-                result_rec.action_point_status = "FAILED"
-                result_rec.error_message = f"Webpage unreachable at {url}"
-                await browser.close()
-                return result_rec
-
-            # 4. Login
-            if site.idp_username and site.idp_password:
-                self.current_status = SiteStatus.LOGIN
-                self.current_operation = "Logging into IDP"
-                self.current_status_details = f"User: {site.idp_username}"
-                self._broadcast_status()
-
-                login_ok, login_msg = await browser.login(site.idp_username, site.idp_password, timeout_seconds=int(settings.get("login_timeout", 60)))
-                if not login_ok:
-                    result_rec.status = SiteStatus.FAILED
-                    result_rec.action_point_status = "FAILED"
-                    result_rec.error_message = login_msg
-                    await browser.capture_screenshot(site.name, "login_failed")
-                    await browser.close()
-                    return result_rec
-
-            # 5. Click Sync MyMenu
-            self.current_status = SiteStatus.SYNC_MYMENU
-            self.current_operation = "Navigating to Sync MyMenu"
-            self.current_status_details = "Clicking Sync MyMenu navigation link"
-            self._broadcast_status()
-
-            sync_ok, sync_msg = await browser.click_sync_mymenu(timeout_seconds=60)
-            if not sync_ok:
-                result_rec.status = SiteStatus.FAILED
-                result_rec.action_point_status = "FAILED"
-                result_rec.error_message = sync_msg
-                await browser.capture_screenshot(site.name, "sync_mymenu_failed")
-                await browser.close()
-                return result_rec
-
-            # If Dry Run, stop here safely!
             if dry_run:
-                logger.info(f"DRY RUN completed successfully for site '{site.name}'.")
+                logger.info(f"DRY RUN executed for site '{site.name}'.")
+                await asyncio.sleep(1.0)
                 result_rec.status = SiteStatus.COMPLETED
                 result_rec.action_point_status = "NO ACTION POINT"
                 result_rec.third_line_text = "[DRY RUN PASSED]"
-                await browser.close()
                 return result_rec
 
-            # 6. Click Fetch Menu
-            self.current_status = SiteStatus.FETCHING_MENU
-            self.current_operation = "Fetching Menu"
-            self.current_status_details = "Clicking Fetch Menu and awaiting completion"
-            self._broadcast_status()
+            # Execute real full site sequence
+            res = await browser_controller.run_full_site_automation_sequence(site, browser_url)
 
-            fetch_ok, fetch_msg = await browser.click_fetch_menu(timeout_seconds=int(settings.get("fetch_menu_timeout", 600)))
-            if not fetch_ok:
-                result_rec.status = SiteStatus.FAILED
-                result_rec.action_point_status = "FAILED"
-                result_rec.error_message = fetch_msg
-                await browser.capture_screenshot(site.name, "fetch_menu_failed")
-                await browser.close()
-                return result_rec
 
-            # 7. Click Process Latest Menu with VM / FNB Service Crash Handling!
-            process_success = False
-            process_attempts = 0
 
-            while process_attempts < max_retries:
-                process_attempts += 1
-                result_rec.retry_count = process_attempts - 1
+            final_st = res.get("final_status", "FAILED")
+            ap_st = res.get("action_point_status", "FAILED")
+            err_msg = res.get("failure_code", "NONE")
 
-                self.current_status = SiteStatus.PROCESSING_MENU if process_attempts == 1 else SiteStatus.RETRYING
-                self.current_operation = f"Processing Latest Menu (Attempt {process_attempts}/{max_retries})"
-                self.current_status_details = "Executing Process Latest Menu"
-                self._broadcast_status()
-
-                proc_res = await browser.click_process_latest_menu(timeout_seconds=int(settings.get("process_menu_timeout", 600)))
-
-                if proc_res["success"]:
-                    process_success = True
-                    logger.info(f"Process Latest Menu succeeded on attempt #{process_attempts}")
-                    break
-
-                # Check if FNB service/VM crashed!
-                if proc_res["crashed"]:
-                    logger.warning(f"FNB Service/VM crashed on attempt #{process_attempts}. Entering VM Recovery wait loop...")
-
-                    self.current_status = SiteStatus.WAITING_FOR_SERVICE
-                    self.current_operation = f"FNB Service Crashed (Attempt {process_attempts}/{max_retries})"
-                    self.current_status_details = f"Waiting up to {rec_timeout // 60} minutes for VM service to recover..."
-                    self._broadcast_status()
-
-                    # Recovery Loop: poll service health every retry_interval seconds
-                    rec_start = time.time()
-                    service_recovered = False
-
-                    while time.time() - rec_start < rec_timeout:
-                        if self.stop_requested:
-                            break
-
-                        await asyncio.sleep(retry_interval)
-                        elapsed_secs = int(time.time() - rec_start)
-                        self.current_status_details = f"VM Recovery check ({elapsed_secs}s / {rec_timeout}s). Checking service availability..."
-                        self._broadcast_status()
-
-                        # Check service availability
-                        avail = await browser.check_service_availability(url)
-                        if avail:
-                            logger.info(f"FNB VM/Service recovered after {elapsed_secs} seconds!")
-                            service_recovered = True
-                            self.current_status_details = f"Service recovered after {elapsed_secs}s! Re-navigating to Sync MyMenu..."
-                            self._broadcast_status()
-
-                            # Re-navigate and prepare to retry Process Latest Menu
-                            await browser.navigate_to_url(url)
-                            if site.idp_username and site.idp_password:
-                                await browser.login(site.idp_username, site.idp_password)
-                            await browser.click_sync_mymenu()
-                            break
-
-                    if not service_recovered:
-                        logger.error(f"FNB Service failed to recover within {rec_timeout} seconds.")
-                        result_rec.error_message = f"FNB Service VM crash recovery timed out ({rec_timeout}s)"
-                        break
-
-            if not process_success:
-                result_rec.status = SiteStatus.FAILED
-                result_rec.action_point_status = "FAILED"
-                if not result_rec.error_message:
-                    result_rec.error_message = f"Process Latest Menu failed after {max_retries} attempts."
-                await browser.capture_screenshot(site.name, "process_menu_failed")
-                await browser.close()
-                return result_rec
-
-            # 8. Download Action Point CSV
-            self.current_status = SiteStatus.DOWNLOADING_CSV
-            self.current_operation = "Downloading Action Point CSV"
-            self.current_status_details = "Clicking Download Action Point"
-            self._broadcast_status()
-
-            dl_ok, csv_path, dl_err = await browser.download_action_point_csv(
-                download_dir=download_dir,
-                site_name=site.name,
-                timeout_seconds=int(settings.get("download_timeout", 120))
-            )
-
-            await browser.close()
-
-            if not dl_ok or not csv_path:
-                result_rec.status = SiteStatus.FAILED
-                result_rec.action_point_status = "FAILED"
-                result_rec.error_message = f"CSV Download failed: {dl_err}"
-                return result_rec
-
-            # 9. CSV Analysis (Line 3 check)
-            self.current_status = SiteStatus.CHECKING_CSV
-            self.current_operation = "Inspecting downloaded CSV"
-            self.current_status_details = f"Analyzing first 3 lines of {os.path.basename(csv_path)}"
-            self._broadcast_status()
-
-            csv_res = analyze_action_point_csv(csv_path)
-
-            result_rec.status = SiteStatus.COMPLETED
-            result_rec.action_point_status = csv_res["action_point_status"]
-            result_rec.csv_path = csv_path
-            result_rec.third_line_text = csv_res["third_line"]
-
-            if csv_res["action_point_status"] == "ACTION POINT FOUND":
-                self.current_status = SiteStatus.ACTION_POINT_FOUND
+            if "SUCCESS" in final_st or final_st == "PASS":
+                result_rec.status = SiteStatus.COMPLETED
+                result_rec.action_point_status = ap_st
+                result_rec.csv_path = res.get("csv_path", "")
+                result_rec.third_line_text = res.get("line_3", "")
             else:
-                self.current_status = SiteStatus.NO_ACTION_POINT
+                result_rec.status = SiteStatus.FAILED
+                result_rec.action_point_status = "FAILED"
+                result_rec.error_message = f"Site automation failed: {err_msg}"
 
-            self.current_status_details = f"Site completed: {csv_res['action_point_status']} (Line 3: '{csv_res['third_line']}')"
-            self._broadcast_status()
+            # Cleanup current site's tunnel before moving to next site
+            try:
+                await self.tunnel_mgr.stop_site_tunnel(site.id)
+            except Exception as ex:
+                logger.debug(f"Tunnel cleanup notice for site {site.name}: {ex}")
 
-            logger.info(f"SITE FINISHED: {site.name} -> {result_rec.action_point_status} | CSV: {csv_path}")
             return result_rec
 
         except Exception as e:
@@ -686,9 +544,12 @@ class WorkflowRunner:
             result_rec.status = SiteStatus.FAILED
             result_rec.action_point_status = "FAILED"
             result_rec.error_message = f"Unhandled exception: {str(e)}"
-            if browser:
-                await browser.close()
+            try:
+                await self.tunnel_mgr.stop_site_tunnel(site.id)
+            except Exception:
+                pass
             return result_rec
+
 
 # Global Workflow Runner Singleton
 workflow_runner = WorkflowRunner()

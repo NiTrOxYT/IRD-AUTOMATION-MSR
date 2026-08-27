@@ -618,9 +618,13 @@ input:checked + .slider:before {
   display: none;
   align-items: center;
   justify-content: center;
-  z-index: 100;
+  z-index: 1000;
+  pointer-events: none;
+}
 
-  &.active { display: flex; }
+.modal-overlay.active {
+  display: flex !important;
+  pointer-events: auto !important;
 }
 
 .modal-card {
@@ -631,8 +635,10 @@ input:checked + .slider:before {
   max-width: 90vw;
   box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
   overflow: hidden;
+}
 
-  &.modal-large { width: 840px; }
+.modal-card.modal-large {
+  width: 840px;
 }
 
 .modal-header {
@@ -642,8 +648,13 @@ input:checked + .slider:before {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  h3 { font-size: 16px; font-weight: 600; }
 }
+
+.modal-header h3 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
 
 .modal-body {
   padding: 20px;

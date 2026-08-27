@@ -1,41 +1,149 @@
 // IRD Sync Automation Frontend Application Controller
+// Version query cache-busting: app.js?v=phase7fix2
 
+// --- GLOBAL FRONTEND ERROR CAPTURE ---
+window.onerror = function(msg, url, lineNo, columnNo, error) {
+  const cleanUrl = url ? url.split('/').pop() : 'app.js';
+  const cleanMsg = `[UI ERROR] ${msg} (${cleanUrl}:${lineNo}:${columnNo})`;
+  console.error(cleanMsg, error);
+
+  const diagLog = document.getElementById('terminal-log');
+  if (diagLog) {
+    const row = document.createElement('div');
+    row.className = 'log-row log-error';
+    row.textContent = cleanMsg;
+    diagLog.appendChild(row);
+  }
+
+  const uiBadge = document.getElementById('badge-ui-health');
+  if (uiBadge) {
+    uiBadge.textContent = 'UI: ERROR';
+    uiBadge.className = 'status-badge badge-failed';
+  }
+  return false;
+};
+
+window.addEventListener('unhandledrejection', function(event) {
+  console.error('[UI ERROR] Unhandled Promise Rejection:', event.reason);
+});
+
+// Global Click Listener Diagnostic (Prompt Section 6)
+document.addEventListener("click", (event) => {
+  const button = event.target.closest("button");
+  if (button) {
+    console.log("[UI CLICK]", button.id || "no-id", button.textContent.trim());
+  }
+});
+
+
+// Global State Variables
 let sitesList = [];
 let ws = null;
 let currentRunStatus = null;
 
-document.addEventListener('DOMContentLoaded', () => {
-  initTabs();
-  initWebSocket();
-  loadSites();
-  loadSettings();
-  loadHistory();
-  bindEvents();
-});
 
-// TAB SWITCHING
-function initTabs() {
-  document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
+// --- SAFE COMPONENT INITIALIZER HELPER ---
+function safeInit(name, fn) {
+  try {
+    fn();
+    console.log(`[UI INIT] ${name}: PASS`);
+  } catch (e) {
+    console.error(`[UI INIT ERROR] ${name}:`, e);
+  }
+}
 
-      btn.classList.add('active');
-      const tabId = btn.getAttribute('data-tab');
-      document.getElementById(`tab-${tabId}`).classList.add('active');
-
-      if (tabId === 'sites') loadSitesConfigTable();
-      if (tabId === 'history') loadHistory();
-      if (tabId === 'settings') loadPuTTYInfo();
-      if (tabId === 'diagnostics') {
-        scanWindows();
-        loadPackageHealth();
+// --- DIAGNOSTIC EVENT BINDING HELPERS ---
+function bindClick(id, handler) {
+  console.log(`[UI] Binding button: ${id}`);
+  const el = document.getElementById(id);
+  if (el) {
+    console.log(`[UI] BUTTON BOUND: ${id}`);
+    el.addEventListener('click', async (e) => {
+      e.preventDefault();
+      console.log(`[UI] BUTTON CLICKED: ${id}`);
+      console.log(`[UI] HANDLER STARTED: ${handler.name || id}`);
+      try {
+        await handler(e);
+        console.log(`[UI] HANDLER SUCCESS: ${handler.name || id}`);
+      } catch (err) {
+        console.error(`[UI] HANDLER FAILED: ${handler.name || id}`, err);
       }
+    });
+    return true;
+  } else {
+    console.warn(`[UI] MISSING BUTTON: ${id}`);
+    return false;
+  }
+}
+
+function bindEvent(id, eventType, handler) {
+  const el = document.getElementById(id);
+  if (el) {
+    el.addEventListener(eventType, async (e) => {
+      try {
+        await handler(e);
+      } catch (err) {
+        console.error(`[UI EVENT ERROR] Error handling ${eventType} on #${id}:`, err);
+      }
+    });
+    return true;
+  } else {
+    console.warn(`[UI BIND WARNING] Element #${id} not found.`);
+    return false;
+  }
+}
+
+
+// --- TAB NAVIGATION SYSTEM (Independent of Backend APIs) ---
+function navigateToTab(tabId) {
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
+
+  const targetNav = document.querySelector(`.nav-btn[data-tab="${tabId}"]`);
+  if (targetNav) targetNav.classList.add('active');
+
+  const targetTab = document.getElementById(`tab-${tabId}`);
+  if (targetTab) {
+    targetTab.classList.add('active');
+    console.log(`[NAVIGATION] Switched to tab: ${tabId}`);
+  } else {
+    console.warn(`[NAVIGATION WARNING] Tab element #tab-${tabId} not found.`);
+  }
+
+  // Trigger lazy component loads on tab switch
+  if (tabId === 'sites') safeInit('loadSitesConfigTable', loadSitesConfigTable);
+  if (tabId === 'history') safeInit('loadHistory', loadHistory);
+  if (tabId === 'settings') safeInit('loadSettingsTabs', () => { loadPuTTYInfo(); loadOfficeSshSettings(); loadGlobalTunnelSettings(); });
+  if (tabId === 'diagnostics') safeInit('loadDiagnostics', () => { scanWindows(); loadPackageHealth(); });
+}
+
+function initNavigation() {
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const tabId = btn.getAttribute('data-tab');
+      if (tabId) navigateToTab(tabId);
     });
   });
 }
 
-// WEBSOCKET REAL-TIME CONNECTION
+// Temporary diagnostic helper
+window.testNavigation = function() {
+  const tabs = ['dashboard', 'sites', 'history', 'integration-test', 'settings', 'diagnostics'];
+  console.log("========================================");
+  console.log("Navigation Diagnostics");
+  console.log("========================================");
+  tabs.forEach(t => {
+    const btn = document.querySelector(`.nav-btn[data-tab="${t}"]`);
+    const page = document.getElementById(`tab-${t}`);
+    console.log(`${t.padEnd(18)} Button: ${btn ? 'FOUND' : 'MISSING'} | Tab: ${page ? 'FOUND' : 'MISSING'}`);
+  });
+  console.log("========================================");
+  return "Navigation Diagnostics Complete";
+};
+
+
+// --- WEBSOCKET REAL-TIME CONNECTION ---
 function updateWebSocketBadge(connected) {
   const badge = document.getElementById('badge-ws-status');
   if (!badge) return;
@@ -65,34 +173,42 @@ function updateBackendBadge(connected) {
 }
 
 function initWebSocket() {
-  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  const wsUrl = `${protocol}//${window.location.host}/ws`;
+  try {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${window.location.host}/ws`;
 
-  ws = new WebSocket(wsUrl);
+    ws = new WebSocket(wsUrl);
 
-  ws.onopen = () => {
-    console.log("WebSocket connected.");
-    updateWebSocketBadge(true);
-  };
+    ws.onopen = () => {
+      console.log("WebSocket connected.");
+      updateWebSocketBadge(true);
+    };
 
-  ws.onmessage = (event) => {
-    try {
-      const msg = JSON.parse(event.data);
-      if (msg.type === 'log') {
-        appendLogToTerminal(msg.data);
-        appendLogToTestConsole(msg.data);
-      } else if (msg.type === 'status') {
-        updateAutomationStatusUI(msg.data);
+    ws.onmessage = (event) => {
+      try {
+        const msg = JSON.parse(event.data);
+        if (msg.type === 'log') {
+          appendLogToTerminal(msg.data);
+          appendLogToTestConsole(msg.data);
+        } else if (msg.type === 'status') {
+          updateAutomationStatusUI(msg.data);
+        }
+      } catch (e) {
+        console.error("Error parsing WS message:", e);
       }
-    } catch (e) {
-      console.error("Error parsing WS message:", e);
-    }
-  };
+    };
 
-  ws.onclose = () => {
+    ws.onclose = () => {
+      updateWebSocketBadge(false);
+      setTimeout(initWebSocket, 5000);
+    };
+    ws.onerror = (err) => {
+      updateWebSocketBadge(false);
+    };
+  } catch (e) {
+    console.warn("WebSocket init warning:", e);
     updateWebSocketBadge(false);
-    setTimeout(initWebSocket, 3000); // Auto reconnect
-  };
+  }
 }
 
 function appendLogToTestConsole(log) {
@@ -121,13 +237,14 @@ function appendLogToTerminal(log) {
   if (log.level === 'ERROR' || log.level === 'CRITICAL') levelClass = 'log-error';
 
   row.className = `log-row ${levelClass}`;
-  row.textContent = `${log.timestamp} | ${log.level} | ${log.message}`;
+  row.textContent = `${log.timestamp || new Date().toLocaleTimeString()} | ${log.level || 'INFO'} | ${log.message}`;
 
   term.appendChild(row);
   term.scrollTop = term.scrollHeight;
 }
 
-// AUTOMATION STATUS UI UPDATER
+
+// --- AUTOMATION STATUS UI UPDATER ---
 function updateAutomationStatusUI(statusData) {
   currentRunStatus = statusData;
 
@@ -136,21 +253,41 @@ function updateAutomationStatusUI(statusData) {
   const btnDry = document.getElementById('btn-dry-run');
   const btnStop = document.getElementById('btn-stop-automation');
 
-  btnStart.disabled = isRunning;
-  btnDry.disabled = isRunning;
-  btnStop.disabled = !isRunning;
+  if (btnStart) btnStart.disabled = isRunning;
+  if (btnDry) btnDry.disabled = isRunning;
+  if (btnStop) btnStop.disabled = !isRunning;
 
-  document.getElementById('live-indicator').style.display = isRunning ? 'inline-block' : 'none';
-  document.getElementById('current-op-title').textContent = isRunning ? `Running: ${statusData.operation}` : 'Ready for Synchronization';
+  const ind = document.getElementById('live-indicator');
+  if (ind) ind.style.display = isRunning ? 'inline-block' : 'none';
 
-  document.getElementById('progress-percentage-text').textContent = `${statusData.progress_percentage}%`;
-  document.getElementById('progress-bar-fill').style.width = `${statusData.progress_percentage}%`;
+  const opTitle = document.getElementById('current-op-title');
+  if (opTitle) opTitle.textContent = isRunning ? `Running: ${statusData.operation}` : 'Ready for Synchronization';
 
-  document.getElementById('banner-site-name').textContent = statusData.current_site_name || 'None';
-  document.getElementById('banner-op-name').textContent = statusData.operation || 'Idle';
-  document.getElementById('banner-status-detail').textContent = statusData.details || 'Ready to start';
+  const pText = document.getElementById('progress-percentage-text');
+  if (pText) pText.textContent = `${statusData.progress_percentage}%`;
 
-  // If active site status changed, update queue row badge
+  const pFill = document.getElementById('progress-bar-fill');
+  if (pFill) pFill.style.width = `${statusData.progress_percentage}%`;
+
+  const bSite = document.getElementById('banner-site-name');
+  if (bSite) bSite.textContent = statusData.current_site_name || 'None';
+
+  const bOp = document.getElementById('banner-op-name');
+  if (bOp) bOp.textContent = statusData.operation || 'Idle';
+
+  const bIp = document.getElementById('banner-site-ip');
+  if (bIp) bIp.textContent = statusData.current_site_ip || 'N/A';
+
+  const bPort = document.getElementById('banner-site-port');
+  if (bPort) bPort.textContent = statusData.current_site_port || 'N/A';
+
+  const bLocalPort = document.getElementById('banner-local-port');
+  if (bLocalPort) bLocalPort.textContent = statusData.current_local_port || 'N/A';
+
+  const bUrl = document.getElementById('banner-url');
+  if (bUrl) bUrl.textContent = statusData.current_url || 'N/A';
+
+
   if (statusData.current_site_id) {
     const rowBadge = document.getElementById(`badge-queue-site-${statusData.current_site_id}`);
     if (rowBadge) {
@@ -173,7 +310,8 @@ function getStatusBadgeClass(statusStr) {
   return 'badge-active';
 }
 
-// SITES DATA LOADING
+
+// --- SITES DATA LOADING ---
 async function loadSites() {
   try {
     const res = await fetch('/api/sites');
@@ -196,29 +334,29 @@ function populateTestSiteDropdown() {
   sitesList.forEach(s => {
     const opt = document.createElement('option');
     opt.value = s.id;
-    opt.textContent = `${s.name} (${s.launcher_button})`;
+    opt.textContent = `${s.name} (${s.launcher_button || 'Site ' + s.id})`;
     sel.appendChild(opt);
   });
 }
 
-
 function updateMetricsSummary() {
-  document.getElementById('metric-total').textContent = sitesList.length;
+  const totalEl = document.getElementById('metric-total');
+  if (totalEl) totalEl.textContent = sitesList.length;
 
-  let noAction = 0, actionFound = 0, failed = 0, completed = 0;
-  // Read counters from current queue state
-  sitesList.forEach(s => {
-    // defaults
-  });
+  let completed = 0;
+  const compEl = document.getElementById('metric-completed');
+  if (compEl) compEl.textContent = completed;
 
-  document.getElementById('metric-completed').textContent = completed;
-  document.getElementById('metric-processing').textContent = currentRunStatus && currentRunStatus.is_running ? 1 : 0;
-  document.getElementById('metric-waiting').textContent = sitesList.filter(s => s.enabled).length;
+  const procEl = document.getElementById('metric-processing');
+  if (procEl) procEl.textContent = currentRunStatus && currentRunStatus.is_running ? 1 : 0;
+
+  const waitEl = document.getElementById('metric-waiting');
+  if (waitEl) waitEl.textContent = sitesList.filter(s => s.enabled).length;
 }
 
-// RENDER DASHBOARD SITES QUEUE
 function renderQueueTable() {
   const tbody = document.getElementById('tbody-queue');
+  if (!tbody) return;
   tbody.innerHTML = '';
 
   sitesList.forEach(site => {
@@ -226,10 +364,10 @@ function renderQueueTable() {
     tr.innerHTML = `
       <td><input type="checkbox" class="chk-site-queue" data-id="${site.id}" ${site.enabled ? 'checked' : ''}></td>
       <td style="font-weight: 600;">${escapeHtml(site.name)}</td>
-      <td><code style="color: var(--accent-cyan);">${escapeHtml(site.launcher_button)}</code></td>
+      <td><code style="color: var(--accent-cyan);">${escapeHtml(site.launcher_button || 'Site ' + site.id)}</code></td>
       <td><span class="status-badge badge-ready" id="badge-queue-site-${site.id}">READY</span></td>
       <td>
-        <button class="btn-secondary btn-sm" onclick="testSingleSite(${site.id})">Test</button>
+        <button class="btn-secondary btn-sm" type="button" onclick="testSingleSite(${site.id})">Test</button>
       </td>
     `;
     tbody.appendChild(tr);
@@ -244,118 +382,49 @@ function renderQueueTable() {
 
 function updateSelectedCount() {
   const selected = document.querySelectorAll('.chk-site-queue:checked').length;
-  document.getElementById('queue-badge').textContent = `${selected} selected`;
+  const badge = document.getElementById('queue-badge');
+  if (badge) badge.textContent = `${selected} selected`;
 }
 
-// SITES CONFIG TAB TABLE
+
+// --- SITES CONFIG TAB TABLE ---
 function loadSitesConfigTable() {
   const tbody = document.getElementById('tbody-sites-config');
+  if (!tbody) return;
   tbody.innerHTML = '';
 
   sitesList.forEach(site => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${site.sort_order}</td>
+      <td>${site.id}</td>
+      <td style="font-weight: 600; color: #f8fafc;">${escapeHtml(site.name)}</td>
+      <td><code style="color: #4ade80;">${escapeHtml(site.site_ip || '10.x.x.x')}</code></td>
+      <td><code>${site.site_port || 80}</code></td>
+      <td><code>${site.local_port || 18001}</code></td>
+      <td>${escapeHtml(site.idp_username || 'None')}</td>
+      <td><span class="status-badge ${site.enabled ? 'badge-no-action' : 'badge-failed'}">${site.enabled ? 'ENABLED' : 'DISABLED'}</span></td>
       <td>
-        <label class="switch">
-          <input type="checkbox" onchange="toggleSiteEnabled(${site.id}, this.checked)" ${site.enabled ? 'checked' : ''}>
-          <span class="slider"></span>
-        </label>
-      </td>
-      <td style="font-weight: 600;">${escapeHtml(site.name)}</td>
-      <td><code>${escapeHtml(site.launcher_button)}</code></td>
-      <td>${escapeHtml(site.idp_username || '-')}</td>
-      <td>${site.has_password ? '●●●●●●●●' : '<span style="color:var(--accent-amber);">Not Configured</span>'}</td>
-      <td>
-        <button class="btn btn-secondary btn-sm" onclick="openEditSiteModal(${site.id})">Edit</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteSiteClick(${site.id})">Delete</button>
-        <button class="btn btn-info btn-sm" onclick="testSingleSite(${site.id})">Test</button>
+        <button class="btn btn-secondary btn-sm" type="button" onclick="openEditSiteModal(${site.id})">Edit</button>
+        <button class="btn btn-danger btn-sm" type="button" onclick="deleteSiteClick(${site.id})">Delete</button>
       </td>
     `;
     tbody.appendChild(tr);
   });
 }
 
-// RUN AUTOMATION ACTIONS
-async function startAutomation(dryRun = false) {
-  const selectedIds = Array.from(document.querySelectorAll('.chk-site-queue:checked')).map(c => parseInt(c.getAttribute('data-id')));
-  if (selectedIds.length === 0) {
-    alert("Please select at least one site to process.");
-    return;
-  }
-
-  try {
-    const res = await fetch('/api/automation/start', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ site_ids: selectedIds, dry_run: dryRun })
-    });
-    const data = await res.json();
-    if (!res.ok) alert(data.detail || "Failed starting automation.");
-  } catch (e) {
-    alert("Error starting automation: " + e.message);
-  }
-}
-
-async function stopAutomation() {
-  if (confirm("Are you sure you want to stop the current automation run?")) {
-    await fetch('/api/automation/stop', { method: 'POST' });
-  }
-}
-
-async function resumeAutomation() {
-  try {
-    const res = await fetch('/api/history');
-    const runs = await res.json();
-    if (runs.length === 0) {
-      alert("No previous run found to resume.");
-      return;
-    }
-    const lastRun = runs[0];
-    await fetch('/api/automation/start', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ resume_run_id: lastRun.id })
-    });
-  } catch (e) {
-    alert("Resume failed: " + e.message);
-  }
-}
-
-async function testSingleSite(siteId) {
-  alert(`Testing connection for site ID ${siteId}. Check execution terminal for live status.`);
-  try {
-    const res = await fetch(`/api/sites/${siteId}/test`, { method: 'POST' });
-    const data = await res.json();
-    alert(data.message);
-  } catch (e) {
-    alert("Test failed: " + e.message);
-  }
-}
-
-// SITE MODAL & CRUD
 function openAddSiteModal() {
   document.getElementById('modal-site-title').textContent = "Add New Site";
   document.getElementById('modal-site-id').value = "";
   document.getElementById('modal-site-name').value = "";
-  document.getElementById('modal-site-button').value = "";
-  document.getElementById('modal-site-url').value = "";
-  document.getElementById('modal-site-username').value = "";
-  document.getElementById('modal-site-password').value = "";
-  document.getElementById('modal-site-order').value = sitesList.length + 1;
-  document.getElementById('modal-site-enabled').checked = true;
+  document.getElementById('modal-site-ip').value = "";
+  document.getElementById('modal-site-port').value = 80;
 
   const nextPort = 18001 + sitesList.length;
   document.getElementById('modal-site-local-port').value = nextPort;
-  document.getElementById('modal-site-auth-type').value = "key";
-  document.getElementById('modal-site-ssh-host').value = "";
-  document.getElementById('modal-site-ssh-port').value = 22;
-  document.getElementById('modal-site-ssh-user').value = "";
-  document.getElementById('modal-site-session').value = "";
-  document.getElementById('modal-site-remote-host').value = "127.0.0.1";
-  document.getElementById('modal-site-remote-port').value = 80;
-  document.getElementById('modal-site-ssh-key-or-pass').value = "";
-  document.getElementById('modal-site-web-url').value = `http://127.0.0.1:${nextPort}`;
+  document.getElementById('modal-site-order').value = sitesList.length + 1;
+  document.getElementById('modal-site-username').value = "";
+  document.getElementById('modal-site-password').value = "";
+  document.getElementById('modal-site-enabled').checked = true;
 
   document.getElementById('modal-site').classList.add('active');
 }
@@ -364,122 +433,148 @@ function openEditSiteModal(siteId) {
   const site = sitesList.find(s => s.id === siteId);
   if (!site) return;
 
-  document.getElementById('modal-site-title').textContent = "Edit Site Configuration";
+  document.getElementById('modal-site-title').textContent = `Edit Site #${site.id}`;
   document.getElementById('modal-site-id').value = site.id;
   document.getElementById('modal-site-name').value = site.name;
-  document.getElementById('modal-site-button').value = site.launcher_button;
-  document.getElementById('modal-site-url').value = site.url;
-  document.getElementById('modal-site-username').value = site.idp_username;
-  document.getElementById('modal-site-password').value = "";
-  document.getElementById('modal-site-order').value = site.sort_order;
-  document.getElementById('modal-site-enabled').checked = site.enabled;
-
+  document.getElementById('modal-site-ip').value = site.site_ip || "";
+  document.getElementById('modal-site-port').value = site.site_port || 80;
   document.getElementById('modal-site-local-port').value = site.local_port || 18001;
-  document.getElementById('modal-site-auth-type').value = site.auth_type || "key";
-  document.getElementById('modal-site-ssh-host').value = site.ssh_host || "";
-  document.getElementById('modal-site-ssh-port').value = site.ssh_port || 22;
-  document.getElementById('modal-site-ssh-user').value = site.ssh_username || "";
-  document.getElementById('modal-site-session').value = site.putty_session || "";
-  document.getElementById('modal-site-remote-host').value = site.remote_host || "127.0.0.1";
-  document.getElementById('modal-site-remote-port').value = site.remote_port || 80;
-  document.getElementById('modal-site-ssh-key-or-pass').value = site.ssh_key_path || site.ssh_password || "";
-  document.getElementById('modal-site-web-url').value = site.web_url || site.url || `http://127.0.0.1:${site.local_port || 18001}`;
+  document.getElementById('modal-site-order').value = site.sort_order || 0;
+  document.getElementById('modal-site-username').value = site.idp_username || "";
+  document.getElementById('modal-site-password').value = "";
+  document.getElementById('modal-site-enabled').checked = site.enabled;
 
   document.getElementById('modal-site').classList.add('active');
 }
 
 async function saveSiteModal() {
   const siteId = document.getElementById('modal-site-id').value;
-  const authType = document.getElementById('modal-site-auth-type').value;
-  const keyOrPass = document.getElementById('modal-site-ssh-key-or-pass').value.trim();
-
   const payload = {
     name: document.getElementById('modal-site-name').value.trim(),
-    launcher_button: document.getElementById('modal-site-button').value.trim(),
-    url: document.getElementById('modal-site-url').value.trim(),
+    site_ip: document.getElementById('modal-site-ip').value.trim(),
+    site_port: parseInt(document.getElementById('modal-site-port').value, 10) || 80,
+    local_port: parseInt(document.getElementById('modal-site-local-port').value, 10) || 18001,
+    sort_order: parseInt(document.getElementById('modal-site-order').value, 10) || 0,
     idp_username: document.getElementById('modal-site-username').value.trim(),
     idp_password: document.getElementById('modal-site-password').value,
-    sort_order: parseInt(document.getElementById('modal-site-order').value) || 0,
-    enabled: document.getElementById('modal-site-enabled').checked,
-    local_port: parseInt(document.getElementById('modal-site-local-port').value) || 18001,
-    auth_type: authType,
-    ssh_host: document.getElementById('modal-site-ssh-host').value.trim(),
-    ssh_port: parseInt(document.getElementById('modal-site-ssh-port').value) || 22,
-    ssh_username: document.getElementById('modal-site-ssh-user').value.trim(),
-    putty_session: document.getElementById('modal-site-session').value.trim(),
-    remote_host: document.getElementById('modal-site-remote-host').value.trim() || "127.0.0.1",
-    remote_port: parseInt(document.getElementById('modal-site-remote-port').value) || 80,
-    ssh_key_path: authType === 'key' ? keyOrPass : "",
-    ssh_password: authType === 'password' ? keyOrPass : "",
-    web_url: document.getElementById('modal-site-web-url').value.trim()
+    enabled: document.getElementById('modal-site-enabled').checked
   };
 
-  if (!payload.name || !payload.launcher_button) {
-    alert("Site Name and Launcher Button are required.");
+  if (!payload.name) {
+    alert("Site Name is required.");
     return;
   }
 
-  const url = siteId ? `/api/sites/${siteId}` : '/api/sites';
-  const method = siteId ? 'PUT' : 'POST';
-
   try {
-    const res = await fetch(url, {
-      method: method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
+    let res;
+    if (siteId) {
+      res = await fetch(`/api/sites/${siteId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+    } else {
+      res = await fetch('/api/sites', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+    }
+
     if (res.ok) {
       document.getElementById('modal-site').classList.remove('active');
       await loadSites();
       loadSitesConfigTable();
     } else {
       const err = await res.json();
-      alert(err.detail || "Save failed.");
+      alert(`Error saving site: ${err.detail || res.statusText}`);
     }
   } catch (e) {
     alert("Error saving site: " + e.message);
   }
 }
 
-async function toggleSiteEnabled(siteId, isEnabled) {
-  await fetch(`/api/sites/${siteId}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ enabled: isEnabled })
-  });
-  await loadSites();
-}
 
 async function deleteSiteClick(siteId) {
-  if (confirm("Are you sure you want to delete this site configuration?")) {
-    await fetch(`/api/sites/${siteId}`, { method: 'DELETE' });
-    await loadSites();
-    loadSitesConfigTable();
+  if (!confirm(`Are you sure you want to delete Site #${siteId}?`)) return;
+  try {
+    const res = await fetch(`/api/sites/${siteId}`, { method: 'DELETE' });
+    if (res.ok) {
+      await loadSites();
+      loadSitesConfigTable();
+    } else {
+      alert("Failed to delete site.");
+    }
+  } catch (e) {
+    alert("Error deleting site: " + e.message);
   }
 }
 
-// HISTORY & REPORTS
-async function loadHistory() {
+
+// --- AUTOMATION CONTROL FUNCTIONS ---
+async function startAutomation(isDryRun) {
+  const selectedIds = Array.from(document.querySelectorAll('.chk-site-queue:checked')).map(c => parseInt(c.getAttribute('data-id')));
+  if (selectedIds.length === 0) {
+    alert("Please select at least one site.");
+    return;
+  }
+
   try {
-    const res = await fetch('/api/history');
-    const history = await res.json();
-    const tbody = document.getElementById('tbody-history');
+    const endpoint = isDryRun ? '/api/automation/start-dry-run' : '/api/automation/start-sync';
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ site_ids: selectedIds })
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      alert(`Error starting automation: ${err.detail || res.statusText}`);
+    }
+  } catch (e) {
+    alert("Failed to send start command: " + e.message);
+  }
+}
+
+async function stopAutomation() {
+  try {
+    await fetch('/api/automation/stop', { method: 'POST' });
+  } catch (e) {
+    alert("Error stopping automation: " + e.message);
+  }
+}
+
+async function resumeAutomation() {
+  try {
+    await fetch('/api/automation/resume', { method: 'POST' });
+  } catch (e) {
+    alert("Error resuming automation: " + e.message);
+  }
+}
+
+
+// --- RUN HISTORY TAB ---
+async function loadHistory() {
+  const tbody = document.getElementById('tbody-history');
+  if (!tbody) return;
+
+  try {
+    const res = await fetch('/api/runs');
+    if (!res.ok) return;
+    const runs = await res.json();
     tbody.innerHTML = '';
 
-    history.forEach(r => {
+    runs.forEach(r => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td style="font-weight: 600;">${r.run_date}</td>
+        <td>#${r.id}</td>
+        <td>${r.run_date}</td>
         <td>${r.start_time}</td>
-        <td>${r.end_time || 'In Progress'}</td>
-        <td>${r.total_sites}</td>
-        <td>${r.completed_sites}</td>
-        <td><span style="color: var(--accent-amber); font-weight:700;">${r.action_points_count}</span></td>
-        <td><span style="color: var(--accent-green); font-weight:700;">${r.no_action_points_count}</span></td>
-        <td><span style="color: var(--accent-red); font-weight:700;">${r.failed_sites_count}</span></td>
-        <td><span class="status-badge ${r.status === 'COMPLETED' ? 'badge-no-action' : 'badge-failed'}">${r.status}</span></td>
+        <td>${r.end_time || 'Running...'}</td>
+        <td><span class="status-badge ${r.status === 'COMPLETED' ? 'badge-no-action' : (r.status === 'FAILED' ? 'badge-failed' : 'badge-active')}">${r.status}</span></td>
+        <td>${r.completed_sites} / ${r.total_sites}</td>
+        <td><strong style="color: var(--accent-amber);">${r.action_points_count}</strong></td>
         <td>
-          <button class="btn btn-secondary btn-sm" onclick="viewRunDetails(${r.id})">View Detail</button>
+          <button class="btn btn-secondary btn-sm" type="button" onclick="viewHistoryDetail(${r.id})">Details</button>
         </td>
       `;
       tbody.appendChild(tr);
@@ -489,77 +584,86 @@ async function loadHistory() {
   }
 }
 
-async function viewRunDetails(runId) {
+async function viewHistoryDetail(runId) {
+  const modal = document.getElementById('modal-history-detail');
+  const body = document.getElementById('modal-history-body');
+  if (!modal || !body) return;
+
+  body.innerHTML = '<div style="color:#94a3b8;">Loading run details...</div>';
+  modal.classList.add('active');
+
   try {
-    const res = await fetch(`/api/history/${runId}`);
-    const details = await res.json();
-    const modalBody = document.getElementById('modal-history-body');
+    const res = await fetch(`/api/runs/${runId}`);
+    const data = await res.json();
 
     let html = `
-      <div style="margin-bottom: 16px; font-size: 13px;">
-        <strong>Run Date:</strong> ${details.run.run_date} | <strong>Total Sites:</strong> ${details.run.total_sites} |
-        <span style="color:var(--accent-green);">No Action Point: ${details.run.no_action_points_count}</span> |
-        <span style="color:var(--accent-amber);">Action Point Found: ${details.run.action_points_count}</span>
+      <div style="margin-bottom: 16px; font-size: 0.9rem;">
+        <strong>Run #${data.run.id}</strong> | Date: ${data.run.run_date} | Status: <span class="status-badge badge-ready">${data.run.status}</span>
       </div>
       <table class="data-table">
         <thead>
           <tr>
-            <th>Site</th>
-            <th>Result Status</th>
-            <th>CSV Line 3 Preview</th>
-            <th>Duration</th>
-            <th>Retries</th>
+            <th>Site Name</th>
+            <th>Status</th>
+            <th>Action Points</th>
+            <th>CSV Path</th>
           </tr>
         </thead>
         <tbody>
     `;
 
-    details.results.forEach(s => {
+    (data.results || []).forEach(r => {
       html += `
         <tr>
-          <td style="font-weight: 600;">${escapeHtml(s.site_name)}</td>
-          <td><span class="status-badge ${getStatusBadgeClass(s.action_point_status)}">${s.action_point_status}</span></td>
-          <td><code>${escapeHtml(s.third_line_text || '-')}</code></td>
-          <td>${s.duration_seconds.toFixed(1)}s</td>
-          <td>${s.retry_count}</td>
+          <td>${escapeHtml(r.site_name)}</td>
+          <td><span class="status-badge ${r.status === 'COMPLETED' ? 'badge-ready' : 'badge-failed'}">${r.status}</span></td>
+          <td>${escapeHtml(r.action_point_status)}</td>
+          <td><code>${escapeHtml(r.csv_path || 'N/A')}</code></td>
         </tr>
       `;
     });
 
-    html += `</tbody></table>`;
-    modalBody.innerHTML = html;
-    document.getElementById('modal-history-detail').classList.add('active');
+    html += '</tbody></table>';
+    body.innerHTML = html;
   } catch (e) {
-    alert("Error loading run details: " + e.message);
+    body.innerHTML = `<div style="color:#f87171;">Failed loading run details: ${e.message}</div>`;
   }
 }
 
-// SETTINGS TAB
+
+// --- SETTINGS TAB ---
 async function loadSettings() {
   try {
     const res = await fetch('/api/settings');
-    const settings = await res.json();
+    if (!res.ok) return;
+    const s = await res.json();
 
-    document.getElementById('setting-launcher-exe').value = settings.launcher_exe_path || '';
-    document.getElementById('setting-launcher-title').value = settings.launcher_window_title || '';
-    document.getElementById('setting-browser-type').value = settings.browser_type || 'chromium';
-    document.getElementById('setting-headless').checked = settings.headless === true || settings.headless === 'true';
+    if (document.getElementById('setting-launcher-exe')) document.getElementById('setting-launcher-exe').value = s.launcher_exe_path || '';
+    if (document.getElementById('setting-launcher-title')) document.getElementById('setting-launcher-title').value = s.launcher_window_title || '';
+    if (document.getElementById('setting-browser-type')) document.getElementById('setting-browser-type').value = s.browser_type || 'chromium';
+    if (document.getElementById('setting-headless')) document.getElementById('setting-headless').checked = bool(s.headless);
+    if (document.getElementById('setting-putty-path')) document.getElementById('setting-putty-path').value = s.putty_path || '';
 
-    document.getElementById('setting-putty-path').value = settings.putty_path || '';
-    document.getElementById('setting-default-local-port').value = settings.default_local_port || 18001;
-    document.getElementById('setting-tunnel-timeout').value = settings.tunnel_start_timeout || 30;
-    document.getElementById('setting-auto-stop-tunnel').checked = settings.auto_stop_tunnel !== false && settings.auto_stop_tunnel !== 'false';
-    document.getElementById('setting-auto-restart-tunnel').checked = settings.auto_restart_tunnel !== false && settings.auto_restart_tunnel !== 'false';
+    if (document.getElementById('setting-default-local-port')) document.getElementById('setting-default-local-port').value = s.default_local_port || 18001;
+    if (document.getElementById('setting-tunnel-timeout')) document.getElementById('setting-tunnel-timeout').value = s.tunnel_start_timeout || 30;
+    if (document.getElementById('setting-auto-stop-tunnel')) document.getElementById('setting-auto-stop-tunnel').checked = bool(s.auto_stop_tunnel);
+    if (document.getElementById('setting-auto-restart-tunnel')) document.getElementById('setting-auto-restart-tunnel').checked = bool(s.auto_restart_tunnel);
 
-    document.getElementById('setting-page-timeout').value = settings.page_load_timeout || 120;
-    document.getElementById('setting-login-timeout').value = settings.login_timeout || 60;
-    document.getElementById('setting-fetch-timeout').value = settings.fetch_menu_timeout || 600;
-    document.getElementById('setting-process-timeout').value = settings.process_menu_timeout || 600;
-    document.getElementById('setting-recovery-timeout').value = settings.service_recovery_timeout || 600;
-    document.getElementById('setting-max-retries').value = settings.max_process_retries || 3;
+    if (document.getElementById('setting-page-timeout')) document.getElementById('setting-page-timeout').value = s.page_load_timeout || 60;
+    if (document.getElementById('setting-login-timeout')) document.getElementById('setting-login-timeout').value = s.login_timeout || 60;
+    if (document.getElementById('setting-fetch-timeout')) document.getElementById('setting-fetch-timeout').value = s.fetch_menu_timeout || 600;
+    if (document.getElementById('setting-process-timeout')) document.getElementById('setting-process-timeout').value = s.process_menu_timeout || 600;
+    if (document.getElementById('setting-recovery-timeout')) document.getElementById('setting-recovery-timeout').value = s.service_recovery_timeout || 600;
+    if (document.getElementById('setting-max-retries')) document.getElementById('setting-max-retries').value = s.max_process_retries || 3;
   } catch (e) {
     console.error("Failed loading settings:", e);
   }
+}
+
+function bool(val) {
+  if (typeof val === 'boolean') return val;
+  if (typeof val === 'string') return val.toLowerCase() === 'true' || val === '1';
+  return Boolean(val);
 }
 
 async function saveSettings() {
@@ -573,12 +677,12 @@ async function saveSettings() {
     tunnel_start_timeout: parseInt(document.getElementById('setting-tunnel-timeout').value) || 30,
     auto_stop_tunnel: document.getElementById('setting-auto-stop-tunnel').checked,
     auto_restart_tunnel: document.getElementById('setting-auto-restart-tunnel').checked,
-    page_load_timeout: parseInt(document.getElementById('setting-page-timeout').value),
-    login_timeout: parseInt(document.getElementById('setting-login-timeout').value),
-    fetch_menu_timeout: parseInt(document.getElementById('setting-fetch-timeout').value),
-    process_menu_timeout: parseInt(document.getElementById('setting-process-timeout').value),
-    service_recovery_timeout: parseInt(document.getElementById('setting-recovery-timeout').value),
-    max_process_retries: parseInt(document.getElementById('setting-max-retries').value)
+    page_load_timeout: parseInt(document.getElementById('setting-page-timeout').value) || 60,
+    login_timeout: parseInt(document.getElementById('setting-login-timeout').value) || 60,
+    fetch_menu_timeout: parseInt(document.getElementById('setting-fetch-timeout').value) || 600,
+    process_menu_timeout: parseInt(document.getElementById('setting-process-timeout').value) || 600,
+    service_recovery_timeout: parseInt(document.getElementById('setting-recovery-timeout').value) || 600,
+    max_process_retries: parseInt(document.getElementById('setting-max-retries').value) || 3
   };
 
   try {
@@ -601,7 +705,7 @@ async function detectPuTTYExecutable() {
       document.getElementById('setting-putty-path').value = data.plink;
       alert(`PuTTY/Plink detected successfully at:\n${data.plink}`);
     } else {
-      alert("Plink executable was not found automatically in standard PATH or directories. Please specify path manually.");
+      alert("Plink executable was not found automatically. Please specify path manually.");
     }
   } catch (e) {
     alert("Detection failed: " + e.message);
@@ -611,21 +715,24 @@ async function detectPuTTYExecutable() {
 async function loadPuTTYInfo() {
   try {
     const res = await fetch('/api/tunnel/info');
+    if (!res.ok) return;
     const data = await res.json();
 
     const badgeStatus = document.getElementById('badge-plink-status');
     const badgeVersion = document.getElementById('badge-plink-version');
 
-    if (data.found) {
-      badgeStatus.textContent = `✓ ${data.relative_plink || 'FOUND'}`;
-      badgeStatus.style.background = 'rgba(34, 197, 94, 0.2)';
-      badgeStatus.style.color = '#4ade80';
-      badgeVersion.textContent = data.version || 'Release 0.85';
-    } else {
-      badgeStatus.textContent = '✕ PLINK NOT FOUND';
-      badgeStatus.style.background = 'rgba(239, 68, 68, 0.2)';
-      badgeStatus.style.color = '#f87171';
-      badgeVersion.textContent = 'Expected: tools/putty/plink.exe';
+    if (badgeStatus) {
+      if (data.found) {
+        badgeStatus.textContent = `✓ ${data.relative_plink || 'FOUND'}`;
+        badgeStatus.style.background = 'rgba(34, 197, 94, 0.2)';
+        badgeStatus.style.color = '#4ade80';
+        if (badgeVersion) badgeVersion.textContent = data.version || 'Release 0.85';
+      } else {
+        badgeStatus.textContent = '✕ PLINK NOT FOUND';
+        badgeStatus.style.background = 'rgba(239, 68, 68, 0.2)';
+        badgeStatus.style.color = '#f87171';
+        if (badgeVersion) badgeVersion.textContent = 'Expected: tools/putty/plink.exe';
+      }
     }
   } catch (e) {
     console.error("Failed loading PuTTY info:", e);
@@ -633,7 +740,6 @@ async function loadPuTTYInfo() {
 }
 
 async function testPlinkClick() {
-  alert("Running 'plink.exe -V' version test...");
   try {
     const res = await fetch('/api/tunnel/test-plink', { method: 'POST' });
     const data = await res.json();
@@ -643,328 +749,683 @@ async function testPlinkClick() {
   }
 }
 
-async function loadPackageHealth() {
-  const container = document.getElementById('package-health-checklist');
-  const badgeOverall = document.getElementById('badge-package-overall');
 
-  if (!container) return;
-  container.innerHTML = '<div style="color:#94a3b8;">Validating package components...</div>';
+// --- INTEGRATION TEST CONSOLE & HANDLERS ---
+function initIntegrationTest() {
+  console.log("[UI] Integration Test initialization started");
+
+  const itButtons = [
+    'btn-test-ui', 'btn-run-stage-test', 'btn-fnb-start-test',
+    'btn-fnb-open-webpage', 'btn-fnb-test-playwright', 'btn-fnb-run-login-workflow',
+    'btn-fnb-run-fetch-workflow', 'btn-fnb-run-fetch-test', 'btn-fnb-stop-tunnel',
+    'btn-fnb-restart-tunnel'
+  ];
+
+  let foundCount = 0;
+  let boundCount = 0;
+
+  itButtons.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      foundCount++;
+      if (!el.disabled) boundCount++;
+    }
+  });
+
+  // Bind Integration Test Buttons explicitly
+  bindClick('btn-test-ui', testUiButtonClick);
+  bindClick('btn-run-stage-test', runStageTestUI);
+  bindClick('btn-fnb-start-test', runFnbTunnelTestUI);
+  bindClick('btn-fnb-open-webpage', openFnbWebpageTestUI);
+  bindClick('btn-fnb-test-playwright', testPlaywrightTunnelUI);
+  bindClick('btn-fnb-run-login-workflow', runFnbLoginWorkflowUI);
+  bindClick('btn-fnb-run-fetch-workflow', runFnbFetchWorkflowUI);
+  bindClick('btn-fnb-run-fetch-test', runFnbFetchWorkflowUI);
+  bindClick('btn-fnb-stop-tunnel', stopFnbTunnelUI);
+  bindClick('btn-fnb-restart-tunnel', restartFnbTunnelUI);
+  bindClick('btn-test-remote-connectivity', runRemoteConnectivityTestUI);
+
+
+  // Update UI Health Panel
+  const foundEl = document.getElementById('it-health-found');
+  if (foundEl) foundEl.textContent = `${foundCount} / 10`;
+
+  const boundEl = document.getElementById('it-health-bound');
+  if (boundEl) boundEl.textContent = `${boundCount} / 10`;
+
+  console.log("[UI] Integration Test initialization completed");
+}
+
+async function testUiButtonClick() {
+  console.log("[UI] TEST UI BUTTON CLICKED");
+  const liveLogs = document.getElementById('fnb-live-logs');
+  const outputBox = document.getElementById('test-output-box');
+
+  const msg = `[${new Date().toLocaleTimeString()}] UI BUTTON TEST: PASS (Frontend click event wiring verified successfully)`;
+
+  if (liveLogs) {
+    liveLogs.innerHTML += `<div class="log-row log-info" style="color: #4ade80; font-weight: 700;">✓ ${escapeHtml(msg)}</div>`;
+    liveLogs.scrollTop = liveLogs.scrollHeight;
+  }
+  if (outputBox) {
+    outputBox.innerHTML = `<div class="log-row log-info" style="color: #4ade80; font-weight: 700;">✓ ${escapeHtml(msg)}</div>`;
+  }
+
+  alert("UI BUTTON TEST: PASS\nIntegration Test button events are working.");
+}
+
+async function runStageTestUI() {
+  const selSite = document.getElementById('select-test-site');
+  const selStage = document.getElementById('select-test-stage');
+  const outputBox = document.getElementById('test-output-box');
+  const liveLogs = document.getElementById('fnb-live-logs');
+
+  const siteId = selSite ? parseInt(selSite.value) || 1 : 1;
+  const stageKey = selStage ? selStage.value : 'backend_test';
+
+  if (outputBox) {
+    outputBox.innerHTML = `<div class="log-row log-info">[${new Date().toLocaleTimeString()}] Executing Stage Test: '${stageKey}' for Site ID #${siteId}...</div>`;
+  }
+  if (liveLogs) {
+    liveLogs.innerHTML += `<div class="log-row log-info">[${new Date().toLocaleTimeString()}] Executing Stage Test: '${stageKey}'...</div>`;
+    liveLogs.scrollTop = liveLogs.scrollHeight;
+  }
 
   try {
-    const res = await fetch('/api/diagnostics/package-health');
+    const res = await fetch('/api/diagnostics/stage-test', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ site_id: siteId, stage_key: stageKey })
+    });
     const data = await res.json();
 
-    badgeOverall.textContent = data.overall_status;
-    badgeOverall.className = `status-badge ${data.all_ok ? 'badge-no-action' : 'badge-failed'}`;
-
-    let html = '';
-    (data.checks || []).forEach(item => {
-      const isPass = item.ok;
-      const statusColor = isPass ? '#4ade80' : (item.status === 'INFO' ? '#60a5fa' : '#f87171');
-      const icon = isPass ? '✓' : (item.status === 'INFO' ? 'ℹ' : '✕');
-
-      html += `
-        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 12px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-            <strong style="font-size: 0.9rem; color: #f8fafc;">${item.name}</strong>
-            <span style="font-weight: 700; color: ${statusColor}; font-size: 0.85rem;">${icon} ${item.status}</span>
-          </div>
-          <div style="font-family: monospace; font-size: 0.8rem; color: var(--accent-cyan); margin-bottom: 4px; word-break: break-all;">
-            ${escapeHtml(item.path)}
-          </div>
-          <div style="font-size: 0.75rem; color: #94a3b8;">
-            ${escapeHtml(item.description)}
-          </div>
-        </div>
-      `;
-    });
-
-    container.innerHTML = html;
+    if (data.logs && data.logs.length > 0) {
+      const htmlLogs = data.logs.map(l => `<div class="log-row ${l.includes('ERROR') ? 'log-error' : 'log-info'}">${escapeHtml(l)}</div>`).join('');
+      if (outputBox) outputBox.innerHTML = htmlLogs;
+      if (liveLogs) {
+        liveLogs.innerHTML += htmlLogs;
+        liveLogs.scrollTop = liveLogs.scrollHeight;
+      }
+    } else if (outputBox) {
+      outputBox.innerHTML = `<div class="log-row ${data.success ? 'log-info' : 'log-error'}">Stage '${stageKey}' Result: ${data.result}</div>`;
+    }
   } catch (e) {
-    container.innerHTML = `<div style="color:#f87171;">Health check failed: ${e.message}</div>`;
+    if (outputBox) outputBox.innerHTML = `<div class="log-row log-error">Stage Test Request Error: ${escapeHtml(e.message)}</div>`;
   }
 }
 
-async function testModalTunnel() {
-  const siteId = document.getElementById('modal-site-id').value;
-  if (!siteId) {
-    alert("Please save the site configuration first before running an active SSH tunnel test.");
-    return;
-  }
-
-  alert(`Initiating SSH reverse tunnel test for Site ID ${siteId}... Please check Integration Test console or wait for notification.`);
+async function loadFnbTunnelValidationData() {
   try {
-    const res = await fetch(`/api/sites/${siteId}/tunnel/test`, { method: 'POST' });
+    const res = await fetch('/api/fnb-tunnel/config');
+    if (!res.ok) return;
+    const cfg = await res.json();
+
+    if (document.getElementById('fnb-cfg-site-ip')) document.getElementById('fnb-cfg-site-ip').textContent = cfg.site_ip || '10.10.50.15';
+    if (document.getElementById('fnb-cfg-ssh-host')) document.getElementById('fnb-cfg-ssh-host').textContent = `${cfg.ssh_host}:${cfg.ssh_port}`;
+    if (document.getElementById('fnb-cfg-local-port')) document.getElementById('fnb-cfg-local-port').textContent = cfg.local_port || 18001;
+    if (document.getElementById('fnb-cfg-web-url')) document.getElementById('fnb-cfg-web-url').textContent = cfg.web_url || `http://localhost:${cfg.local_port || 58430}/zmp/main-menu.do`;
+
+
+    await refreshFnbTunnelStatus();
+    await refreshFnbDiagnosticCommand();
+  } catch (e) {
+    console.error("Error loading FNB Tunnel Validation Data:", e);
+  }
+}
+
+async function refreshFnbTunnelStatus() {
+  try {
+    const res = await fetch('/api/fnb-tunnel/status');
+    if (!res.ok) return;
+    const st = await res.json();
+
+    const badge = document.getElementById('fnb-status-badge');
+    if (badge) {
+      badge.textContent = st.status;
+      if (st.status === 'CONNECTED' || st.status === 'RUNNING') {
+        badge.style.background = 'rgba(34, 197, 94, 0.2)';
+        badge.style.color = '#4ade80';
+      } else if (st.status === 'STARTING' || st.status === 'CONNECTING') {
+        badge.style.background = 'rgba(234, 179, 8, 0.2)';
+        badge.style.color = '#facc15';
+      } else {
+        badge.style.background = 'rgba(148, 163, 184, 0.2)';
+        badge.style.color = '#94a3b8';
+      }
+    }
+
+    if (document.getElementById('fnb-status-pid')) document.getElementById('fnb-status-pid').textContent = st.pid || 'N/A';
+  } catch (e) {
+    console.error("Error refreshing FNB status:", e);
+  }
+}
+
+async function refreshFnbDiagnosticCommand() {
+  try {
+    const res = await fetch('/api/fnb-tunnel/command');
+    if (!res.ok) return;
     const data = await res.json();
-    alert(`Tunnel Test Result for ${data.site}:\nStatus: ${data.success ? 'PASS' : 'FAIL'}\nMessage: ${data.message}\nDetails:\n${(data.details || []).join('\n')}`);
+    const cmdEl = document.getElementById('fnb-diagnostic-cmd');
+    if (cmdEl) cmdEl.textContent = data.command || 'NOT GENERATED';
   } catch (e) {
-    alert("Tunnel test failed: " + e.message);
+    console.error("Error fetching FNB command:", e);
   }
 }
 
-// DIAGNOSTICS TAB
-async function scanWindows() {
-  const tbody = document.getElementById('tbody-diagnostics');
-  tbody.innerHTML = '<tr><td colspan="4">Scanning active Windows windows and controls...</td></tr>';
+async function runRemoteConnectivityTestUI() {
+  const banner = document.getElementById('fnb-feedback-banner');
+  const liveLogs = document.getElementById('fnb-live-logs');
+  const summary = document.getElementById('fnb-formatted-summary');
+
+  if (banner) {
+    banner.style.display = 'block';
+    banner.textContent = 'OFFICE → SITE REMOTE CONNECTIVITY TEST STARTED';
+    banner.style.background = 'rgba(245, 158, 11, 0.2)';
+    banner.style.color = '#fbbf24';
+  }
+
+  if (summary) {
+    summary.textContent = `============================================\n\nOFFICE → SITE NETWORK TEST\n\nSTATUS: RUNNING...\n\n============================================`;
+  }
 
   try {
-    const res = await fetch('/api/diagnostics/windows');
-    const windows = await res.json();
-    tbody.innerHTML = '';
+    const res = await fetch('/api/sites/22/remote-connectivity-test', { method: 'POST' });
+    const data = await res.json();
 
-    windows.forEach(w => {
-      const btnTexts = (w.buttons || []).map(b => b.text).join(', ');
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td><code>${w.hwnd}</code></td>
-        <td>${escapeHtml(w.process_name)}</td>
-        <td style="font-weight: 600;">${escapeHtml(w.title)}</td>
-        <td style="font-size: 12px; color: var(--accent-cyan);">${escapeHtml(btnTexts || 'No buttons detected')}</td>
-      `;
-      tbody.appendChild(tr);
-    });
+    if (liveLogs && data.logs) {
+      liveLogs.innerHTML = data.logs.map(l => `<div class="log-row ${l.includes('ERROR') ? 'log-error' : 'log-info'}">${escapeHtml(l)}</div>`).join('');
+      liveLogs.scrollTop = liveLogs.scrollHeight;
+    }
+
+    if (summary) {
+      summary.textContent = data.formatted_summary || `Result: ${data.failure_code}`;
+      summary.style.color = data.success ? '#4ade80' : '#f87171';
+    }
+
+    if (banner) {
+      banner.textContent = `OFFICE → SITE TEST FINISHED - TCP RESULT: ${data.remote_tcp}`;
+      banner.style.background = data.success ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)';
+      banner.style.color = data.success ? '#4ade80' : '#f87171';
+    }
   } catch (e) {
-    tbody.innerHTML = `<tr><td colspan="4" style="color:var(--accent-red);">Scan failed: ${e.message}</td></tr>`;
+    if (banner) banner.textContent = `REMOTE TEST ERROR: ${e.message}`;
   }
 }
 
-// BIND DOM EVENT HANDLERS
+async function runFnbTunnelTestUI() {
+
+  const banner = document.getElementById('fnb-feedback-banner');
+  const liveLogs = document.getElementById('fnb-live-logs');
+  const summary = document.getElementById('fnb-formatted-summary');
+  const chkKeep = document.getElementById('chk-keep-tunnel-running');
+
+  if (banner) {
+    banner.style.display = 'block';
+    banner.textContent = 'PHASE 5E REAL FNB ENDPOINT VALIDATION STARTED';
+    banner.style.background = 'rgba(59, 130, 246, 0.15)';
+    banner.style.color = '#60a5fa';
+  }
+
+  if (liveLogs) {
+    liveLogs.innerHTML = `
+      <div class="log-row log-info">[${new Date().toLocaleTimeString()}] | INFO | [FNB] REAL FNB ENDPOINT VALIDATION STARTED</div>
+    `;
+  }
+
+  if (summary) {
+    summary.textContent = `========================================\n\nPHASE 5E — REAL FNB ENDPOINT VALIDATION\n\nSTATUS: RUNNING...\n\n========================================`;
+  }
+
+  try {
+    const res = await fetch('/api/fnb-tunnel/test', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ keep_running: chkKeep ? chkKeep.checked : true })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+
+    const data = await res.json();
+
+    if (liveLogs && data.logs) {
+      liveLogs.innerHTML = data.logs.map(l => `<div class="log-row ${l.includes('ERROR') ? 'log-error' : 'log-info'}">${escapeHtml(l)}</div>`).join('');
+      liveLogs.scrollTop = liveLogs.scrollHeight;
+    }
+
+    if (summary) {
+      summary.textContent = data.formatted_summary || 'No summary generated.';
+      summary.style.color = data.result_status === 'REAL FNB TUNNEL — PASS' ? '#4ade80' : '#f87171';
+    }
+
+    if (banner) {
+      banner.textContent = `FNB ENDPOINT VALIDATION RESULT: ${data.result_status}`;
+      banner.style.background = data.result_status === 'REAL FNB TUNNEL — PASS' ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)';
+      banner.style.color = data.result_status === 'REAL FNB TUNNEL — PASS' ? '#4ade80' : '#f87171';
+    }
+
+    await refreshFnbTunnelStatus();
+  } catch (e) {
+    if (banner) banner.textContent = `VALIDATION ERROR: ${e.message}`;
+  }
+}
+
+async function openFnbWebpageTestUI() {
+  const liveLogs = document.getElementById('fnb-live-logs');
+  const summary = document.getElementById('fnb-formatted-summary');
+
+  try {
+    const res = await fetch('/api/fnb-tunnel/webpage-test', { method: 'POST' });
+    const data = await res.json();
+
+    if (liveLogs && data.logs) {
+      data.logs.forEach(l => {
+        liveLogs.innerHTML += `<div class="log-row log-info">[WEBPAGE] ${escapeHtml(l)}</div>`;
+      });
+      liveLogs.scrollTop = liveLogs.scrollHeight;
+    }
+
+    if (summary) {
+      summary.textContent = `Result: ${data.result}\nURL: ${data.url}`;
+      summary.style.color = data.result === 'PASS' ? '#4ade80' : '#f87171';
+    }
+  } catch (e) {
+    if (liveLogs) liveLogs.innerHTML += `<div class="log-row log-error">Open Webpage Test Failed: ${escapeHtml(e.message)}</div>`;
+  }
+}
+
+async function testPlaywrightTunnelUI() {
+  const liveLogs = document.getElementById('fnb-live-logs');
+  const summary = document.getElementById('fnb-formatted-summary');
+
+  try {
+    const res = await fetch('/api/fnb-tunnel/playwright-test', { method: 'POST' });
+    const data = await res.json();
+
+    if (liveLogs && data.logs) {
+      data.logs.forEach(l => {
+        liveLogs.innerHTML += `<div class="log-row log-info">[PLAYWRIGHT] ${escapeHtml(l)}</div>`;
+      });
+      liveLogs.scrollTop = liveLogs.scrollHeight;
+    }
+
+    if (summary && data.formatted_summary) {
+      summary.textContent = data.formatted_summary;
+      summary.style.color = data.success ? '#4ade80' : '#f87171';
+    }
+  } catch (e) {
+    if (liveLogs) liveLogs.innerHTML += `<div class="log-row log-error">Playwright Test Error: ${escapeHtml(e.message)}</div>`;
+  }
+}
+
+async function runFnbLoginWorkflowUI() {
+  const banner = document.getElementById('fnb-feedback-banner');
+  const liveLogs = document.getElementById('fnb-live-logs');
+  const summary = document.getElementById('fnb-formatted-summary');
+
+  if (banner) {
+    banner.style.display = 'block';
+    banner.textContent = 'RUNNING FNB LOGIN + SYNCMYMENU WORKFLOW';
+    banner.style.background = 'rgba(234, 179, 8, 0.15)';
+    banner.style.color = '#facc15';
+  }
+
+  if (summary) {
+    summary.textContent = `============================================\n\nFNB LOGIN + SYNCMYMENU WORKFLOW\n\nSTATUS: RUNNING...\n\n============================================`;
+  }
+
+  try {
+    const res = await fetch('/api/fnb-tunnel/login-workflow', { method: 'POST' });
+    const data = await res.json();
+
+    if (liveLogs && data.logs) {
+      liveLogs.innerHTML = data.logs.map(l => `<div class="log-row ${l.includes('ERROR') ? 'log-error' : 'log-info'}">${escapeHtml(l)}</div>`).join('');
+      liveLogs.scrollTop = liveLogs.scrollHeight;
+    }
+
+    if (summary) {
+      summary.textContent = data.formatted_summary || `Result: ${data.result_status}`;
+      const isPass = data.stages && data.stages.sync_mymenu_page === 'PASS';
+      summary.style.color = isPass ? '#4ade80' : '#f87171';
+    }
+
+    if (banner) {
+      const isPass = data.stages && data.stages.sync_mymenu_page === 'PASS';
+      banner.textContent = `FNB LOGIN WORKFLOW FINISHED - RESULT: ${isPass ? 'PASS' : 'FAIL'}`;
+      banner.style.background = isPass ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)';
+      banner.style.color = isPass ? '#4ade80' : '#f87171';
+    }
+  } catch (e) {
+    if (banner) banner.textContent = `LOGIN WORKFLOW ERROR: ${e.message}`;
+  }
+}
+
+async function runFnbFetchWorkflowUI() {
+  const banner = document.getElementById('fnb-feedback-banner');
+  const liveLogs = document.getElementById('fnb-live-logs');
+  const summary = document.getElementById('fnb-formatted-summary');
+
+  if (banner) {
+    banner.style.display = 'block';
+    banner.textContent = 'RUNNING FNB FETCH MENU WORKFLOW';
+    banner.style.background = 'rgba(34, 197, 94, 0.15)';
+    banner.style.color = '#4ade80';
+  }
+
+  if (summary) {
+    summary.textContent = `============================================\n\nPHASE 7 — FNB FETCH MENU\n\nSTATUS: RUNNING...\n\n============================================`;
+  }
+
+  try {
+    const res = await fetch('/api/fnb-tunnel/fetch-workflow', { method: 'POST' });
+    const data = await res.json();
+
+    if (liveLogs && data.logs) {
+      liveLogs.innerHTML = data.logs.map(l => `<div class="log-row ${l.includes('ERROR') ? 'log-error' : 'log-info'}">${escapeHtml(l)}</div>`).join('');
+      liveLogs.scrollTop = liveLogs.scrollHeight;
+    }
+
+    if (summary) {
+      summary.textContent = data.formatted_summary || `Result: ${data.result_status}`;
+      const isPass = data.stages && data.stages.fetch_menu === 'PASS';
+      summary.style.color = isPass ? '#4ade80' : '#f87171';
+    }
+
+    if (banner) {
+      const isPass = data.stages && data.stages.fetch_menu === 'PASS';
+      banner.textContent = `PHASE 7 FNB FETCH MENU FINISHED - RESULT: ${isPass ? 'PASS' : 'FAIL'}`;
+      banner.style.background = isPass ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)';
+      banner.style.color = isPass ? '#4ade80' : '#f87171';
+    }
+  } catch (e) {
+    if (banner) banner.textContent = `FETCH WORKFLOW ERROR: ${e.message}`;
+  }
+}
+
+async function stopFnbTunnelUI() {
+  try {
+    await fetch('/api/fnb-tunnel/stop', { method: 'POST' });
+    await refreshFnbTunnelStatus();
+  } catch (e) {
+    console.error("Stop tunnel failed:", e);
+  }
+}
+
+async function restartFnbTunnelUI() {
+  await stopFnbTunnelUI();
+  await runFnbTunnelTestUI();
+}
+
+
+// --- OFFICE SSH & GLOBAL TUNNEL SETTINGS ---
+async function loadOfficeSshSettings() {
+  try {
+    const res = await fetch('/api/settings/ssh');
+    if (!res.ok) return;
+    const cfg = await res.json();
+
+    if (document.getElementById('setting-ssh-host')) document.getElementById('setting-ssh-host').value = cfg.ssh_host || '111.93.205.187';
+    if (document.getElementById('setting-ssh-port')) document.getElementById('setting-ssh-port').value = cfg.ssh_port || 22;
+    if (document.getElementById('setting-ssh-user')) document.getElementById('setting-ssh-user').value = cfg.ssh_username || 'sourik';
+    if (document.getElementById('setting-ssh-key-path')) document.getElementById('setting-ssh-key-path').value = cfg.ssh_key_path || '';
+    if (document.getElementById('setting-ssh-host-key')) document.getElementById('setting-ssh-host-key').value = cfg.ssh_host_key || '';
+
+    const passState = document.getElementById('lbl-ssh-pass-state');
+    if (passState) {
+      passState.textContent = cfg.password_configured ? '******** (Configured)' : 'Not configured';
+      passState.style.color = cfg.password_configured ? '#4ade80' : '#f87171';
+    }
+
+    if (cfg.auth_type === 'key') {
+      if (document.getElementById('rad-ssh-auth-key')) document.getElementById('rad-ssh-auth-key').checked = true;
+    } else {
+      if (document.getElementById('rad-ssh-auth-pass')) document.getElementById('rad-ssh-auth-pass').checked = true;
+    }
+  } catch (e) {
+    console.error("Error loading Office SSH settings:", e);
+  }
+}
+
+async function saveOfficeSshSettings() {
+  const host = document.getElementById('setting-ssh-host').value.trim();
+  const port = parseInt(document.getElementById('setting-ssh-port').value) || 22;
+  const user = document.getElementById('setting-ssh-user').value.trim();
+  const pass = document.getElementById('setting-ssh-pass').value;
+  const keyPath = document.getElementById('setting-ssh-key-path').value.trim();
+  const hostKey = document.getElementById('setting-ssh-host-key').value.trim();
+  const authMode = document.querySelector('input[name="ssh_auth_mode"]:checked') ? document.querySelector('input[name="ssh_auth_mode"]:checked').value : 'password';
+
+  const payload = {
+    ssh_host: host,
+    ssh_port: port,
+    ssh_username: user,
+    auth_type: authMode,
+    ssh_key_path: keyPath,
+    ssh_host_key: hostKey
+  };
+  if (pass) {
+    payload.ssh_password = pass;
+  }
+
+  try {
+    const res = await fetch('/api/settings/ssh', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (res.ok) {
+      alert("Office SSH configuration saved.");
+      document.getElementById('setting-ssh-pass').value = "";
+      await loadOfficeSshSettings();
+      await loadFnbTunnelValidationData();
+    } else {
+      alert("Failed to save Office SSH configuration.");
+    }
+  } catch (e) {
+    alert("Error saving SSH settings: " + e.message);
+  }
+}
+
+async function testOfficeSshConnectionUI() {
+  const panel = document.getElementById('ssh-test-panel');
+  const liveLogs = document.getElementById('ssh-test-live-logs');
+  const summary = document.getElementById('ssh-test-summary');
+
+  if (panel) panel.style.display = 'block';
+
+  if (liveLogs) {
+    liveLogs.innerHTML = `
+      <div class="log-row log-info">[${new Date().toLocaleTimeString()}] Connecting...</div>
+      <div class="log-row log-info">[${new Date().toLocaleTimeString()}] Resolving SSH server...</div>
+    `;
+  }
+  if (summary) summary.textContent = "Connecting to SSH server...";
+
+  try {
+    const res = await fetch('/api/settings/ssh/test', { method: 'POST' });
+    const data = await res.json();
+
+    if (liveLogs && data.logs) {
+      liveLogs.innerHTML = data.logs.map(l => `<div class="log-row ${l.includes('ERROR') ? 'log-error' : 'log-info'}">${escapeHtml(l)}</div>`).join('');
+      liveLogs.scrollTop = liveLogs.scrollHeight;
+    }
+
+    if (summary) {
+      summary.textContent = data.formatted_summary || `Result: ${data.result_message}`;
+      summary.style.color = data.success ? '#4ade80' : '#f87171';
+    }
+  } catch (e) {
+    if (summary) {
+      summary.textContent = `SSH Test Error: ${e.message}`;
+      summary.style.color = '#f87171';
+    }
+  }
+}
+
+async function loadGlobalTunnelSettings() {
+  try {
+    const res = await fetch('/api/settings/tunnel');
+    if (!res.ok) return;
+    const cfg = await res.json();
+
+    if (document.getElementById('setting-tunnel-remote-port')) document.getElementById('setting-tunnel-remote-port').value = cfg.tunnel_remote_port || 80;
+    if (document.getElementById('setting-fnb-service-port')) document.getElementById('setting-fnb-service-port').value = cfg.fnb_service_port || 80;
+    if (document.getElementById('setting-web-url-template')) document.getElementById('setting-web-url-template').value = cfg.web_url_template || 'http://127.0.0.1:{local_port}';
+
+    if (cfg.tunnel_type === 'local') {
+      if (document.getElementById('rad-tunnel-type-loc')) document.getElementById('rad-tunnel-type-loc').checked = true;
+    } else {
+      if (document.getElementById('rad-tunnel-type-rev')) document.getElementById('rad-tunnel-type-rev').checked = true;
+    }
+  } catch (e) {
+    console.error("Error loading global tunnel settings:", e);
+  }
+}
+
+async function saveGlobalTunnelSettings() {
+  const remotePort = parseInt(document.getElementById('setting-tunnel-remote-port').value) || 80;
+  const servicePort = parseInt(document.getElementById('setting-fnb-service-port').value) || 80;
+  const template = document.getElementById('setting-web-url-template').value.trim();
+  const tunnelType = document.querySelector('input[name="global_tunnel_type"]:checked') ? document.querySelector('input[name="global_tunnel_type"]:checked').value : 'reverse';
+
+  const payload = {
+    tunnel_remote_port: remotePort,
+    fnb_service_port: servicePort,
+    web_url_template: template,
+    tunnel_type: tunnelType
+  };
+
+  try {
+    const res = await fetch('/api/settings/tunnel', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (res.ok) {
+      alert("Global Reverse SSH Tunnel configuration saved.");
+      await loadGlobalTunnelSettings();
+    } else {
+      alert("Failed to save global tunnel settings.");
+    }
+  } catch (e) {
+    alert("Error saving tunnel settings: " + e.message);
+  }
+}
+
+
+// --- CENTRAL EVENT BINDING ---
 function bindEvents() {
-  document.getElementById('btn-select-all').addEventListener('click', () => {
+  bindClick('btn-select-all', () => {
     document.querySelectorAll('.chk-site-queue').forEach(c => c.checked = true);
     updateSelectedCount();
   });
 
-  document.getElementById('btn-clear-all').addEventListener('click', () => {
+  bindClick('btn-clear-all', () => {
     document.querySelectorAll('.chk-site-queue').forEach(c => c.checked = false);
     updateSelectedCount();
   });
 
-  document.getElementById('chk-queue-header').addEventListener('change', (e) => {
+  bindEvent('chk-queue-header', 'change', (e) => {
     document.querySelectorAll('.chk-site-queue').forEach(c => c.checked = e.target.checked);
     updateSelectedCount();
   });
 
-  document.getElementById('btn-start-sync').addEventListener('click', () => {
+  bindClick('btn-start-sync', () => {
     const selectedIds = Array.from(document.querySelectorAll('.chk-site-queue:checked')).map(c => parseInt(c.getAttribute('data-id')));
     if (selectedIds.length === 0) {
       alert("Please select at least one site to process.");
       return;
     }
-    document.getElementById('confirm-site-count').textContent = selectedIds.length;
-    document.getElementById('modal-confirm-real-run').classList.add('active');
+    const countEl = document.getElementById('confirm-site-count');
+    if (countEl) countEl.textContent = selectedIds.length;
+    const modal = document.getElementById('modal-confirm-real-run');
+    if (modal) modal.classList.add('active');
   });
 
-  document.getElementById('btn-proceed-real-run').addEventListener('click', () => {
-    document.getElementById('modal-confirm-real-run').classList.remove('active');
+  bindClick('btn-proceed-real-run', () => {
+    const modal = document.getElementById('modal-confirm-real-run');
+    if (modal) modal.classList.remove('active');
     startAutomation(false);
   });
 
-  document.getElementById('btn-close-confirm-modal').addEventListener('click', () => {
-    document.getElementById('modal-confirm-real-run').classList.remove('active');
+  bindClick('btn-close-confirm-modal', () => {
+    const modal = document.getElementById('modal-confirm-real-run');
+    if (modal) modal.classList.remove('active');
   });
 
-  document.getElementById('btn-cancel-confirm-run').addEventListener('click', () => {
-    document.getElementById('modal-confirm-real-run').classList.remove('active');
+  bindClick('btn-cancel-confirm-run', () => {
+    const modal = document.getElementById('modal-confirm-real-run');
+    if (modal) modal.classList.remove('active');
   });
 
-  document.getElementById('btn-dry-run').addEventListener('click', () => startAutomation(true));
-  document.getElementById('btn-stop-automation').addEventListener('click', stopAutomation);
-  document.getElementById('btn-resume-run').addEventListener('click', resumeAutomation);
+  bindClick('btn-dry-run', () => startAutomation(true));
+  bindClick('btn-stop-automation', stopAutomation);
+  bindClick('btn-resume-run', resumeAutomation);
 
+  bindClick('btn-open-add-site-modal', openAddSiteModal);
+  bindClick('btn-close-modal-site', () => document.getElementById('modal-site').classList.remove('active'));
+  bindClick('btn-cancel-modal-site', () => document.getElementById('modal-site').classList.remove('active'));
+  bindClick('btn-save-modal-site', saveSiteModal);
 
-  document.getElementById('btn-open-add-site-modal').addEventListener('click', openAddSiteModal);
-  document.getElementById('btn-close-modal-site').addEventListener('click', () => document.getElementById('modal-site').classList.remove('active'));
-  document.getElementById('btn-cancel-modal-site').addEventListener('click', () => document.getElementById('modal-site').classList.remove('active'));
-  document.getElementById('btn-save-modal-site').addEventListener('click', saveSiteModal);
+  bindClick('btn-close-modal-history', () => document.getElementById('modal-history-detail').classList.remove('active'));
 
-  document.getElementById('btn-close-modal-history').addEventListener('click', () => document.getElementById('modal-history-detail').classList.remove('active'));
-  document.getElementById('btn-close-history-footer').addEventListener('click', () => document.getElementById('modal-history-detail').classList.remove('active'));
+  bindClick('btn-save-settings', saveSettings);
+  bindClick('btn-scan-windows', scanWindows);
+  bindClick('btn-detect-putty', detectPuTTYExecutable);
+  bindClick('btn-test-plink', testPlinkClick);
+  bindClick('btn-test-modal-tunnel', testModalTunnel);
 
-  document.getElementById('btn-save-settings').addEventListener('click', saveSettings);
-  document.getElementById('btn-scan-windows').addEventListener('click', scanWindows);
+  bindClick('btn-save-office-ssh', saveOfficeSshSettings);
+  bindClick('btn-test-office-ssh', testOfficeSshConnectionUI);
+  bindClick('btn-save-global-tunnel', saveGlobalTunnelSettings);
 
-  const btnDetectPuTTY = document.getElementById('btn-detect-putty');
-  if (btnDetectPuTTY) {
-    btnDetectPuTTY.addEventListener('click', detectPuTTYExecutable);
-  }
-
-  const btnTestPlink = document.getElementById('btn-test-plink');
-  if (btnTestPlink) {
-    btnTestPlink.addEventListener('click', testPlinkClick);
-  }
-
-  const chkUseCustom = document.getElementById('setting-use-custom-plink');
-  if (chkUseCustom) {
-    chkUseCustom.addEventListener('change', (e) => {
-      const grp = document.getElementById('group-custom-plink');
-      if (grp) grp.style.display = e.target.checked ? 'block' : 'none';
-    });
-  }
-
-  const btnTestModalTunnel = document.getElementById('btn-test-modal-tunnel');
-  if (btnTestModalTunnel) {
-    btnTestModalTunnel.addEventListener('click', testModalTunnel);
-  }
-
-  const btnRunStageTest = document.getElementById('btn-run-stage-test');
-  if (btnRunStageTest) {
-    btnRunStageTest.addEventListener('click', runIntegrationTestStage);
-  }
-
-  const btnStopStageTest = document.getElementById('btn-stop-stage-test');
-  if (btnStopStageTest) {
-    btnStopStageTest.addEventListener('click', stopIntegrationTest);
-  }
-
-  document.getElementById('btn-open-reports-folder').addEventListener('click', () => fetch('/api/open-folder/reports'));
-  document.getElementById('btn-open-downloads-folder').addEventListener('click', () => fetch('/api/open-folder/downloads'));
-
-  document.getElementById('btn-test-launcher').addEventListener('click', async () => {
-    const res = await fetch('/api/launcher/test', { method: 'POST' });
-    const data = await res.json();
-    alert(data.message);
+  bindClick('btn-toggle-ssh-pass', () => {
+    const inp = document.getElementById('setting-ssh-pass');
+    if (inp) inp.type = inp.type === 'password' ? 'text' : 'password';
   });
 
-  document.getElementById('btn-clear-terminal').addEventListener('click', () => {
-    document.getElementById('terminal-log').innerHTML = '';
+  bindClick('btn-toggle-password', () => {
+    const inp = document.getElementById('modal-site-password');
+    if (inp) inp.type = inp.type === 'password' ? 'text' : 'password';
   });
 
-  document.getElementById('btn-toggle-password').addEventListener('click', () => {
-    const passInput = document.getElementById('modal-site-password');
-    passInput.type = passInput.type === 'password' ? 'text' : 'password';
+  bindEvent('setting-use-custom-plink', 'change', (e) => {
+    const grp = document.getElementById('group-custom-plink');
+    if (grp) grp.style.display = e.target.checked ? 'block' : 'none';
   });
 }
 
-async function stopIntegrationTest() {
-  console.log("Stop test button clicked");
-  const liveLogs = document.getElementById('test-live-logs');
-  if (liveLogs) {
-    const row = document.createElement('div');
-    row.className = 'log-row log-warn';
-    row.textContent = `[${new Date().toLocaleTimeString()}] Sending stop signal to server...`;
-    liveLogs.appendChild(row);
-  }
-  try {
-    await fetch('/api/integration-test/stop', { method: 'POST' });
-  } catch (e) {
-    console.error("Failed to send stop signal:", e);
-  }
-}
 
-async function runIntegrationTestStage() {
-  console.log("Integration test button clicked");
-  const siteSelect = document.getElementById('select-test-site');
-  const stageSelect = document.getElementById('select-test-stage');
-  const box = document.getElementById('test-output-box');
-  const btnRun = document.getElementById('btn-run-stage-test');
-  const btnStop = document.getElementById('btn-stop-stage-test');
+// --- MAIN APPLICATION ENTRY POINT ---
+document.addEventListener('DOMContentLoaded', () => {
+  console.log("UI INITIALIZED - IRD Sync Automation v1.0");
 
-  const siteId = siteSelect ? siteSelect.value : '';
-  const stage = stageSelect ? stageSelect.value : 'backend_test';
-  const siteText = siteSelect && siteSelect.options[siteSelect.selectedIndex] ? siteSelect.options[siteSelect.selectedIndex].text : `Site ID ${siteId}`;
+  // 1. Initialize Sidebar Navigation FIRST (Independent of API calls)
+  safeInit("Navigation", initNavigation);
 
-  if (!siteId) {
-    alert("Please select a site to test.");
-    return;
+  // 2. Initialize Integration Test Console Explicitly
+  safeInit("Integration Test Console", initIntegrationTest);
+
+  // 3. Register Central Button Click Handlers safely
+  safeInit("Button Events", bindEvents);
+
+  // 4. Mark UI Health status
+  const uiBadge = document.getElementById('badge-ui-health');
+  if (uiBadge) {
+    uiBadge.textContent = 'UI: READY';
+    uiBadge.className = 'status-badge badge-no-action';
   }
 
-  // 1. Immediate UI Feedback & Diagnostic Logging
-  if (btnRun) {
-    btnRun.disabled = true;
-    btnRun.textContent = 'RUNNING...';
-  }
-  if (btnStop) {
-    btnStop.style.display = 'inline-block';
-  }
+  // 5. Execute Backend/API Data Loads Asynchronously (Failures logged, won't break UI)
+  safeInit("WebSocket Connection", initWebSocket);
+  safeInit("Load Sites", loadSites);
+  safeInit("Load Settings", loadSettings);
+  safeInit("Load Run History", loadHistory);
+  safeInit("Load FNB Tunnel Config", loadFnbTunnelValidationData);
+  safeInit("Load Office SSH Config", loadOfficeSshSettings);
+  safeInit("Load Global Tunnel Config", loadGlobalTunnelSettings);
+});
 
-  const startTime = new Date().toLocaleTimeString();
-  box.innerHTML = `
-    <div style="font-weight:700; color: #3b82f6; margin-bottom: 8px;">
-      TEST STARTED
-    </div>
-    <div><strong>Target Site:</strong> ${escapeHtml(siteText)}</div>
-    <div><strong>Test Stage:</strong> ${escapeHtml(stage.toUpperCase())}</div>
-    <div><strong>Status:</strong> <span style="color: #eab308; font-weight:700;">RUNNING...</span></div>
-    <div style="margin-top: 10px; font-weight: 600;">Live Execution Logs:</div>
-    <div id="test-live-logs" style="margin-top: 6px; font-family: monospace; font-size: 0.85rem; max-height: 250px; overflow-y: auto; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);">
-      <div class="log-row log-info">[${startTime}] Integration test button clicked. Requesting stage '${stage}' from backend...</div>
-    </div>
-  `;
-
-  try {
-    const res = await fetch('/api/integration-test/run', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ site_id: parseInt(siteId), stage: stage })
-    });
-
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-    }
-
-    const data = await res.json();
-    let statusColor = data.success ? 'var(--accent-green, #22c55e)' : 'var(--accent-red, #ef4444)';
-
-    let resultHtml = `
-      <div style="font-weight:700; font-size: 1.1rem; color: ${statusColor}; margin-bottom: 8px;">
-        STATION RESULT: ${data.success ? 'PASS' : 'FAIL'}
-      </div>
-      <div><strong>Site:</strong> ${escapeHtml(data.site || siteText)}</div>
-      <div><strong>Stage:</strong> ${escapeHtml(data.stage || stage)}</div>
-      <div style="margin-top: 6px;"><strong>Message:</strong> ${escapeHtml(data.message || '')}</div>
-    `;
-
-    if (data.third_line) {
-      resultHtml += `<div style="margin-top:4px;"><strong>Line 3 Preview:</strong> <code>${escapeHtml(data.third_line)}</code></div>`;
-    }
-    if (data.action_point_status) {
-      resultHtml += `<div><strong>Action Point Status:</strong> ${escapeHtml(data.action_point_status)}</div>`;
-    }
-
-    if (data.details && data.details.length > 0) {
-      resultHtml += `<div style="margin-top:10px;"><strong>Diagnostic Steps:</strong><ul style="margin-top:4px; padding-left:20px;">`;
-      data.details.forEach(d => {
-        resultHtml += `<li>${escapeHtml(d)}</li>`;
-      });
-      resultHtml += `</ul></div>`;
-    }
-
-    if (data.traceback) {
-      resultHtml += `<div style="margin-top:10px; color:#ef4444;"><strong>Traceback:</strong><pre style="margin-top:4px; background:rgba(0,0,0,0.5); padding:8px; border-radius:4px; font-size:0.8rem; overflow-x:auto;">${escapeHtml(data.traceback)}</pre></div>`;
-    }
-
-    // Retain live log container at bottom
-    const currentLiveLogs = document.getElementById('test-live-logs') ? document.getElementById('test-live-logs').innerHTML : '';
-    resultHtml += `
-      <div style="margin-top: 12px; font-weight: 600;">Execution Log Stream:</div>
-      <div id="test-live-logs" style="margin-top: 6px; font-family: monospace; font-size: 0.85rem; max-height: 250px; overflow-y: auto; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);">
-        ${currentLiveLogs}
-        <div class="log-row ${data.success ? 'log-info' : 'log-error'}">[${new Date().toLocaleTimeString()}] Test completed with status: ${data.success ? 'PASS' : 'FAIL'}</div>
-      </div>
-    `;
-
-    box.innerHTML = resultHtml;
-  } catch (e) {
-    box.innerHTML = `
-      <div style="font-weight:700; color: var(--accent-red, #ef4444); margin-bottom: 8px;">INTEGRATION TEST ERROR</div>
-      <div><strong>Stage:</strong> ${escapeHtml(stage)}</div>
-      <div><strong>Error Message:</strong> ${escapeHtml(e.message)}</div>
-      ${e.stack ? `<pre style="margin-top:8px; background:rgba(0,0,0,0.4); padding:8px; border-radius:4px; font-size:0.8rem; overflow-x:auto;">${escapeHtml(e.stack)}</pre>` : ''}
-    `;
-  } finally {
-    if (btnRun) {
-      btnRun.disabled = false;
-      btnRun.textContent = 'RUN STAGE TEST';
-    }
-    if (btnStop) {
-      btnStop.style.display = 'none';
-    }
-  }
-}
 
 function escapeHtml(str) {
   if (!str) return '';
   return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
-

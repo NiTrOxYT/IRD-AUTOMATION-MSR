@@ -94,10 +94,11 @@ def export_reports(run_data: Dict[str, Any], output_dir: str = None) -> Dict[str
     results = run_data.get("results", [])
     date_str = run.get("run_date", datetime.now().strftime("%Y-%m-%d"))
 
-    txt_path = out_folder / f"{date_str}_IRD_Sync_Report.txt"
-    csv_path = out_folder / f"{date_str}_IRD_Sync_Report.csv"
-    xlsx_path = out_folder / f"{date_str}_IRD_Sync_Report.xlsx"
-    json_path = out_folder / f"{date_str}_IRD_Sync_Report.json"
+    txt_path = out_folder / "daily_report.txt"
+    csv_path = out_folder / "daily_report.csv"
+    xlsx_path = out_folder / "daily_report.xlsx"
+    json_path = out_folder / "daily_report.json"
+
 
     # 1. Write Text Report
     text_summary = generate_text_summary(run_data)

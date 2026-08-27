@@ -45,4 +45,11 @@ DEFAULT_SETTINGS = {
     "tunnel_retry_count": 3,
     "auto_stop_tunnel": True,
     "auto_restart_tunnel": True,
+    "office_ssh_host": "111.93.205.187",
+    "office_ssh_port": 22,
+    "office_ssh_username": "sourik",
+    "office_ssh_auth_type": "password",
+    "office_ssh_key_path": "",
+    "office_ssh_host_key": "",
 }
+

@@ -94,11 +94,34 @@ def init_db():
     );
     """)
 
+    # Run History Table (Phase 7)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS run_history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        site_id INTEGER NOT NULL,
+        site_name TEXT NOT NULL,
+        start_time TEXT NOT NULL,
+        end_time TEXT NOT NULL,
+        tunnel_status TEXT DEFAULT 'UNKNOWN',
+        login_status TEXT DEFAULT 'UNKNOWN',
+        sync_mymenu_status TEXT DEFAULT 'UNKNOWN',
+        fetch_menu_status TEXT DEFAULT 'UNKNOWN',
+        fetch_menu_attempts INTEGER DEFAULT 1,
+        service_recovery_count INTEGER DEFAULT 0,
+        final_status TEXT DEFAULT 'FAILED',
+        error_code TEXT DEFAULT 'NONE',
+        error_message TEXT DEFAULT ''
+    );
+    """)
+
+
     # Non-destructive Migration for Sites Table Tunnel Fields
     cursor.execute("PRAGMA table_info(sites)")
     existing_cols = {col[1] for col in cursor.fetchall()}
 
     tunnel_columns = [
+        ("site_ip", "TEXT DEFAULT ''"),
+        ("site_port", "INTEGER DEFAULT 80"),
         ("local_port", "INTEGER DEFAULT 18001"),
         ("remote_host", "TEXT DEFAULT '127.0.0.1'"),
         ("remote_port", "INTEGER DEFAULT 80"),
@@ -119,6 +142,8 @@ def init_db():
 
     conn.commit()
     conn.close()
+
+
 
     # Ensure default settings exist
     for key, val in DEFAULT_SETTINGS.items():
@@ -186,6 +211,8 @@ def _row_to_site(r: sqlite3.Row) -> Site:
         enabled=bool(r["enabled"]),
         sort_order=r["sort_order"],
         notes=r["notes"],
+        site_ip=r["site_ip"] if "site_ip" in keys and r["site_ip"] is not None else "",
+        site_port=r["site_port"] if "site_port" in keys and r["site_port"] is not None else 80,
         local_port=r["local_port"] if "local_port" in keys and r["local_port"] is not None else 18001,
         remote_host=r["remote_host"] if "remote_host" in keys and r["remote_host"] is not None else "127.0.0.1",
         remote_port=r["remote_port"] if "remote_port" in keys and r["remote_port"] is not None else 80,
@@ -197,10 +224,37 @@ def _row_to_site(r: sqlite3.Row) -> Site:
         auth_type=r["auth_type"] if "auth_type" in keys and r["auth_type"] is not None else "key",
         putty_session=r["putty_session"] if "putty_session" in keys and r["putty_session"] is not None else "",
         tunnel_type=r["tunnel_type"] if "tunnel_type" in keys and r["tunnel_type"] is not None else "reverse",
-        web_url=r["web_url"] if "web_url" in keys and r["web_url"] is not None else "",
+        web_url=f"http://localhost:{r['local_port'] if 'local_port' in keys and r['local_port'] is not None else 18001}/zmp/main-menu.do",
         created_at=r["created_at"],
         updated_at=r["updated_at"]
     )
+
+
+def validate_site_port(site_port: Any) -> tuple[bool, str]:
+    """Validates site_port is integer between 1 and 65535."""
+    try:
+        val = int(site_port)
+        if 1 <= val <= 65535:
+            return True, ""
+        return False, "Site Port must be an integer between 1 and 65535."
+    except (ValueError, TypeError):
+        return False, "Site Port must be a valid integer."
+
+def validate_local_port_collision(site_id: Optional[int], local_port: int, enabled: bool = True) -> tuple[bool, str]:
+    """Prevents two enabled sites from sharing the same local port."""
+    if not enabled:
+        return True, ""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    if site_id:
+        cursor.execute("SELECT name FROM sites WHERE local_port = ? AND enabled = 1 AND id != ?", (local_port, site_id))
+    else:
+        cursor.execute("SELECT name FROM sites WHERE local_port = ? AND enabled = 1", (local_port,))
+    row = cursor.fetchone()
+    conn.close()
+    if row:
+        return False, f"Local port {local_port} is already assigned to {row['name']}."
+    return True, ""
 
 def get_all_sites() -> List[Site]:
     conn = get_db_connection()
@@ -221,6 +275,17 @@ def get_site_by_id(site_id: int) -> Optional[Site]:
         return None
     return _row_to_site(r)
 
+def get_site_by_name(name: str) -> Optional[Site]:
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM sites WHERE LOWER(name) = LOWER(?) OR LOWER(launcher_button) = LOWER(?)", (name.strip(), name.strip()))
+    r = cursor.fetchone()
+    conn.close()
+    if not r:
+        return None
+    return _row_to_site(r)
+
+
 def add_site(site: Site) -> int:
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -236,14 +301,14 @@ def add_site(site: Site) -> int:
     cursor.execute("""
     INSERT INTO sites (
         name, launcher_button, url, idp_username, idp_password_encrypted, enabled, sort_order, notes,
-        local_port, remote_host, remote_port, ssh_host, ssh_port, ssh_username, ssh_password_encrypted,
+        site_ip, site_port, local_port, remote_host, remote_port, ssh_host, ssh_port, ssh_username, ssh_password_encrypted,
         ssh_key_path, auth_type, putty_session, tunnel_type, web_url, created_at, updated_at
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         site.name.strip(), site.launcher_button.strip(), site.url.strip(), site.idp_username.strip(), enc_pass,
         1 if site.enabled else 0, sort_order, site.notes,
-        site.local_port, site.remote_host.strip(), site.remote_port, site.ssh_host.strip(), site.ssh_port,
+        site.site_ip.strip(), site.site_port, site.local_port, site.remote_host.strip(), site.remote_port, site.ssh_host.strip(), site.ssh_port,
         site.ssh_username.strip(), enc_ssh_pass, site.ssh_key_path.strip(), site.auth_type,
         site.putty_session.strip(), site.tunnel_type, site.web_url.strip(), now, now
     ))
@@ -271,18 +336,20 @@ def update_site(site: Site):
     cursor.execute("""
     UPDATE sites SET
         name=?, launcher_button=?, url=?, idp_username=?, idp_password_encrypted=?, enabled=?, sort_order=?, notes=?,
-        local_port=?, remote_host=?, remote_port=?, ssh_host=?, ssh_port=?, ssh_username=?, ssh_password_encrypted=?,
+        site_ip=?, site_port=?, local_port=?, remote_host=?, remote_port=?, ssh_host=?, ssh_port=?, ssh_username=?, ssh_password_encrypted=?,
         ssh_key_path=?, auth_type=?, putty_session=?, tunnel_type=?, web_url=?, updated_at=?
     WHERE id=?
     """, (
         site.name.strip(), site.launcher_button.strip(), site.url.strip(), site.idp_username.strip(), enc_idp,
         1 if site.enabled else 0, site.sort_order, site.notes,
-        site.local_port, site.remote_host.strip(), site.remote_port, site.ssh_host.strip(), site.ssh_port,
+        site.site_ip.strip(), site.site_port, site.local_port, site.remote_host.strip(), site.remote_port, site.ssh_host.strip(), site.ssh_port,
         site.ssh_username.strip(), enc_ssh, site.ssh_key_path.strip(), site.auth_type, site.putty_session.strip(),
         site.tunnel_type, site.web_url.strip(), now, site.id
     ))
     conn.commit()
     conn.close()
+
+
 
 def delete_site(site_id: int):
     conn = get_db_connection()
@@ -340,7 +407,131 @@ def set_setting(key: str, value: Any):
     conn.commit()
     conn.close()
 
+def get_browser_debug_mode() -> bool:
+    """Returns True if Browser Debug Mode (headed execution + slow motion) is enabled."""
+    val = (get_setting("browser_debug_mode") or "OFF").upper()
+    return val in ("ON", "1", "TRUE", "YES")
+
+def set_browser_debug_mode(enabled: bool):
+    """Sets Browser Debug Mode setting."""
+    val = "ON" if enabled else "OFF"
+    set_setting("browser_debug_mode", val)
+    logger.info(f"Browser Debug Mode updated to '{val}'.")
+
+
+# --- OFFICE SSH SERVER SETTINGS ---
+
+
+def seed_office_ssh_credentials_if_empty():
+    """
+    Seeds default Office SSH server credentials (111.93.205.187:22, user: sourik)
+    on initial installation only using Windows DPAPI. Never overwrites existing credentials.
+    """
+    if get_setting("office_ssh_host") is None:
+        set_setting("office_ssh_host", "111.93.205.187")
+    if get_setting("office_ssh_port") is None:
+        set_setting("office_ssh_port", "22")
+    if get_setting("office_ssh_username") is None:
+        set_setting("office_ssh_username", "sourik")
+    if get_setting("office_ssh_auth_type") is None:
+        set_setting("office_ssh_auth_type", "password")
+
+    existing_enc = get_setting("office_ssh_password_encrypted")
+    if not existing_enc:
+        # Securely encrypt default seed password via DPAPI
+        seed_pass = "s0urik@@"
+        enc_pass = encrypt_password(seed_pass)
+        set_setting("office_ssh_password_encrypted", enc_pass)
+        logger.info("Office SSH default credentials seeded via Windows DPAPI.")
+
+    # Also update site FNB if site FNB fields are missing
+    fnb = get_site_by_id(1) or get_site_by_name("FNB")
+    if fnb and not fnb.ssh_host:
+        fnb.ssh_host = "111.93.205.187"
+        fnb.ssh_port = 22
+        fnb.ssh_username = "sourik"
+        fnb.auth_type = "password"
+        fnb.ssh_password = decrypt_password(get_setting("office_ssh_password_encrypted") or "")
+        update_site(fnb)
+        logger.info("Site FNB updated with Office SSH server credentials.")
+
+def get_office_ssh_config() -> Dict[str, Any]:
+    """
+    Returns Office SSH server configuration.
+    CRITICAL SECURITY: Never returns plaintext or encrypted password strings.
+    """
+    return {
+        "ssh_host": get_setting("office_ssh_host") or "111.93.205.187",
+        "ssh_port": int(get_setting("office_ssh_port") or 22),
+        "ssh_username": get_setting("office_ssh_username") or "sourik",
+        "auth_type": get_setting("office_ssh_auth_type") or "password",
+        "ssh_key_path": get_setting("office_ssh_key_path") or "",
+        "ssh_host_key": get_setting("office_ssh_host_key") or "",
+        "password_configured": bool(get_setting("office_ssh_password_encrypted"))
+    }
+
+def get_office_ssh_password_decrypted() -> str:
+    """
+    Decrypts Office SSH password in memory for process execution only.
+    """
+    enc = get_setting("office_ssh_password_encrypted") or ""
+    return decrypt_password(enc)
+
+def set_office_ssh_config(data: Dict[str, Any]):
+    """
+    Updates Office SSH Server configuration. Encrypts password via DPAPI if provided.
+    """
+    if "ssh_host" in data:
+        set_setting("office_ssh_host", data["ssh_host"].strip())
+    if "ssh_port" in data:
+        set_setting("office_ssh_port", str(data["ssh_port"]))
+    if "ssh_username" in data:
+        set_setting("office_ssh_username", data["ssh_username"].strip())
+    if "auth_type" in data:
+        set_setting("office_ssh_auth_type", data["auth_type"].strip())
+    if "ssh_key_path" in data:
+        set_setting("office_ssh_key_path", data["ssh_key_path"].strip())
+    if "ssh_host_key" in data:
+        set_setting("office_ssh_host_key", data["ssh_host_key"].strip())
+
+    if "ssh_password" in data and data["ssh_password"]:
+        enc_pass = encrypt_password(data["ssh_password"])
+        set_setting("office_ssh_password_encrypted", enc_pass)
+
+    # Sync to Site FNB as well
+    fnb = get_site_by_id(1) or get_site_by_name("FNB")
+    if fnb:
+        fnb.ssh_host = get_setting("office_ssh_host") or "111.93.205.187"
+        fnb.ssh_port = int(get_setting("office_ssh_port") or 22)
+        fnb.ssh_username = get_setting("office_ssh_username") or "sourik"
+        fnb.auth_type = get_setting("office_ssh_auth_type") or "password"
+        fnb.ssh_key_path = get_setting("office_ssh_key_path") or ""
+        fnb.ssh_password = get_office_ssh_password_decrypted()
+        update_site(fnb)
+
+def get_global_tunnel_config() -> Dict[str, Any]:
+    """Returns common/global reverse SSH tunnel settings."""
+    return {
+        "tunnel_remote_port": int(get_setting("tunnel_remote_port") or 80),
+        "fnb_service_port": int(get_setting("fnb_service_port") or 80),
+        "web_url_template": get_setting("web_url_template") or "http://127.0.0.1:{local_port}",
+        "tunnel_type": get_setting("tunnel_type") or "reverse"
+    }
+
+def set_global_tunnel_config(data: Dict[str, Any]):
+    """Updates common/global reverse SSH tunnel settings."""
+    if "tunnel_remote_port" in data:
+        set_setting("tunnel_remote_port", str(data["tunnel_remote_port"]))
+    if "fnb_service_port" in data:
+        set_setting("fnb_service_port", str(data["fnb_service_port"]))
+    if "web_url_template" in data:
+        set_setting("web_url_template", data["web_url_template"].strip())
+    if "tunnel_type" in data:
+        set_setting("tunnel_type", data["tunnel_type"].strip())
+
+
 # --- RUNS & RESULTS CRUD ---
+
 
 def create_run(run: Run) -> int:
     conn = get_db_connection()
@@ -472,3 +663,35 @@ def save_selector(step_key: str, primary: str, fallbacks_json: str, description:
     """, (step_key, primary, fallbacks_json, description))
     conn.commit()
     conn.close()
+
+def record_run_history(rec_dict: Dict[str, Any]) -> int:
+    """Inserts a run history record into the run_history table."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+    INSERT INTO run_history (
+        site_id, site_name, start_time, end_time, tunnel_status,
+        login_status, sync_mymenu_status, fetch_menu_status,
+        fetch_menu_attempts, service_recovery_count, final_status,
+        error_code, error_message
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        rec_dict.get("site_id", 0),
+        rec_dict.get("site_name", "FNB"),
+        rec_dict.get("start_time", datetime.now().isoformat()),
+        rec_dict.get("end_time", datetime.now().isoformat()),
+        rec_dict.get("tunnel_status", "UNKNOWN"),
+        rec_dict.get("login_status", "UNKNOWN"),
+        rec_dict.get("sync_mymenu_status", "UNKNOWN"),
+        rec_dict.get("fetch_menu_status", "UNKNOWN"),
+        rec_dict.get("fetch_menu_attempts", 1),
+        rec_dict.get("service_recovery_count", 0),
+        rec_dict.get("final_status", "FAILED"),
+        rec_dict.get("error_code", "NONE"),
+        rec_dict.get("error_message", "")
+    ))
+    rec_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+    return rec_id
+

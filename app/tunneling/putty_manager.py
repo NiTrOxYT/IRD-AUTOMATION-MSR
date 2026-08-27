@@ -18,7 +18,12 @@ class PuTTYManager:
     """
 
     @classmethod
+    def get_relative_display_path(cls, path_str: Optional[str]) -> str:
+        return get_relative_display_path(path_str)
+
+    @classmethod
     def detect_executables(cls) -> Dict[str, Any]:
+
         """
         Detects bundled and active paths for plink.exe and putty.exe.
         """
@@ -91,13 +96,18 @@ class PuTTYManager:
         scrubbed = re.sub(r'(-pw\s+)(\S+)', r'\1********', text, flags=re.IGNORECASE)
         # Replace password=...
         scrubbed = re.sub(r'(password=)([^&\s]+)', r'\1********', scrubbed, flags=re.IGNORECASE)
+        # Replace secret tokens / keys in strings
+        scrubbed = re.sub(r'(token=)([^&\s]+)', r'\1********', scrubbed, flags=re.IGNORECASE)
         return scrubbed
 
     @classmethod
     def build_plink_command(cls, site: Any, plink_path: Optional[str] = None) -> List[str]:
         """
-        Constructs safe subprocess argument list for plink.exe (-R reverse tunnel).
+        Constructs safe subprocess argument list for plink.exe from:
+        Global Office SSH Server Config + Site IP + Site Local Port.
         """
+        from app.database.db import get_office_ssh_config, get_office_ssh_password_decrypted, get_global_tunnel_config
+
         if not plink_path:
             plink_path, _, _ = get_active_plink_path()
 
@@ -106,7 +116,14 @@ class PuTTYManager:
 
         cmd = [plink_path, "-batch", "-N"]
 
-        auth_type = getattr(site, "auth_type", "key") or "key"
+        ssh_cfg = get_office_ssh_config()
+        global_tunnel_cfg = get_global_tunnel_config()
+
+        # SSH Server Host, Port, Username
+        ssh_host = getattr(site, "ssh_host", "") or ssh_cfg.get("ssh_host") or "111.93.205.187"
+        ssh_port = getattr(site, "ssh_port", 0) or ssh_cfg.get("ssh_port") or 22
+        ssh_user = getattr(site, "ssh_username", "") or ssh_cfg.get("ssh_username") or "sourik"
+        auth_type = str(getattr(site, "auth_type", "") or ssh_cfg.get("auth_type") or "password").lower()
         session_name = getattr(site, "putty_session", "") or ""
 
         # 1. PuTTY Saved Session
@@ -114,37 +131,86 @@ class PuTTYManager:
             cmd.extend(["-load", session_name])
         else:
             cmd.append("-ssh")
-
-            ssh_port = getattr(site, "ssh_port", 22) or 22
             cmd.extend(["-P", str(ssh_port)])
 
-            ssh_user = getattr(site, "ssh_username", "") or ""
             if ssh_user:
                 cmd.extend(["-l", ssh_user])
 
+            # Host Key if configured
+            ssh_host_key = (getattr(site, "ssh_host_key", "") or "").strip() or ssh_cfg.get("ssh_host_key", "")
+            if ssh_host_key:
+                cmd.extend(["-hostkey", ssh_host_key])
+
             # Private Key
-            ssh_key = getattr(site, "ssh_key_path", "") or ""
-            if auth_type == "key" and ssh_key:
+            ssh_key = (getattr(site, "ssh_key_path", "") or "").strip() or ssh_cfg.get("ssh_key_path", "")
+            if auth_type == "key" and ssh_key and os.path.exists(ssh_key):
                 cmd.extend(["-i", ssh_key])
+            else:
+                # Password Auth (DPAPI Decrypted in memory)
+                ssh_pass = (getattr(site, "ssh_password", "") or "").strip() or get_office_ssh_password_decrypted()
+                if ssh_pass:
+                    cmd.extend(["-pw", ssh_pass])
 
-            # Password Auth
-            ssh_pass = getattr(site, "ssh_password", "") or ""
-            if auth_type == "password" and ssh_pass:
-                cmd.extend(["-pw", ssh_pass])
-
-        # Reverse Tunnel Specification: -R <REMOTE_PORT>:<REMOTE_HOST>:<LOCAL_PORT>
+        # Forwarding Specification: Local Port, Site IP, Site Port
         local_port = getattr(site, "local_port", 18001) or 18001
-        remote_host = getattr(site, "remote_host", "127.0.0.1") or "127.0.0.1"
-        remote_port = getattr(site, "remote_port", 80) or 80
+        site_ip = getattr(site, "site_ip", "") or getattr(site, "remote_host", "127.0.0.1") or "127.0.0.1"
+        site_port = getattr(site, "site_port", 0) or getattr(site, "remote_port", 0) or global_tunnel_cfg.get("tunnel_remote_port") or 80
+        tunnel_type = str(getattr(site, "tunnel_type", "") or global_tunnel_cfg.get("tunnel_type") or "local").lower()
 
-        tunnel_arg = f"{remote_port}:{remote_host}:{local_port}"
-        cmd.extend(["-R", tunnel_arg])
+        if tunnel_type in ("reverse", "-r"):
+            # Reverse forwarding: -R <site_port>:<site_ip>:<local_port>
+            cmd.extend(["-R", f"{site_port}:{site_ip}:{local_port}"])
+        else:
+            # Local forwarding (default): -L <local_port>:<site_ip>:<site_port>
+            cmd.extend(["-L", f"{local_port}:{site_ip}:{site_port}"])
 
         # Target SSH Host
-        ssh_host = getattr(site, "ssh_host", "") or "127.0.0.1"
         if not (auth_type == "session" and session_name):
             cmd.append(ssh_host)
 
         return cmd
 
+
+
+
+    @classmethod
+    def build_ssh_test_command(cls, ssh_cfg: Dict[str, Any], plink_path: Optional[str] = None) -> List[str]:
+        """
+        Constructs safe subprocess argument list for testing direct SSH connectivity.
+        """
+        if not plink_path:
+            plink_path, _, _ = get_active_plink_path()
+
+        if not plink_path:
+            raise FileNotFoundError("Bundled Plink executable tools/putty/plink.exe was not found.")
+
+        cmd = [plink_path, "-batch", "-ssh"]
+
+        ssh_port = ssh_cfg.get("ssh_port") or ssh_cfg.get("port") or 22
+        cmd.extend(["-P", str(ssh_port)])
+
+        ssh_user = ssh_cfg.get("ssh_username") or ssh_cfg.get("username") or ""
+        if ssh_user:
+            cmd.extend(["-l", ssh_user])
+
+        auth_type = str(ssh_cfg.get("auth_type", "password")).lower()
+        if auth_type == "key" and ssh_cfg.get("ssh_key_path"):
+            cmd.extend(["-i", ssh_cfg["ssh_key_path"]])
+
+        ssh_pass = ssh_cfg.get("ssh_password") or ""
+        if auth_type == "password" and ssh_pass:
+            cmd.extend(["-pw", ssh_pass])
+
+        host_key = ssh_cfg.get("ssh_host_key") or ""
+        if host_key:
+            cmd.extend(["-hostkey", host_key])
+
+        ssh_host = ssh_cfg.get("ssh_host") or ssh_cfg.get("host") or "111.93.205.187"
+        cmd.append(ssh_host)
+        cmd.append("echo SSH_TEST_OK")
+
+        return cmd
+
 putty_manager = PuTTYManager()
+
+
