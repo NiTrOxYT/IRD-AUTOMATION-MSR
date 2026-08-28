@@ -1,5 +1,8 @@
 // IRD Sync Automation Frontend Application Controller
-// Version query cache-busting: app.js?v=phase7fix2
+// Version query cache-busting: app.js?v=phase16
+console.log("[UI BOOT] PHASE16 app.js EXECUTED");
+window.__IRD_PHASE16_JS_LOADED__ = true;
+window.__IRD_UI_BUILD__ = "PHASE16-2026-08-28";
 
 // --- GLOBAL FRONTEND ERROR CAPTURE ---
 window.onerror = function(msg, url, lineNo, columnNo, error) {
@@ -45,11 +48,22 @@ let currentRunStatus = null;
 // --- SAFE COMPONENT INITIALIZER HELPER ---
 function safeInit(name, fn) {
   try {
-    fn();
-    console.log(`[UI INIT] ${name}: PASS`);
+    if (typeof fn === 'function') {
+      fn();
+      console.log(`[UI INIT] ${name}: PASS`);
+    } else {
+      console.warn(`[UI INIT SKIPPED] ${name}: function not defined`);
+    }
   } catch (e) {
     console.error(`[UI INIT ERROR] ${name}:`, e);
   }
+}
+
+function getApiBaseUrl() {
+  if (window.location.origin && window.location.origin !== "null" && window.location.origin !== "file://") {
+    return window.location.origin;
+  }
+  return `http://${window.location.hostname || '127.0.0.1'}:${window.location.port || '18000'}`;
 }
 
 // --- DIAGNOSTIC EVENT BINDING HELPERS ---
@@ -244,11 +258,36 @@ function appendLogToTerminal(log) {
 }
 
 
+let isStartSyncLocked = false;
+let startSyncClickCount = 0;
+
+function handleStartSyncClick() {
+  startSyncClickCount++;
+  console.log(`[UI] START SYNC click event count: ${startSyncClickCount}`);
+  if (isStartSyncLocked) {
+    console.warn(`[UI] START SYNC click ignored — handler already locked.`);
+    return;
+  }
+  isStartSyncLocked = true;
+  console.log(`[UI] START SYNC request trace ID: STARTSYNC-${Date.now()}`);
+  console.log(`[UI] START SYNC request sent`);
+  console.log(`[UI] START SYNC handler locked`);
+  const btn = document.getElementById("btn-start-sync");
+  if (btn) btn.disabled = true;
+
+  startAutomation(false);
+}
+
 // --- AUTOMATION STATUS UI UPDATER ---
 function updateAutomationStatusUI(statusData) {
   currentRunStatus = statusData;
 
   const isRunning = statusData.is_running;
+  if (!isRunning) {
+    isStartSyncLocked = false;
+    startSyncClickCount = 0;
+  }
+
   const btnStart = document.getElementById('btn-start-sync');
   const btnDry = document.getElementById('btn-dry-run');
   const btnStop = document.getElementById('btn-stop-automation');
@@ -513,32 +552,116 @@ async function deleteSiteClick(siteId) {
 
 // --- AUTOMATION CONTROL FUNCTIONS ---
 async function startAutomation(isDryRun) {
-  const selectedIds = Array.from(document.querySelectorAll('.chk-site-queue:checked')).map(c => parseInt(c.getAttribute('data-id')));
-  if (selectedIds.length === 0) {
-    alert("Please select at least one site.");
-    return;
+  console.log("[PHASE17][UI] startAutomation entered (dryRun: " + isDryRun + ")");
+  const traceId = "STARTSYNC-" + Date.now();
+
+  const btnStart = document.getElementById("btn-start-sync");
+  console.log("[UI] START SYNC button element found:", !!btnStart);
+  if (btnStart) {
+    console.log(`[UI] START SYNC disabled: ${btnStart.disabled}`);
   }
 
+  let selectedIds = Array.from(document.querySelectorAll('.chk-site-queue:checked')).map(c => parseInt(c.getAttribute('data-id')));
+  
+  // Fallback 1: If no checkboxes checked in UI table, select all enabled sites from sitesList
+  if ((!selectedIds || selectedIds.length === 0) && Array.isArray(sitesList) && sitesList.length > 0) {
+    selectedIds = sitesList.filter(s => s.enabled).map(s => s.id);
+    console.log(`[UI] Auto-selected ${selectedIds.length} enabled sites for batch run:`, selectedIds);
+  }
+
+  // Fallback 2: If sitesList not populated yet, set to null (backend defaults to all enabled sites)
+  if (!selectedIds || selectedIds.length === 0) {
+    console.log("[UI] No specific site IDs checked, requesting backend run all enabled sites.");
+    selectedIds = null;
+  }
+
+  console.log(`[PHASE17][UI] Final selected site IDs for payload: ${JSON.stringify(selectedIds)}`);
+
+  console.log("[UI] startAutomation(false) called");
+  console.log(`[PHASE17][UI] window.location.href = ${window.location.href}`);
+  console.log(`[PHASE17][UI] window.location.origin = ${window.location.origin}`);
+
+  const baseUrl = getApiBaseUrl();
+  console.log(`[PHASE17][UI] API base URL = ${baseUrl}`);
+
+  // Health check call
+  console.log(`[PHASE17][UI] Backend health check`);
   try {
-    const endpoint = isDryRun ? '/api/automation/start-dry-run' : '/api/automation/start-sync';
-    const res = await fetch(endpoint, {
+    const hRes = await fetch(`${baseUrl}/api/automation/health`).catch(err => ({ ok: false, err }));
+    if (hRes.ok) {
+      const hData = await hRes.json().catch(() => ({}));
+      console.log(`[PHASE17][UI] Backend health: PASS`, hData);
+    } else {
+      console.warn(`[PHASE17][UI] Backend health check failed:`, hRes);
+    }
+  } catch (he) {
+    console.warn(`[PHASE17][UI] Backend health exception:`, he);
+  }
+
+  const endpointPath = isDryRun ? '/api/automation/start-dry-run' : '/api/automation/start-sync';
+  const fullUrl = `${baseUrl}${endpointPath}`;
+  console.log(`[PHASE17][UI] START SYNC endpoint = ${endpointPath}`);
+  console.log(`[PHASE17][UI] Calling backend`);
+  console.log(`[PHASE17][UI] API URL: ${fullUrl}`);
+
+  const reqPayload = { site_ids: selectedIds, dry_run: isDryRun, trace_id: traceId };
+  console.log(`[PHASE17][UI] Request payload:`, reqPayload);
+
+  // Immediately update status UI to RUNNING
+  updateAutomationStatusUI({
+    is_running: true,
+    operation: isDryRun ? "Starting Dry Run..." : "Starting Sync Automation...",
+    progress_percentage: 0,
+    status: "STARTING"
+  });
+
+  try {
+    const res = await fetch(fullUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ site_ids: selectedIds })
+      body: JSON.stringify(reqPayload)
     });
+
+    console.log(`[UI] START SYNC API response received`);
+    console.log(`[UI] START SYNC HTTP status: ${res.status}`);
+    const data = await res.json().catch(() => ({}));
+    console.log(`[UI] START SYNC response body:`, data);
+
     if (!res.ok) {
-      const err = await res.json();
-      alert(`Error starting automation: ${err.detail || res.statusText}`);
+      console.error(`[PHASE17][UI] FETCH FAILED - Status: ${res.status}`, data);
+      alert(`FAILED — ${data.detail || res.statusText || 'Server Error'}`);
+      updateAutomationStatusUI({ is_running: false, operation: "Idle", progress_percentage: 0, status: "READY" });
+    } else {
+      console.log(`[PHASE17][UI] START SYNC backend request SUCCESS [Trace: ${traceId}]`);
     }
   } catch (e) {
-    alert("Failed to send start command: " + e.message);
+    console.error("[PHASE17][UI] FETCH FAILED", e);
+    console.error(`[PHASE17][UI] Error name: ${e.name}`);
+    console.error(`[PHASE17][UI] Error message: ${e.message}`);
+    alert(`FAILED — Network error: ${e.message}`);
+    updateAutomationStatusUI({ is_running: false, operation: "Idle", progress_percentage: 0, status: "READY" });
   }
 }
 
 async function stopAutomation() {
+  console.log("[UI] STOP AUTOMATION clicked");
   try {
-    await fetch('/api/automation/stop', { method: 'POST' });
+    const btnStop = document.getElementById('btn-stop-automation');
+    if (btnStop) btnStop.disabled = true;
+
+    const res = await fetch('/api/automation/stop', { method: 'POST' });
+    const data = await res.json();
+    console.log("[UI] STOP AUTOMATION API response:", data);
+
+    updateAutomationStatusUI({
+      is_running: false,
+      operation: "Stopped",
+      details: "Automation stopped by user.",
+      progress_percentage: 0,
+      status: "STOPPED"
+    });
   } catch (e) {
+    console.error("[UI] Error stopping automation:", e);
     alert("Error stopping automation: " + e.message);
   }
 }
@@ -558,21 +681,28 @@ async function loadHistory() {
   if (!tbody) return;
 
   try {
-    const res = await fetch('/api/runs');
+    const res = await fetch('/api/history');
     if (!res.ok) return;
     const runs = await res.json();
     tbody.innerHTML = '';
 
+    if (!runs || runs.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; color: #94a3b8; padding: 24px;">No automation runs recorded yet today. Click START SYNC to execute.</td></tr>';
+      return;
+    }
+
     runs.forEach(r => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td>#${r.id}</td>
         <td>${r.run_date}</td>
-        <td>${r.start_time}</td>
+        <td>${r.start_time || 'N/A'}</td>
         <td>${r.end_time || 'Running...'}</td>
+        <td>${r.total_sites || 0}</td>
+        <td>${r.completed_sites || 0}</td>
+        <td><strong style="color: var(--accent-amber);">${r.action_points_count || 0}</strong></td>
+        <td>${r.no_action_points_count || 0}</td>
+        <td><strong style="color: var(--accent-rose, #f87171);">${r.failed_sites_count || 0}</strong></td>
         <td><span class="status-badge ${r.status === 'COMPLETED' ? 'badge-no-action' : (r.status === 'FAILED' ? 'badge-failed' : 'badge-active')}">${r.status}</span></td>
-        <td>${r.completed_sites} / ${r.total_sites}</td>
-        <td><strong style="color: var(--accent-amber);">${r.action_points_count}</strong></td>
         <td>
           <button class="btn btn-secondary btn-sm" type="button" onclick="viewHistoryDetail(${r.id})">Details</button>
         </td>
@@ -593,37 +723,54 @@ async function viewHistoryDetail(runId) {
   modal.classList.add('active');
 
   try {
-    const res = await fetch(`/api/runs/${runId}`);
+    const res = await fetch(`/api/history/${runId}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
+    const run = data.run || {};
+    const results = data.results || [];
 
     let html = `
-      <div style="margin-bottom: 16px; font-size: 0.9rem;">
-        <strong>Run #${data.run.id}</strong> | Date: ${data.run.run_date} | Status: <span class="status-badge badge-ready">${data.run.status}</span>
+      <div style="margin-bottom: 16px; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 8px; font-size: 0.9rem;">
+        <div><strong>Run #${run.id}</strong> — Date: <strong>${run.run_date}</strong></div>
+        <div style="margin-top: 4px; color: #94a3b8;">
+          Start: ${run.start_time || 'N/A'} | End: ${run.end_time || 'Running...'} | Total Sites: ${run.total_sites} | Successful: ${run.completed_sites} | Failed: ${run.failed_sites_count} | Action Points: ${run.action_points_count} | No Action: ${run.no_action_points_count} | Status: <span class="status-badge ${run.status === 'COMPLETED' ? 'badge-ready' : 'badge-failed'}">${run.status}</span>
+        </div>
       </div>
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Site Name</th>
-            <th>Status</th>
-            <th>Action Points</th>
-            <th>CSV Path</th>
-          </tr>
-        </thead>
-        <tbody>
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Site Name</th>
+              <th>Fetch Menu</th>
+              <th>Process Latest Menu</th>
+              <th>Download</th>
+              <th>Action Point Status</th>
+              <th>Overall</th>
+            </tr>
+          </thead>
+          <tbody>
     `;
 
-    (data.results || []).forEach(r => {
+    results.forEach(r => {
+      const overallOk = r.status === 'COMPLETED' || r.status === 'SUCCESS' || r.status === 'GOOD';
+      const fetchSt = r.fetch_menu_status !== 'UNKNOWN' ? r.fetch_menu_status : (overallOk ? 'SUCCESS' : 'FAILED');
+      const procSt = r.process_latest_menu_status !== 'UNKNOWN' ? r.process_latest_menu_status : (overallOk ? 'SUCCESS' : (fetchSt === 'FAILED' ? 'BLOCKED' : 'FAILED'));
+      const dlSt = r.download_status !== 'UNKNOWN' ? r.download_status : (overallOk ? 'SUCCESS' : 'BLOCKED');
+      const apSt = overallOk ? (r.action_point_status || 'NO ACTION POINT') : '—';
+
       html += `
         <tr>
-          <td>${escapeHtml(r.site_name)}</td>
-          <td><span class="status-badge ${r.status === 'COMPLETED' ? 'badge-ready' : 'badge-failed'}">${r.status}</span></td>
-          <td>${escapeHtml(r.action_point_status)}</td>
-          <td><code>${escapeHtml(r.csv_path || 'N/A')}</code></td>
+          <td><strong>${escapeHtml(r.site_name)}</strong></td>
+          <td><span class="status-badge ${fetchSt === 'SUCCESS' || fetchSt === 'PASS' ? 'badge-ready' : 'badge-failed'}">${fetchSt}</span></td>
+          <td><span class="status-badge ${procSt === 'SUCCESS' || procSt === 'SKIPPED' || procSt === 'PASS' ? 'badge-ready' : (procSt === 'BLOCKED' ? 'badge-draft' : 'badge-failed')}">${procSt}</span></td>
+          <td><span class="status-badge ${dlSt === 'SUCCESS' || dlSt === 'PASS' ? 'badge-ready' : (dlSt === 'BLOCKED' ? 'badge-draft' : 'badge-failed')}">${dlSt}</span></td>
+          <td><strong style="color: ${apSt === 'ACTION POINT FOUND' ? 'var(--accent-amber)' : (apSt === 'NO ACTION POINT' ? '#34d399' : '#94a3b8')};">${escapeHtml(apSt)}</strong></td>
+          <td><span class="status-badge ${overallOk ? 'badge-ready' : 'badge-failed'}">${overallOk ? 'SUCCESS' : 'FAILED'}</span></td>
         </tr>
       `;
     });
 
-    html += '</tbody></table>';
+    html += '</tbody></table></div>';
     body.innerHTML = html;
   } catch (e) {
     body.innerHTML = `<div style="color:#f87171;">Failed loading run details: ${e.message}</div>`;
@@ -1073,30 +1220,38 @@ async function runFnbLoginWorkflowUI() {
   }
 
   try {
-    const res = await fetch('/api/fnb-tunnel/login-workflow', { method: 'POST' });
+    const selectedSiteId = document.getElementById('select-test-site') ? parseInt(document.getElementById('select-test-site').value) || 22 : 22;
+    const res = await fetch('/api/fnb-tunnel/login-workflow', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ site_id: selectedSiteId })
+    });
     const data = await res.json();
 
     if (liveLogs && data.logs) {
-      liveLogs.innerHTML = data.logs.map(l => `<div class="log-row ${l.includes('ERROR') ? 'log-error' : 'log-info'}">${escapeHtml(l)}</div>`).join('');
+      liveLogs.innerHTML = data.logs.map(l => `<div class="log-row ${l.includes('ERROR') ? 'log-error' : (l.includes('PASS') || l.includes('✓') ? 'log-success' : 'log-info')}">${escapeHtml(l)}</div>`).join('');
       liveLogs.scrollTop = liveLogs.scrollHeight;
     }
 
+    const isSuccess = data.final_status === 'SUCCESS' || data.success === true;
+
     if (summary) {
-      summary.textContent = data.formatted_summary || `Result: ${data.result_status}`;
-      const isPass = data.stages && data.stages.sync_mymenu_page === 'PASS';
-      summary.style.color = isPass ? '#4ade80' : '#f87171';
+      summary.textContent = data.formatted_summary || `Final Result: ${data.final_status || 'FAILED'}\nFailure Code: ${data.failure_code || 'NONE'}`;
+      summary.style.color = isSuccess ? '#4ade80' : '#f87171';
     }
 
     if (banner) {
-      const isPass = data.stages && data.stages.sync_mymenu_page === 'PASS';
-      banner.textContent = `FNB LOGIN WORKFLOW FINISHED - RESULT: ${isPass ? 'PASS' : 'FAIL'}`;
-      banner.style.background = isPass ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)';
-      banner.style.color = isPass ? '#4ade80' : '#f87171';
+      banner.textContent = `FNB LOGIN WORKFLOW FINISHED - RESULT: ${isSuccess ? 'PASS' : 'FAIL'}${data.failure_code ? ' (' + data.failure_code + ')' : ''}`;
+      banner.style.background = isSuccess ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)';
+      banner.style.color = isSuccess ? '#4ade80' : '#f87171';
     }
+
+    await refreshFnbTunnelStatus();
   } catch (e) {
     if (banner) banner.textContent = `LOGIN WORKFLOW ERROR: ${e.message}`;
   }
 }
+
 
 async function runFnbFetchWorkflowUI() {
   const banner = document.getElementById('fnb-feedback-banner');
@@ -1328,21 +1483,20 @@ function bindEvents() {
     updateSelectedCount();
   });
 
-  bindClick('btn-start-sync', () => {
-    const selectedIds = Array.from(document.querySelectorAll('.chk-site-queue:checked')).map(c => parseInt(c.getAttribute('data-id')));
-    if (selectedIds.length === 0) {
-      alert("Please select at least one site to process.");
-      return;
-    }
-    const countEl = document.getElementById('confirm-site-count');
-    if (countEl) countEl.textContent = selectedIds.length;
-    const modal = document.getElementById('modal-confirm-real-run');
-    if (modal) modal.classList.add('active');
-  });
+  bindClick('btn-start-sync', handleStartSyncClick);
 
   bindClick('btn-proceed-real-run', () => {
+    const pBtn = document.getElementById('btn-proceed-real-run');
+    console.log(`[PHASE17][UI] Confirmation button DOM found: ${!!pBtn}`);
+    if (pBtn) {
+      console.log(`[PHASE17][UI] Confirmation button disabled: ${pBtn.disabled}`);
+    }
+    console.log(`[PHASE17][UI] Confirmation button click detected`);
+    console.log("[UI] REAL RUN confirmation clicked");
+    console.log("[UI] CONFIRM REAL RUN clicked");
     const modal = document.getElementById('modal-confirm-real-run');
     if (modal) modal.classList.remove('active');
+    console.log("[PHASE17][UI] startAutomation(false) entered");
     startAutomation(false);
   });
 
@@ -1394,34 +1548,85 @@ function bindEvents() {
 }
 
 
+// Delegated Event Handling Safety Mechanism for START SYNC
+document.addEventListener("click", function(event) {
+  const button = event.target.closest("#btn-start-sync");
+  if (!button) {
+    return;
+  }
+  console.log("[UI] START SYNC BUTTON CLICK EVENT FIRED");
+  console.log("[UI PHASE16] DELEGATED CLICK FIRED");
+
+  const diagnostic = document.getElementById("phase16-click-status");
+  if (diagnostic) {
+    diagnostic.textContent = "START SYNC CLICK: FIRED";
+    diagnostic.style.background = "rgba(34, 197, 94, 0.4)";
+    diagnostic.style.color = "#ffffff";
+  }
+
+  startAutomation(false);
+});
+
+window.startAutomation = startAutomation;
+
 // --- MAIN APPLICATION ENTRY POINT ---
 document.addEventListener('DOMContentLoaded', () => {
-  console.log("UI INITIALIZED - IRD Sync Automation v1.0");
+  console.log("[UI BOOT] DOMContentLoaded fired");
+  console.log("[UI BOOT] PHASE16 JS loaded:", window.__IRD_PHASE16_JS_LOADED__);
+  console.log("[UI] app.js loaded");
 
-  // 1. Initialize Sidebar Navigation FIRST (Independent of API calls)
+  const jsStatusEl = document.getElementById("phase16-js-status");
+  if (jsStatusEl) {
+    jsStatusEl.textContent = "PHASE16 JS: LOADED";
+  }
+
+  const startBtn = document.getElementById("btn-start-sync");
+  console.log("[UI PHASE16] START SYNC DOM lookup");
+  console.log("[UI PHASE16] Button found:", !!startBtn);
+  if (startBtn) {
+    console.log("[UI PHASE16] Button disabled:", startBtn.disabled);
+    console.log("[UI PHASE16] Button tag:", startBtn.tagName);
+    console.log("[UI PHASE16] Button text:", startBtn.textContent.trim());
+
+    const rect = startBtn.getBoundingClientRect();
+    const style = window.getComputedStyle(startBtn);
+    console.log("[UI PHASE16] START SYNC bounding rect:", JSON.stringify(rect));
+    console.log("[UI PHASE16] START SYNC pointer-events:", style.pointerEvents);
+    console.log("[UI PHASE16] START SYNC z-index:", style.zIndex);
+    console.log("[UI PHASE16] START SYNC computed display:", style.display);
+    console.log("[UI PHASE16] START SYNC computed visibility:", style.visibility);
+    console.log("[UI PHASE16] START SYNC computed opacity:", style.opacity);
+
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const elemAtPoint = document.elementFromPoint(centerX, centerY);
+    console.log("[UI PHASE16] elementFromPoint:", elemAtPoint ? (elemAtPoint.id || elemAtPoint.tagName) : "null");
+  }
+
+  const domStatusEl = document.getElementById("phase16-dom-status");
+  if (domStatusEl) {
+    domStatusEl.textContent = startBtn ? "START SYNC DOM: FOUND" : "START SYNC DOM: NOT FOUND";
+  }
+
+  const btnCount = document.querySelectorAll("#btn-start-sync").length;
+  console.log(`[UI PHASE16] START SYNC button count: ${btnCount}`);
+
   safeInit("Navigation", initNavigation);
+  safeInit("Button Events", () => {
+    console.log("[UI] Binding START SYNC handler");
+    bindEvents();
+    console.log("[UI INIT] START SYNC binding: PASS");
+  });
 
-  // 2. Initialize Integration Test Console Explicitly
-  safeInit("Integration Test Console", initIntegrationTest);
-
-  // 3. Register Central Button Click Handlers safely
-  safeInit("Button Events", bindEvents);
-
-  // 4. Mark UI Health status
   const uiBadge = document.getElementById('badge-ui-health');
   if (uiBadge) {
     uiBadge.textContent = 'UI: READY';
     uiBadge.className = 'status-badge badge-no-action';
   }
 
-  // 5. Execute Backend/API Data Loads Asynchronously (Failures logged, won't break UI)
   safeInit("WebSocket Connection", initWebSocket);
   safeInit("Load Sites", loadSites);
-  safeInit("Load Settings", loadSettings);
   safeInit("Load Run History", loadHistory);
-  safeInit("Load FNB Tunnel Config", loadFnbTunnelValidationData);
-  safeInit("Load Office SSH Config", loadOfficeSshSettings);
-  safeInit("Load Global Tunnel Config", loadGlobalTunnelSettings);
 });
 
 

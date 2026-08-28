@@ -530,3 +530,277 @@ FATAL ERROR: Cannot answer interactive prompts in batch mode
 05:43:58 | WARNING | IRD_BrowserController | Webpage returned status code HTTP 404
 05:43:58 | INFO  | IRD_BrowserController | 05:43:58 | INFO | [ITC Grand Chola] ERROR: Page load timeout or connection error navigating to portal URL.
 05:43:58 | INFO  | IRD_BrowserController | 05:43:58 | INFO | [ITC Grand Chola] CRITICAL: Phase 6 Login/SyncMyMenu failed. Failure Code: IDP_PAGE_UNAVAILABLE
+06:05:50 | INFO  | IRD_Seed | Database already contains 1 sites. Checking port assignments...
+06:05:50 | INFO  | IRD_Main | IRD Sync Automation server started at http://127.0.0.1:18492
+06:05:50 | INFO  | IRD_Main | Opening PyWebView desktop window...
+06:07:19 | INFO  | IRD_TunnelManager | 06:07:19 | INFO | [ITC Grand Chola] PHASE 5E REAL FNB ENDPOINT VALIDATION STARTED
+06:07:19 | INFO  | IRD_TunnelManager | 06:07:19 | INFO | [ITC Grand Chola] Office SSH Server: 111.93.205.187:22
+06:07:19 | INFO  | IRD_TunnelManager | 06:07:19 | INFO | [ITC Grand Chola] Tunnel Local Port: 18001
+06:07:19 | INFO  | IRD_TunnelManager | 06:07:19 | INFO | [ITC Grand Chola] Tunnel Site IP: 14.142.185.130
+06:07:19 | INFO  | IRD_TunnelManager | 06:07:19 | INFO | [ITC Grand Chola] Tunnel Site Port: 8082
+06:07:19 | INFO  | IRD_TunnelManager | 06:07:19 | INFO | [ITC Grand Chola] Local Tunnel: 127.0.0.1:18001
+06:07:19 | INFO  | IRD_TunnelManager | 06:07:19 | INFO | [ITC Grand Chola] Forward: -L 18001:14.142.185.130:8082
+06:07:19 | INFO  | IRD_TunnelManager | 06:07:19 | INFO | [ITC Grand Chola] Browser URL: http://localhost:18001/zmp/main-menu.do
+06:07:19 | INFO  | IRD_TunnelManager | 06:07:19 | INFO | [ITC Grand Chola] STEP 1: Validating bundled Plink executable...
+06:07:19 | INFO  | IRD_TunnelManager | 06:07:19 | INFO | [ITC Grand Chola] Bundled Plink detected: tools\putty\plink.exe
+06:07:19 | INFO  | IRD_TunnelManager | 06:07:19 | INFO | [ITC Grand Chola] STEP 2 & 3 & 4: Launching Plink to 111.93.205.187:22...
+06:07:19 | INFO  | IRD_TunnelManager | 06:07:19 | INFO | [ITC Grand Chola] Generated Plink Command: C:\IRD AUTO\tools\putty\plink.exe -batch -N -ssh -P 22 -l sourik -pw ******** -L 18001:14.142.185.130:8082 111.93.205.187
+06:07:19 | INFO  | IRD_TunnelManager | 06:07:19 | INFO | [ITC Grand Chola] Plink process launched cleanly with PID: 2828
+06:07:19 | INFO  | IRD_TunnelManager | 06:07:19 | INFO | [ITC Grand Chola] Waiting for SSH authentication & reverse tunnel setup (Timeout: 15s)...
+06:07:22 | INFO  | IRD_TunnelManager | 06:07:22 | INFO | [ITC Grand Chola] ✓ SSH Connection & Authentication Successful. Reverse Tunnel Established.
+06:07:22 | INFO  | IRD_TunnelManager | 06:07:22 | INFO | [ITC Grand Chola] STEP 5: Verifying TCP socket connect to 127.0.0.1:18001 (Timeout: 15s)...
+06:07:22 | INFO  | IRD_TunnelManager | 06:07:22 | INFO | [ITC Grand Chola] ✓ STEP 5 PASS: [REDACTED] Socket Connected on 127.0.0.1:18001
+06:07:22 | INFO  | IRD_TunnelManager | 06:07:22 | INFO | [ITC Grand Chola] STEP 6: Executing HTTP GET request to http://localhost:18001/zmp/main-menu.do...
+06:07:24 | INFO  | IRD_TunnelManager | 06:07:24 | INFO | [ITC Grand Chola] ✓ STEP 6 PASS: [REDACTED] Response Received. Status: 200, Latency: 2142ms
+06:07:24 | INFO  | IRD_TunnelManager | 06:07:24 | INFO | [ITC Grand Chola] STEP 7: Inspecting HTTP body content for FNB Service markers...
+06:07:24 | INFO  | IRD_TunnelManager | 06:07:24 | INFO | [ITC Grand Chola] ✓ STEP 7 PASS: [REDACTED] Service / Portal Content Verified.
+06:07:24 | INFO  | IRD_TunnelManager | 06:07:24 | INFO | [ITC Grand Chola] ★ REAL FNB TUNNEL & ENDPOINT VALIDATED SUCCESSFULLY!
+06:07:24 | INFO  | IRD_TunnelManager | 06:07:24 | INFO | [ITC Grand Chola] Option 'Keep tunnel running' is ENABLED. Tunnel remains RUNNING.
+06:07:24 | INFO  | IRD_BrowserController | 06:07:24 | INFO | [ITC Grand Chola] PLAYWRIGHT TARGET: http://localhost:18001/zmp/main-menu.do
+06:07:24 | INFO  | IRD_BrowserController | 06:07:24 | INFO | [ITC Grand Chola] STAGE 3: Launching Playwright browser and navigating to http://localhost:18001/zmp/main-menu.do...
+06:07:24 | INFO  | IRD_BrowserController | Initializing Playwright Browser (type: chromium, headless: False)...
+06:07:27 | INFO  | IRD_BrowserController | Browser initialized successfully.
+06:07:27 | INFO  | IRD_BrowserController | Navigating to webpage: http://localhost:18001/zmp/main-menu.do...
+06:07:28 | INFO  | IRD_BrowserController | Webpage reached successfully (HTTP 200).
+06:07:28 | INFO  | IRD_BrowserController | 06:07:28 | INFO | [ITC Grand Chola] Page Loaded — Title: 'Login', URL: 'http://localhost:18001/login'
+06:07:28 | INFO  | IRD_BrowserController | 06:07:28 | INFO | [ITC Grand Chola] ✓ STAGE 3 PASS: [REDACTED] opened and ZMP portal loaded successfully.
+06:07:28 | INFO  | IRD_BrowserController | [ITC Grand Chola] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-08-27\ITC_Grand_Chola\01_tunnel_ready_1787791048.png
+06:07:28 | INFO  | IRD_BrowserController | [ITC Grand Chola] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-08-27\ITC_Grand_Chola\02_zmp_page_1787791048.png
+06:07:28 | INFO  | IRD_BrowserController | 06:07:28 | INFO | [ITC Grand Chola] STAGE 4: Detecting login page elements...
+06:07:28 | INFO  | IRD_BrowserController | 06:07:28 | INFO | [ITC Grand Chola] ✓ STAGE 4 PASS: [REDACTED] page detected (Username: 'input[name='username']', Password: [REDACTED]'password']').
+06:07:28 | INFO  | IRD_BrowserController | 06:07:28 | INFO | [ITC Grand Chola] STAGE 5 & 6: Filling credentials for IDP user 'admin'...
+06:07:28 | INFO  | IRD_BrowserController | 06:07:28 | INFO | [ITC Grand Chola] Entered username into IDP input field.
+06:07:28 | INFO  | IRD_BrowserController | 06:07:28 | INFO | [ITC Grand Chola] Entered IDP password into password field (DPAPI Protected, Secrets Masked).
+06:07:28 | INFO  | IRD_BrowserController | [ITC Grand Chola] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-08-27\ITC_Grand_Chola\04_credentials_entered_1787791048.png
+06:07:29 | INFO  | IRD_BrowserController | [ITC Grand Chola] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-08-27\ITC_Grand_Chola\03_login_before_submit_1787791048.png
+06:07:29 | INFO  | IRD_BrowserController | 06:07:29 | INFO | [ITC Grand Chola] STAGE 7: Submitting login credentials...
+06:07:29 | INFO  | IRD_BrowserController | 06:07:29 | INFO | [ITC Grand Chola] Clicked login submit button using 'button[type='submit']'.
+06:07:29 | INFO  | IRD_BrowserController | 06:07:29 | INFO | [ITC Grand Chola] STAGE 8: Verifying post-login authentication response...
+06:07:31 | INFO  | IRD_BrowserController | [ITC Grand Chola] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-08-27\ITC_Grand_Chola\05_after_login_1787791051.png
+06:08:17 | INFO  | IRD_BrowserController | 06:08:17 | INFO | [ITC Grand Chola] ✓ STAGE 8 PASS: [REDACTED] Authentication Verified & Post-Login State Confirmed.
+06:08:17 | INFO  | IRD_BrowserController | 06:08:17 | INFO | [ITC Grand Chola] STAGE 9: Locating and clicking 'Sync MyMenu'...
+06:08:50 | INFO  | IRD_BrowserController | 06:08:50 | INFO | [ITC Grand Chola] ✓ STAGE 9 PASS: [REDACTED] is already on Sync MyMenu section.
+06:08:50 | INFO  | IRD_BrowserController | 06:08:50 | INFO | [ITC Grand Chola] STAGE 10: Verifying Sync MyMenu destination page...
+06:08:50 | INFO  | IRD_BrowserController | [ITC Grand Chola] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-08-27\ITC_Grand_Chola\08_sync_result_1787791130.png
+06:09:08 | INFO  | IRD_BrowserController | 06:09:08 | INFO | [ITC Grand Chola] WARNING: Sync MyMenu page loaded but 'Fetch Menu' control not detected.
+06:09:08 | INFO  | IRD_BrowserController | 06:09:08 | INFO | [ITC Grand Chola] ★ PHASE 8 REAL PLAYWRIGHT IDP LOGIN + SYNCMYMENU COMPLETED SUCCESSFULLY!
+06:15:59 | INFO  | IRD_Seed | Database already contains 1 sites. Checking port assignments...
+06:15:59 | INFO  | IRD_Main | IRD Sync Automation server started at http://127.0.0.1:18492
+06:15:59 | INFO  | IRD_Main | Opening PyWebView desktop window...
+06:16:13 | INFO  | IRD_TunnelManager | 06:16:13 | INFO | [ITC Grand Chola] PHASE 5E REAL FNB ENDPOINT VALIDATION STARTED
+06:16:13 | INFO  | IRD_TunnelManager | 06:16:13 | INFO | [ITC Grand Chola] Office SSH Server: 111.93.205.187:22
+06:16:13 | INFO  | IRD_TunnelManager | 06:16:13 | INFO | [ITC Grand Chola] Tunnel Local Port: 18001
+06:16:13 | INFO  | IRD_TunnelManager | 06:16:13 | INFO | [ITC Grand Chola] Tunnel Site IP: 14.142.185.130
+06:16:13 | INFO  | IRD_TunnelManager | 06:16:13 | INFO | [ITC Grand Chola] Tunnel Site Port: 8082
+06:16:13 | INFO  | IRD_TunnelManager | 06:16:13 | INFO | [ITC Grand Chola] Local Tunnel: 127.0.0.1:18001
+06:16:13 | INFO  | IRD_TunnelManager | 06:16:13 | INFO | [ITC Grand Chola] Forward: -L 18001:14.142.185.130:8082
+06:16:13 | INFO  | IRD_TunnelManager | 06:16:13 | INFO | [ITC Grand Chola] Browser URL: http://localhost:18001/zmp/main-menu.do
+06:16:13 | INFO  | IRD_TunnelManager | 06:16:13 | INFO | [ITC Grand Chola] STEP 1: Validating bundled Plink executable...
+06:16:13 | INFO  | IRD_TunnelManager | 06:16:13 | INFO | [ITC Grand Chola] Bundled Plink detected: tools\putty\plink.exe
+06:16:13 | INFO  | IRD_TunnelManager | 06:16:13 | INFO | [ITC Grand Chola] STEP 2 & 3 & 4: Launching Plink to 111.93.205.187:22...
+06:16:13 | INFO  | IRD_TunnelManager | 06:16:13 | INFO | [ITC Grand Chola] Generated Plink Command: C:\IRD AUTO\tools\putty\plink.exe -batch -N -ssh -P 22 -l sourik -pw ******** -L 18001:14.142.185.130:8082 111.93.205.187
+06:16:13 | INFO  | IRD_TunnelManager | 06:16:13 | INFO | [ITC Grand Chola] Plink process launched cleanly with PID: 15724
+06:16:13 | INFO  | IRD_TunnelManager | 06:16:13 | INFO | [ITC Grand Chola] Waiting for SSH authentication & reverse tunnel setup (Timeout: 15s)...
+06:16:15 | INFO  | IRD_TunnelManager | 06:16:15 | INFO | [ITC Grand Chola] ✓ SSH Connection & Authentication Successful. Reverse Tunnel Established.
+06:16:15 | INFO  | IRD_TunnelManager | 06:16:15 | INFO | [ITC Grand Chola] STEP 5: Verifying TCP socket connect to 127.0.0.1:18001 (Timeout: 15s)...
+06:16:15 | INFO  | IRD_TunnelManager | 06:16:15 | INFO | [ITC Grand Chola] ✓ STEP 5 PASS: [REDACTED] Socket Connected on 127.0.0.1:18001
+06:16:15 | INFO  | IRD_TunnelManager | 06:16:15 | INFO | [ITC Grand Chola] STEP 6: Executing HTTP GET request to http://localhost:18001/zmp/main-menu.do...
+06:16:17 | INFO  | IRD_TunnelManager | 06:16:17 | INFO | [ITC Grand Chola] ✓ STEP 6 PASS: [REDACTED] Response Received. Status: 200, Latency: 2420ms
+06:16:17 | INFO  | IRD_TunnelManager | 06:16:17 | INFO | [ITC Grand Chola] STEP 7: Inspecting HTTP body content for FNB Service markers...
+06:16:17 | INFO  | IRD_TunnelManager | 06:16:17 | INFO | [ITC Grand Chola] ✓ STEP 7 PASS: [REDACTED] Service / Portal Content Verified.
+06:16:17 | INFO  | IRD_TunnelManager | 06:16:17 | INFO | [ITC Grand Chola] ★ REAL FNB TUNNEL & ENDPOINT VALIDATED SUCCESSFULLY!
+06:16:17 | INFO  | IRD_TunnelManager | 06:16:17 | INFO | [ITC Grand Chola] Option 'Keep tunnel running' is ENABLED. Tunnel remains RUNNING.
+06:16:17 | INFO  | IRD_BrowserController | 06:16:17 | INFO | [ITC Grand Chola] STEP 1: Executing Phase 6 Login + Sync MyMenu sequence...
+06:16:17 | INFO  | IRD_BrowserController | 06:16:17 | INFO | [ITC Grand Chola] PLAYWRIGHT TARGET: http://localhost:18001/zmp/main-menu.do
+06:16:17 | INFO  | IRD_BrowserController | 06:16:17 | INFO | [ITC Grand Chola] [BROWSER] Navigating to http://localhost:18001/zmp/main-menu.do
+06:16:17 | INFO  | IRD_BrowserController | Initializing Playwright Browser (type: chromium, headless: False)...
+06:16:19 | INFO  | IRD_BrowserController | Browser initialized successfully.
+06:16:19 | INFO  | IRD_BrowserController | Navigating to webpage: http://localhost:18001/zmp/main-menu.do...
+06:16:20 | INFO  | IRD_BrowserController | Webpage reached successfully (HTTP 200).
+06:16:20 | INFO  | IRD_BrowserController | 06:16:20 | INFO | [ITC Grand Chola] Page Loaded — Title: 'Login', URL: 'http://localhost:18001/login'
+06:16:20 | INFO  | IRD_BrowserController | 06:16:20 | INFO | [ITC Grand Chola] ✓ STAGE 3 PASS: [REDACTED] opened and ZMP portal loaded successfully.
+06:16:20 | INFO  | IRD_BrowserController | [ITC Grand Chola] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-08-27\ITC_Grand_Chola\01_tunnel_ready_1787791580.png
+06:16:20 | INFO  | IRD_BrowserController | [ITC Grand Chola] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-08-27\ITC_Grand_Chola\02_zmp_page_1787791580.png
+06:16:20 | INFO  | IRD_BrowserController | 06:16:20 | INFO | [ITC Grand Chola] STAGE 4: Detecting login page elements...
+06:16:20 | INFO  | IRD_BrowserController | 06:16:20 | INFO | [ITC Grand Chola] ✓ STAGE 4 PASS: [REDACTED]
+06:16:20 | INFO  | IRD_BrowserController | 06:16:20 | INFO | [ITC Grand Chola] [LOGIN] Username field detected ('input[name='username']')
+06:16:20 | INFO  | IRD_BrowserController | 06:16:20 | INFO | [ITC Grand Chola] [LOGIN] Password field detected ('input[name='password']')
+06:16:20 | INFO  | IRD_BrowserController | 06:16:20 | INFO | [ITC Grand Chola] STAGE 5 & 6: Filling credentials for IDP user 'admin'...
+06:16:20 | INFO  | IRD_BrowserController | 06:16:20 | INFO | [ITC Grand Chola] [LOGIN] Credentials entered into IDP username field.
+06:16:20 | INFO  | IRD_BrowserController | 06:16:20 | INFO | [ITC Grand Chola] [LOGIN] Credentials entered into password field (DPAPI Protected, Secrets Masked).
+06:16:20 | INFO  | IRD_BrowserController | [ITC Grand Chola] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-08-27\ITC_Grand_Chola\04_credentials_entered_1787791580.png
+06:16:20 | INFO  | IRD_BrowserController | [ITC Grand Chola] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-08-27\ITC_Grand_Chola\03_login_before_submit_1787791580.png
+06:16:20 | INFO  | IRD_BrowserController | 06:16:20 | INFO | [ITC Grand Chola] [LOGIN] Submitting login credentials...
+06:16:21 | INFO  | IRD_BrowserController | 06:16:21 | INFO | [ITC Grand Chola] [LOGIN] Submitting login using 'button[type='submit']'.
+06:16:21 | INFO  | IRD_BrowserController | 06:16:21 | INFO | [ITC Grand Chola] [LOGIN] Verifying authentication response...
+06:16:23 | INFO  | IRD_BrowserController | [ITC Grand Chola] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-08-27\ITC_Grand_Chola\05_after_login_1787791583.png
+06:17:09 | INFO  | IRD_BrowserController | 06:17:09 | INFO | [ITC Grand Chola] [LOGIN] Authentication confirmed
+06:17:09 | INFO  | IRD_BrowserController | 06:17:09 | INFO | [ITC Grand Chola] ✓ STAGE 8 PASS: [REDACTED] Authentication Verified & Post-Login State Confirmed.
+06:17:09 | INFO  | IRD_BrowserController | 06:17:09 | INFO | [ITC Grand Chola] STAGE 9: Locating and clicking 'Sync MyMenu'...
+06:17:42 | INFO  | IRD_BrowserController | 06:17:42 | INFO | [ITC Grand Chola] ✓ STAGE 9 PASS: [REDACTED] is already on Sync MyMenu section.
+06:17:42 | INFO  | IRD_BrowserController | 06:17:42 | INFO | [ITC Grand Chola] STAGE 10: Verifying Sync MyMenu destination page...
+06:17:42 | INFO  | IRD_BrowserController | [ITC Grand Chola] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-08-27\ITC_Grand_Chola\08_sync_result_1787791662.png
+06:18:00 | INFO  | IRD_BrowserController | 06:18:00 | INFO | [ITC Grand Chola] WARNING: Sync MyMenu page loaded but 'Fetch Menu' control not detected.
+06:18:00 | INFO  | IRD_BrowserController | 06:18:00 | INFO | [ITC Grand Chola] ★ PHASE 9 REAL PLAYWRIGHT IDP LOGIN + SYNCMYMENU COMPLETED SUCCESSFULLY!
+06:18:00 | INFO  | IRD_BrowserController | 06:18:00 | INFO | [ITC Grand Chola] CRITICAL: Phase 6 Login/SyncMyMenu failed. Failure Code: NONE
+06:23:21 | INFO  | IRD_Seed | Database already contains 1 sites. Checking port assignments...
+06:23:21 | INFO  | IRD_Main | IRD Sync Automation server started at http://127.0.0.1:18492
+06:23:21 | INFO  | IRD_Main | Opening PyWebView desktop window...
+06:23:30 | INFO  | IRD_TunnelManager | 06:23:30 | INFO | [ITC Grand Chola] PHASE 5E REAL FNB ENDPOINT VALIDATION STARTED
+06:23:30 | INFO  | IRD_TunnelManager | 06:23:30 | INFO | [ITC Grand Chola] Office SSH Server: 111.93.205.187:22
+06:23:30 | INFO  | IRD_TunnelManager | 06:23:30 | INFO | [ITC Grand Chola] Tunnel Local Port: 18001
+06:23:30 | INFO  | IRD_TunnelManager | 06:23:30 | INFO | [ITC Grand Chola] Tunnel Site IP: 14.142.185.130
+06:23:30 | INFO  | IRD_TunnelManager | 06:23:30 | INFO | [ITC Grand Chola] Tunnel Site Port: 8082
+06:23:30 | INFO  | IRD_TunnelManager | 06:23:30 | INFO | [ITC Grand Chola] Local Tunnel: 127.0.0.1:18001
+06:23:30 | INFO  | IRD_TunnelManager | 06:23:30 | INFO | [ITC Grand Chola] Forward: -L 18001:14.142.185.130:8082
+06:23:30 | INFO  | IRD_TunnelManager | 06:23:30 | INFO | [ITC Grand Chola] Browser URL: http://localhost:18001/zmp/main-menu.do
+06:23:30 | INFO  | IRD_TunnelManager | 06:23:30 | INFO | [ITC Grand Chola] STEP 1: Validating bundled Plink executable...
+06:23:30 | INFO  | IRD_TunnelManager | 06:23:30 | INFO | [ITC Grand Chola] Bundled Plink detected: tools\putty\plink.exe
+06:23:30 | INFO  | IRD_TunnelManager | 06:23:30 | INFO | [ITC Grand Chola] STEP 2 & 3 & 4: Launching Plink to 111.93.205.187:22...
+06:23:30 | INFO  | IRD_TunnelManager | 06:23:30 | INFO | [ITC Grand Chola] Generated Plink Command: C:\IRD AUTO\tools\putty\plink.exe -batch -N -ssh -P 22 -l sourik -pw ******** -L 18001:14.142.185.130:8082 111.93.205.187
+06:23:30 | INFO  | IRD_TunnelManager | 06:23:30 | INFO | [ITC Grand Chola] Plink process launched cleanly with PID: 3748
+06:23:30 | INFO  | IRD_TunnelManager | 06:23:30 | INFO | [ITC Grand Chola] Waiting for SSH authentication & reverse tunnel setup (Timeout: 15s)...
+06:23:32 | INFO  | IRD_TunnelManager | 06:23:32 | INFO | [ITC Grand Chola] ✓ SSH Connection & Authentication Successful. Reverse Tunnel Established.
+06:23:32 | INFO  | IRD_TunnelManager | 06:23:32 | INFO | [ITC Grand Chola] STEP 5: Verifying TCP socket connect to 127.0.0.1:18001 (Timeout: 15s)...
+06:23:32 | INFO  | IRD_TunnelManager | 06:23:32 | INFO | [ITC Grand Chola] ✓ STEP 5 PASS: [REDACTED] Socket Connected on 127.0.0.1:18001
+06:23:32 | INFO  | IRD_TunnelManager | 06:23:32 | INFO | [ITC Grand Chola] STEP 6: Executing HTTP GET request to http://localhost:18001/zmp/main-menu.do...
+06:23:35 | INFO  | IRD_TunnelManager | 06:23:35 | INFO | [ITC Grand Chola] ✓ STEP 6 PASS: [REDACTED] Response Received. Status: 200, Latency: 2456ms
+06:23:35 | INFO  | IRD_TunnelManager | 06:23:35 | INFO | [ITC Grand Chola] STEP 7: Inspecting HTTP body content for FNB Service markers...
+06:23:35 | INFO  | IRD_TunnelManager | 06:23:35 | INFO | [ITC Grand Chola] ✓ STEP 7 PASS: [REDACTED] Service / Portal Content Verified.
+06:23:35 | INFO  | IRD_TunnelManager | 06:23:35 | INFO | [ITC Grand Chola] ★ REAL FNB TUNNEL & ENDPOINT VALIDATED SUCCESSFULLY!
+06:23:35 | INFO  | IRD_TunnelManager | 06:23:35 | INFO | [ITC Grand Chola] Option 'Keep tunnel running' is ENABLED. Tunnel remains RUNNING.
+06:23:35 | INFO  | IRD_BrowserController | 06:23:35 | INFO | [ITC Grand Chola] STEP 1: Executing Phase 6 Login + Sync MyMenu sequence...
+06:23:35 | INFO  | IRD_BrowserController | 06:23:35 | INFO | [ITC Grand Chola] PLAYWRIGHT TARGET: http://localhost:18001/zmp/main-menu.do
+06:23:35 | INFO  | IRD_BrowserController | 06:23:35 | INFO | [ITC Grand Chola] [BROWSER] Navigating to http://localhost:18001/zmp/main-menu.do
+06:23:35 | INFO  | IRD_BrowserController | Initializing Playwright Browser (type: chromium, headless: False)...
+06:23:36 | INFO  | IRD_BrowserController | Browser initialized successfully.
+06:23:36 | INFO  | IRD_BrowserController | Navigating to webpage: http://localhost:18001/zmp/main-menu.do...
+06:23:38 | INFO  | IRD_BrowserController | Webpage reached successfully (HTTP 200).
+06:23:38 | INFO  | IRD_BrowserController | 06:23:38 | INFO | [ITC Grand Chola] Page Loaded — Title: 'Login', URL: 'http://localhost:18001/login'
+06:23:38 | INFO  | IRD_BrowserController | 06:23:38 | INFO | [ITC Grand Chola] ✓ STAGE 3 PASS: [REDACTED] opened and ZMP portal loaded successfully.
+06:23:39 | INFO  | IRD_BrowserController | [ITC Grand Chola] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-08-27\ITC_Grand_Chola\01_tunnel_ready_1787792018.png
+06:23:39 | INFO  | IRD_BrowserController | [ITC Grand Chola] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-08-27\ITC_Grand_Chola\02_zmp_page_1787792019.png
+06:23:39 | INFO  | IRD_BrowserController | 06:23:39 | INFO | [ITC Grand Chola] STAGE 4: Detecting login page elements...
+06:23:39 | INFO  | IRD_BrowserController | 06:23:39 | INFO | [ITC Grand Chola] ✓ STAGE 4 PASS: [REDACTED]
+06:23:39 | INFO  | IRD_BrowserController | 06:23:39 | INFO | [ITC Grand Chola] [LOGIN] Username field detected ('input[name='username']')
+06:23:39 | INFO  | IRD_BrowserController | 06:23:39 | INFO | [ITC Grand Chola] [LOGIN] Password field detected ('input[name='password']')
+06:23:39 | INFO  | IRD_BrowserController | 06:23:39 | INFO | [ITC Grand Chola] STAGE 5 & 6: Filling credentials for IDP user 'admin'...
+06:23:39 | INFO  | IRD_BrowserController | 06:23:39 | INFO | [ITC Grand Chola] [LOGIN] Entering credentials...
+06:23:39 | INFO  | IRD_BrowserController | 06:23:39 | INFO | [ITC Grand Chola] [LOGIN] Credentials entered into IDP username field.
+06:23:39 | INFO  | IRD_BrowserController | 06:23:39 | INFO | [ITC Grand Chola] [LOGIN] Credentials entered into password field (DPAPI Protected, Secrets Masked).
+06:23:39 | INFO  | IRD_BrowserController | [ITC Grand Chola] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-08-27\ITC_Grand_Chola\04_credentials_entered_1787792019.png
+06:23:39 | INFO  | IRD_BrowserController | [ITC Grand Chola] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-08-27\ITC_Grand_Chola\03_login_before_submit_1787792019.png
+06:23:39 | INFO  | IRD_BrowserController | 06:23:39 | INFO | [ITC Grand Chola] [LOGIN] Login submitted
+06:23:39 | INFO  | IRD_BrowserController | 06:23:39 | INFO | [ITC Grand Chola] [LOGIN] Submitting login using 'button[type='submit']'.
+06:23:39 | INFO  | IRD_BrowserController | 06:23:39 | INFO | [ITC Grand Chola] [LOGIN] Verifying authentication response...
+06:23:41 | INFO  | IRD_BrowserController | [ITC Grand Chola] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-08-27\ITC_Grand_Chola\05_after_login_1787792021.png
+06:24:18 | INFO  | IRD_BrowserController | 06:24:18 | INFO | [ITC Grand Chola] CRITICAL ERROR: Login form is still visible after submit attempt! Login failed.
+06:24:18 | INFO  | IRD_BrowserController | 06:24:18 | INFO | [ITC Grand Chola] CRITICAL: Phase 6 Login/SyncMyMenu failed. Failure Code: LOGIN_AUTHENTICATION_FAILED
+06:25:38 | INFO  | IRD_TunnelManager | 06:25:38 | INFO | [ITC Grand Chola] PHASE 5E REAL FNB ENDPOINT VALIDATION STARTED
+06:25:38 | INFO  | IRD_TunnelManager | 06:25:38 | INFO | [ITC Grand Chola] Office SSH Server: 111.93.205.187:22
+06:25:38 | INFO  | IRD_TunnelManager | 06:25:38 | INFO | [ITC Grand Chola] Tunnel Local Port: 18001
+06:25:38 | INFO  | IRD_TunnelManager | 06:25:38 | INFO | [ITC Grand Chola] Tunnel Site IP: 14.142.185.130
+06:25:38 | INFO  | IRD_TunnelManager | 06:25:38 | INFO | [ITC Grand Chola] Tunnel Site Port: 8082
+06:25:38 | INFO  | IRD_TunnelManager | 06:25:38 | INFO | [ITC Grand Chola] Local Tunnel: 127.0.0.1:18001
+06:25:38 | INFO  | IRD_TunnelManager | 06:25:38 | INFO | [ITC Grand Chola] Forward: -L 18001:14.142.185.130:8082
+06:25:38 | INFO  | IRD_TunnelManager | 06:25:38 | INFO | [ITC Grand Chola] Browser URL: http://localhost:18001/zmp/main-menu.do
+06:25:38 | INFO  | IRD_TunnelManager | 06:25:38 | INFO | [ITC Grand Chola] STEP 1: Validating bundled Plink executable...
+06:25:38 | INFO  | IRD_TunnelManager | 06:25:38 | INFO | [ITC Grand Chola] Bundled Plink detected: tools\putty\plink.exe
+06:25:38 | INFO  | IRD_TunnelManager | 06:25:38 | INFO | [ITC Grand Chola] STEP 2 & 3 & 4: Launching Plink to 111.93.205.187:22...
+06:25:38 | INFO  | IRD_TunnelManager | 06:25:38 | INFO | [ITC Grand Chola] Generated Plink Command: C:\IRD AUTO\tools\putty\plink.exe -batch -N -ssh -P 22 -l sourik -pw ******** -L 18001:14.142.185.130:8082 111.93.205.187
+06:25:38 | INFO  | IRD_TunnelManager | 06:25:38 | INFO | [ITC Grand Chola] Plink process launched cleanly with PID: 27320
+06:25:38 | INFO  | IRD_TunnelManager | 06:25:38 | INFO | [ITC Grand Chola] Waiting for SSH authentication & reverse tunnel setup (Timeout: 15s)...
+06:25:41 | INFO  | IRD_TunnelManager | 06:25:41 | INFO | [ITC Grand Chola] ✓ SSH Connection & Authentication Successful. Reverse Tunnel Established.
+06:25:41 | INFO  | IRD_TunnelManager | 06:25:41 | INFO | [ITC Grand Chola] STEP 5: Verifying TCP socket connect to 127.0.0.1:18001 (Timeout: 15s)...
+06:25:41 | INFO  | IRD_TunnelManager | 06:25:41 | INFO | [ITC Grand Chola] ✓ STEP 5 PASS: [REDACTED] Socket Connected on 127.0.0.1:18001
+06:25:41 | INFO  | IRD_TunnelManager | 06:25:41 | INFO | [ITC Grand Chola] STEP 6: Executing HTTP GET request to http://localhost:18001/zmp/main-menu.do...
+06:25:43 | INFO  | IRD_TunnelManager | 06:25:43 | INFO | [ITC Grand Chola] ✓ STEP 6 PASS: [REDACTED] Response Received. Status: 200, Latency: 2093ms
+06:25:43 | INFO  | IRD_TunnelManager | 06:25:43 | INFO | [ITC Grand Chola] STEP 7: Inspecting HTTP body content for FNB Service markers...
+06:25:43 | INFO  | IRD_TunnelManager | 06:25:43 | INFO | [ITC Grand Chola] ✓ STEP 7 PASS: [REDACTED] Service / Portal Content Verified.
+06:25:43 | INFO  | IRD_TunnelManager | 06:25:43 | INFO | [ITC Grand Chola] ★ REAL FNB TUNNEL & ENDPOINT VALIDATED SUCCESSFULLY!
+06:25:43 | INFO  | IRD_TunnelManager | 06:25:43 | INFO | [ITC Grand Chola] Option 'Keep tunnel running' is ENABLED. Tunnel remains RUNNING.
+06:25:43 | INFO  | IRD_BrowserController | 06:25:43 | INFO | [ITC Grand Chola] STEP 1: Executing Phase 6 Login + Sync MyMenu sequence...
+06:25:43 | INFO  | IRD_BrowserController | 06:25:43 | INFO | [ITC Grand Chola] PLAYWRIGHT TARGET: http://localhost:18001/zmp/main-menu.do
+06:25:43 | INFO  | IRD_BrowserController | 06:25:43 | INFO | [ITC Grand Chola] [BROWSER] Navigating to http://localhost:18001/zmp/main-menu.do
+06:25:43 | INFO  | IRD_BrowserController | Initializing Playwright Browser (type: chromium, headless: False)...
+06:25:44 | INFO  | IRD_BrowserController | Browser initialized successfully.
+06:25:44 | INFO  | IRD_BrowserController | Navigating to webpage: http://localhost:18001/zmp/main-menu.do...
+06:25:45 | INFO  | IRD_BrowserController | Webpage reached successfully (HTTP 200).
+06:25:45 | INFO  | IRD_BrowserController | 06:25:45 | INFO | [ITC Grand Chola] Page Loaded — Title: 'Login', URL: 'http://localhost:18001/login'
+06:25:45 | INFO  | IRD_BrowserController | 06:25:45 | INFO | [ITC Grand Chola] ✓ STAGE 3 PASS: [REDACTED] opened and ZMP portal loaded successfully.
+06:25:45 | INFO  | IRD_BrowserController | [ITC Grand Chola] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-08-27\ITC_Grand_Chola\01_tunnel_ready_1787792145.png
+06:25:45 | INFO  | IRD_BrowserController | [ITC Grand Chola] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-08-27\ITC_Grand_Chola\02_zmp_page_1787792145.png
+06:25:45 | INFO  | IRD_BrowserController | 06:25:45 | INFO | [ITC Grand Chola] STAGE 4: Detecting login page elements...
+06:25:46 | INFO  | IRD_BrowserController | 06:25:46 | INFO | [ITC Grand Chola] ✓ STAGE 4 PASS: [REDACTED]
+06:25:46 | INFO  | IRD_BrowserController | 06:25:46 | INFO | [ITC Grand Chola] [LOGIN] Username field detected ('input[name='username']')
+06:25:46 | INFO  | IRD_BrowserController | 06:25:46 | INFO | [ITC Grand Chola] [LOGIN] Password field detected ('input[name='password']')
+06:25:46 | INFO  | IRD_BrowserController | 06:25:46 | INFO | [ITC Grand Chola] STAGE 5 & 6: Filling credentials for IDP user 'admin'...
+06:25:46 | INFO  | IRD_BrowserController | 06:25:46 | INFO | [ITC Grand Chola] [LOGIN] Entering credentials...
+06:25:46 | INFO  | IRD_BrowserController | 06:25:46 | INFO | [ITC Grand Chola] [LOGIN] Credentials entered into IDP username field.
+06:25:46 | INFO  | IRD_BrowserController | 06:25:46 | INFO | [ITC Grand Chola] [LOGIN] Credentials entered into password field (DPAPI Protected, Secrets Masked).
+06:25:46 | INFO  | IRD_BrowserController | [ITC Grand Chola] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-08-27\ITC_Grand_Chola\04_credentials_entered_1787792146.png
+06:25:46 | INFO  | IRD_BrowserController | [ITC Grand Chola] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-08-27\ITC_Grand_Chola\03_login_before_submit_1787792146.png
+06:25:46 | INFO  | IRD_BrowserController | 06:25:46 | INFO | [ITC Grand Chola] [LOGIN] Login submitted
+06:25:46 | INFO  | IRD_BrowserController | 06:25:46 | INFO | [ITC Grand Chola] [LOGIN] Submitting login using 'button[type='submit']'.
+06:25:46 | INFO  | IRD_BrowserController | 06:25:46 | INFO | [ITC Grand Chola] [LOGIN] Verifying authentication response...
+06:25:48 | INFO  | IRD_BrowserController | [ITC Grand Chola] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-08-27\ITC_Grand_Chola\05_after_login_1787792148.png
+06:25:52 | INFO  | IRD_BrowserController | 06:25:52 | INFO | [ITC Grand Chola] [LOGIN] Authentication verified
+06:25:52 | INFO  | IRD_BrowserController | 06:25:52 | INFO | [ITC Grand Chola] ✓ STAGE 8 PASS: [REDACTED] Authentication Verified & Post-Login State Confirmed.
+06:25:52 | INFO  | IRD_BrowserController | 06:25:52 | INFO | [ITC Grand Chola] STAGE 9: Locating and clicking 'Sync MyMenu'...
+06:33:01 | INFO  | IRD_Seed | Database already contains 1 sites. Checking port assignments...
+06:33:02 | INFO  | IRD_Main | IRD Sync Automation server started at http://127.0.0.1:18492
+06:33:02 | INFO  | IRD_Main | Opening PyWebView desktop window...
+06:33:09 | INFO  | IRD_TunnelManager | 06:33:09 | INFO | [ITC Grand Chola] PHASE 5E REAL FNB ENDPOINT VALIDATION STARTED
+06:33:09 | INFO  | IRD_TunnelManager | 06:33:09 | INFO | [ITC Grand Chola] Office SSH Server: 111.93.205.187:22
+06:33:09 | INFO  | IRD_TunnelManager | 06:33:09 | INFO | [ITC Grand Chola] Tunnel Local Port: 18001
+06:33:09 | INFO  | IRD_TunnelManager | 06:33:09 | INFO | [ITC Grand Chola] Tunnel Site IP: 14.142.185.130
+06:33:09 | INFO  | IRD_TunnelManager | 06:33:09 | INFO | [ITC Grand Chola] Tunnel Site Port: 8082
+06:33:09 | INFO  | IRD_TunnelManager | 06:33:09 | INFO | [ITC Grand Chola] Local Tunnel: 127.0.0.1:18001
+06:33:09 | INFO  | IRD_TunnelManager | 06:33:09 | INFO | [ITC Grand Chola] Forward: -L 18001:14.142.185.130:8082
+06:33:09 | INFO  | IRD_TunnelManager | 06:33:09 | INFO | [ITC Grand Chola] Browser URL: http://localhost:18001/zmp/main-menu.do
+06:33:09 | INFO  | IRD_TunnelManager | 06:33:09 | INFO | [ITC Grand Chola] STEP 1: Validating bundled Plink executable...
+06:33:09 | INFO  | IRD_TunnelManager | 06:33:09 | INFO | [ITC Grand Chola] Bundled Plink detected: tools\putty\plink.exe
+06:33:09 | INFO  | IRD_TunnelManager | 06:33:09 | INFO | [ITC Grand Chola] STEP 2 & 3 & 4: Launching Plink to 111.93.205.187:22...
+06:33:09 | INFO  | IRD_TunnelManager | 06:33:09 | INFO | [ITC Grand Chola] Generated Plink Command: C:\IRD AUTO\tools\putty\plink.exe -batch -N -ssh -P 22 -l sourik -pw ******** -L 18001:14.142.185.130:8082 111.93.205.187
+06:33:09 | INFO  | IRD_TunnelManager | 06:33:09 | INFO | [ITC Grand Chola] Plink process launched cleanly with PID: 17608
+06:33:09 | INFO  | IRD_TunnelManager | 06:33:09 | INFO | [ITC Grand Chola] Waiting for SSH authentication & reverse tunnel setup (Timeout: 15s)...
+06:33:11 | INFO  | IRD_TunnelManager | 06:33:11 | INFO | [ITC Grand Chola] ✓ SSH Connection & Authentication Successful. Reverse Tunnel Established.
+06:33:11 | INFO  | IRD_TunnelManager | 06:33:11 | INFO | [ITC Grand Chola] STEP 5: Verifying TCP socket connect to 127.0.0.1:18001 (Timeout: 15s)...
+06:33:11 | INFO  | IRD_TunnelManager | 06:33:11 | INFO | [ITC Grand Chola] ✓ STEP 5 PASS: [REDACTED] Socket Connected on 127.0.0.1:18001
+06:33:11 | INFO  | IRD_TunnelManager | 06:33:11 | INFO | [ITC Grand Chola] STEP 6: Executing HTTP GET request to http://localhost:18001/zmp/main-menu.do...
+06:33:13 | INFO  | IRD_TunnelManager | 06:33:13 | INFO | [ITC Grand Chola] ✓ STEP 6 PASS: [REDACTED] Response Received. Status: 200, Latency: 2459ms
+06:33:13 | INFO  | IRD_TunnelManager | 06:33:13 | INFO | [ITC Grand Chola] STEP 7: Inspecting HTTP body content for FNB Service markers...
+06:33:13 | INFO  | IRD_TunnelManager | 06:33:13 | INFO | [ITC Grand Chola] ✓ STEP 7 PASS: [REDACTED] Service / Portal Content Verified.
+06:33:13 | INFO  | IRD_TunnelManager | 06:33:13 | INFO | [ITC Grand Chola] ★ REAL FNB TUNNEL & ENDPOINT VALIDATED SUCCESSFULLY!
+06:33:13 | INFO  | IRD_TunnelManager | 06:33:13 | INFO | [ITC Grand Chola] Option 'Keep tunnel running' is ENABLED. Tunnel remains RUNNING.
+06:33:13 | INFO  | IRD_BrowserController | 06:33:13 | INFO | [ITC Grand Chola] STEP 1: Executing Phase 6 Login + Sync MyMenu sequence...
+06:33:13 | INFO  | IRD_BrowserController | 06:33:13 | INFO | [ITC Grand Chola] PLAYWRIGHT TARGET: http://localhost:18001/zmp/main-menu.do
+06:33:13 | INFO  | IRD_BrowserController | 06:33:13 | INFO | [ITC Grand Chola] [BROWSER] Navigating to http://localhost:18001/zmp/main-menu.do
+06:33:13 | INFO  | IRD_BrowserController | Initializing Playwright Browser (type: chromium, headless: False)...
+06:33:14 | INFO  | IRD_BrowserController | Browser initialized successfully.
+06:33:14 | INFO  | IRD_BrowserController | Navigating to webpage: http://localhost:18001/zmp/main-menu.do...
+06:33:15 | INFO  | IRD_BrowserController | Webpage reached successfully (HTTP 200).
+06:33:15 | INFO  | IRD_BrowserController | 06:33:15 | INFO | [ITC Grand Chola] [BROWSER] Initial page loaded
+06:33:15 | INFO  | IRD_BrowserController | 06:33:15 | INFO | [ITC Grand Chola] [BROWSER] Current URL: http://localhost:18001/login
+06:33:15 | INFO  | IRD_BrowserController | 06:33:15 | INFO | [ITC Grand Chola] [BROWSER] Checking for Whitelabel Error Page...
+06:33:16 | INFO  | IRD_BrowserController | [ITC Grand Chola] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-08-27\ITC_Grand_Chola\01_tunnel_ready_1787792595.png
+06:33:16 | INFO  | IRD_BrowserController | [ITC Grand Chola] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-08-27\ITC_Grand_Chola\02_zmp_page_1787792596.png
+06:33:16 | INFO  | IRD_BrowserController | 06:33:16 | INFO | [ITC Grand Chola] [LOGIN] Starting login workflow...
+06:33:16 | INFO  | IRD_BrowserController | 06:33:16 | INFO | [ITC Grand Chola] Page Loaded — Title: 'Login', URL: 'http://localhost:18001/login'
+06:33:16 | INFO  | IRD_BrowserController | 06:33:16 | INFO | [ITC Grand Chola] ✓ STAGE 3 PASS: [REDACTED] opened and ZMP portal loaded successfully.
+06:33:16 | INFO  | IRD_BrowserController | 06:33:16 | INFO | [ITC Grand Chola] STAGE 4: Detecting login page elements...
+06:33:16 | INFO  | IRD_BrowserController | 06:33:16 | INFO | [ITC Grand Chola] ✓ STAGE 4 PASS: [REDACTED]
+06:33:16 | INFO  | IRD_BrowserController | 06:33:16 | INFO | [ITC Grand Chola] [LOGIN] Username field detected ('input[name='username']')
+06:33:16 | INFO  | IRD_BrowserController | 06:33:16 | INFO | [ITC Grand Chola] [LOGIN] Password field detected ('input[name='password']')
+06:33:16 | INFO  | IRD_BrowserController | 06:33:16 | INFO | [ITC Grand Chola] STAGE 5 & 6: Filling credentials for IDP user 'admin'...
+06:33:16 | INFO  | IRD_BrowserController | 06:33:16 | INFO | [ITC Grand Chola] [LOGIN] Entering credentials...
+06:33:16 | INFO  | IRD_BrowserController | 06:33:16 | INFO | [ITC Grand Chola] [LOGIN] Credentials entered into IDP username field.
+06:33:16 | INFO  | IRD_BrowserController | 06:33:16 | INFO | [ITC Grand Chola] [LOGIN] Credentials entered into password field (DPAPI Protected, Secrets Masked).
+06:33:16 | INFO  | IRD_BrowserController | [ITC Grand Chola] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-08-27\ITC_Grand_Chola\04_credentials_entered_1787792596.png
+06:33:16 | INFO  | IRD_BrowserController | [ITC Grand Chola] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-08-27\ITC_Grand_Chola\03_login_before_submit_1787792596.png
+06:33:16 | INFO  | IRD_BrowserController | 06:33:16 | INFO | [ITC Grand Chola] [LOGIN] Login submitted
+06:33:16 | INFO  | IRD_BrowserController | 06:33:16 | INFO | [ITC Grand Chola] [LOGIN] Submitting login using 'button[type='submit']'.
+06:33:16 | INFO  | IRD_BrowserController | 06:33:16 | INFO | [ITC Grand Chola] [LOGIN] Verifying authentication response...
+06:33:18 | INFO  | IRD_BrowserController | [ITC Grand Chola] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-08-27\ITC_Grand_Chola\05_after_login_1787792598.png
+06:33:45 | INFO  | IRD_BrowserController | 06:33:45 | INFO | [ITC Grand Chola] CRITICAL ERROR: Login form is still visible after submit attempt! Login failed.
+06:33:45 | INFO  | IRD_BrowserController | 06:33:45 | INFO | [ITC Grand Chola] CRITICAL: Phase 6 Login/SyncMyMenu failed. Failure Code: LOGIN_AUTHENTICATION_FAILED

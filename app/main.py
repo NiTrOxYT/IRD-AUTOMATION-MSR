@@ -5,7 +5,9 @@ import asyncio
 import logging
 import threading
 import subprocess
-import webbrowser
+import time
+import datetime
+from datetime import datetime
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 
@@ -318,22 +320,82 @@ async def update_selectors(data: dict):
         )
     return {"success": True}
 
+_BACKGROUND_TASKS = set()
+
+def _on_automation_task_done(t: asyncio.Task):
+    _BACKGROUND_TASKS.discard(t)
+    try:
+        t.result()
+    except asyncio.CancelledError:
+        pass
+    except Exception as exc:
+        import traceback
+        tb = traceback.format_exc()
+        logger.error(f"[PHASE17][RUNNER ERROR] Background automation task failed: {exc}\n{tb}")
+
+@app.get("/api/automation/health")
+async def health_check():
+    return {
+        "success": True,
+        "backend": "running",
+        "runner_available": not workflow_runner.is_running,
+        "is_running": workflow_runner.is_running,
+        "timestamp": datetime.now().isoformat()
+    }
+
+@app.post("/api/automation/start-sync")
+@app.post("/api/automation/start-dry-run")
 @app.post("/api/automation/start")
-async def start_automation(data: dict):
+async def start_automation_endpoint(data: dict):
+    trace_id = data.get("trace_id", f"STARTSYNC-{int(time.time()*1000)}")
+    logger.info(f"[PHASE17][API] START SYNC request received")
+    logger.info(f"[PHASE17][API] Trace ID: {trace_id}")
+    logger.info(f"[PHASE17][API] Request body: {data}")
+    logger.info(f"[API] START SYNC request received")
+
     if workflow_runner.is_running:
+        logger.warning(f"[PHASE17][API] Automation request rejected — already running. Trace ID: {trace_id}")
+        logger.warning("[API] Automation request rejected — already running.")
         raise HTTPException(status_code=400, detail="Automation is already running.")
 
     selected_ids = data.get("site_ids", None)
     dry_run = bool(data.get("dry_run", False))
     resume_run_id = data.get("resume_run_id", None)
 
-    # Launch background task
-    asyncio.create_task(workflow_runner.start_batch_sync(
-        selected_site_ids=selected_ids,
-        dry_run=dry_run,
-        resume_run_id=resume_run_id
-    ))
-    return {"success": True, "message": "Automation started."}
+    logger.info(f"[PHASE17][API] Selected site IDs: {selected_ids or 'ALL'}")
+    logger.info(f"[PHASE17][API] dry_run: {dry_run}")
+    logger.info(f"[PHASE17][API] Calling workflow runner")
+    logger.info(f"[API] Selected site IDs: {selected_ids or 'ALL'}")
+    logger.info("[API] Automation start requested")
+
+    try:
+        logger.info(f"[PHASE17][API] BEFORE scheduling runner")
+        # Launch background task with strong reference
+        task = asyncio.create_task(workflow_runner.start_batch_sync(
+            selected_site_ids=selected_ids,
+            dry_run=dry_run,
+            resume_run_id=resume_run_id,
+            trace_id=trace_id
+        ))
+        _BACKGROUND_TASKS.add(task)
+        task.add_done_callback(_on_automation_task_done)
+
+        logger.info(f"[PHASE17][API] AFTER scheduling runner")
+        logger.info(f"[PHASE17][API] Background task created")
+        logger.info(f"[PHASE17][API] Background task ID: {id(task)}")
+        logger.info("[API] Automation runner started")
+        return {
+            "success": True,
+            "message": "Automation runner started.",
+            "trace_id": trace_id,
+            "task_id": id(task)
+        }
+    except Exception as e:
+        import traceback
+        tb = traceback.format_exc()
+        logger.error(f"[PHASE17][API ERROR] Exception starting automation: {e}\n{tb}")
+        logger.error(f"[API ERROR] Exception starting automation: {e}\n{tb}")
+        raise HTTPException(status_code=500, detail=f"Server exception starting automation: {str(e)}")
 
 @app.post("/api/automation/stop")
 async def stop_automation():
@@ -354,10 +416,12 @@ async def automation_status():
     }
 
 @app.get("/api/history")
+@app.get("/api/runs")
 async def run_history():
     return get_runs_history(limit=50)
 
 @app.get("/api/history/{run_id}")
+@app.get("/api/runs/{run_id}")
 async def run_detail(run_id: int):
     details = get_run_details(run_id)
     if not details:
@@ -515,36 +579,96 @@ async def run_fnb_playwright_test():
     res = await tunnel_manager.test_playwright_tunnel(site)
     return res
 
+@app.get("/api/settings/browser-debug")
+async def get_browser_debug_setting():
+    from app.database.db import get_browser_debug_mode
+    enabled = get_browser_debug_mode()
+    return {"enabled": enabled, "mode": "ON" if enabled else "OFF"}
+
+@app.post("/api/settings/browser-debug")
+async def set_browser_debug_setting(data: dict):
+    from app.database.db import set_browser_debug_mode
+    enabled = bool(data.get("enabled", False)) or str(data.get("mode", "")).upper() == "ON"
+    set_browser_debug_mode(enabled)
+    return {"success": True, "enabled": enabled, "mode": "ON" if enabled else "OFF"}
+
+@app.get("/api/settings/whitelabel-recovery")
+async def get_whitelabel_recovery_endpoint():
+    from app.database.db import get_whitelabel_recovery_settings
+    return get_whitelabel_recovery_settings()
+
+@app.post("/api/settings/whitelabel-recovery")
+async def set_whitelabel_recovery_endpoint(data: dict):
+    from app.database.db import set_whitelabel_recovery_settings
+    enabled = bool(data.get("enabled", False)) or str(data.get("mode", "")).upper() == "ON"
+    max_attempts = int(data.get("max_attempts", 2))
+    set_whitelabel_recovery_settings(enabled, max_attempts)
+    return {"success": True, "enabled": enabled, "mode": "ON" if enabled else "OFF", "max_attempts": max_attempts}
+
 @app.post("/api/fnb-tunnel/login-workflow")
 async def run_fnb_login_workflow(data: dict = None):
     from app.database.db import get_site_by_id, get_site_by_name, get_all_sites, get_global_tunnel_config
+    from app.database.models import get_site_web_url
     all_s = get_all_sites()
-    site = get_site_by_id(1) or get_site_by_name("FNB") or (all_s[0] if all_s else None)
+    req_site_id = (data or {}).get("site_id")
+    site = get_site_by_id(req_site_id) if req_site_id else (get_site_by_id(1) or get_site_by_name("FNB") or (all_s[0] if all_s else None))
     if not site:
-        raise HTTPException(status_code=404, detail="FNB site record not found.")
+        raise HTTPException(status_code=404, detail="Site record not found.")
 
-    # 1. Ensure Reverse Tunnel is started and 3-tier validated
+    # 1. Ensure Local Port Forwarding Tunnel (-L) is started and validated
     t_res = await tunnel_manager.run_fnb_tunnel_test(site, keep_running=True)
-    if t_res["result_status"] != "REAL FNB TUNNEL — PASS" and t_res["checks"].get("fnb_service") != "PASS":
-        # Do NOT open browser if tunnel validation failed
+    t_status = tunnel_manager.get_tunnel_status(site)
+
+    if t_res["checks"].get("tcp_endpoint") != "PASS" and t_res["checks"].get("http_endpoint") != "PASS":
         return {
-            "success": False,
-            "result_status": "TUNNEL_FAILED",
+            "site_id": site.id,
+            "site_name": site.name,
+            "tunnel": t_status,
+            "browser": {"status": "STOPPED", "url": get_site_web_url(site)},
+            "initial_page": {"status": "FAILED", "recovery_attempted": False, "recovery_attempts": 0},
+            "login": {"status": "FAILED"},
+            "sync_mymenu": {"status": "FAILED"},
+            "final_status": "FAILED",
             "failure_code": t_res.get("failure_code", "TUNNEL_ESTABLISH_FAILED"),
-            "logs": t_res.get("logs", []) + ["CRITICAL: Reverse SSH Tunnel validation failed. Aborting browser login workflow."],
+            "logs": t_res.get("logs", []) + ["CRITICAL: Local port forwarding tunnel validation failed. Aborting browser login workflow."],
             "formatted_summary": t_res.get("formatted_summary", "")
         }
 
-    # 2. Compute Target Web URL
-    g_tunnel = get_global_tunnel_config()
-    local_port = site.local_port or 18001
-    tmpl = g_tunnel.get("web_url_template", "http://127.0.0.1:{local_port}")
-    web_url = tmpl.format(local_port=local_port) if "{local_port}" in tmpl else f"http://127.0.0.1:{local_port}"
+    # 2. Compute Canonical Target Web URL
+    web_url = get_site_web_url(site)
 
-    # 3. Execute Phase 6 Browser Login + Sync MyMenu Sequence
+    # 3. Execute Phase 9 Real Browser Login + Sync MyMenu Sequence
     from app.browser.browser_controller import browser_controller
     res = await browser_controller.run_fnb_login_and_sync_mymenu(site, web_url)
-    return res
+
+    # 4. Construct Structured API Response
+    final_success = res.get("success", False)
+    return {
+        "site_id": site.id,
+        "site_name": site.name,
+        "tunnel": tunnel_manager.get_tunnel_status(site),
+        "browser": {
+            "status": "RUNNING" if final_success else "FAILED",
+            "url": web_url
+        },
+        "initial_page": res.get("initial_page", {"status": "NORMAL_200", "recovery_attempted": False, "recovery_attempts": 0}),
+        "login": res.get("login", {
+            "status": "CONFIRMED" if res.get("stages", {}).get("authentication") == "PASS" else "FAILED",
+            "attempts": 1,
+            "recovery_attempted": False,
+            "authenticated": res.get("stages", {}).get("authentication") == "PASS",
+            "failure_code": res.get("failure_code")
+        }),
+        "sync_mymenu": {
+            "status": "CONFIRMED" if res.get("stages", {}).get("sync_mymenu") == "PASS" else "FAILED"
+        },
+        "final_status": "SUCCESS" if final_success else "FAILED",
+        "failure_code": res.get("failure_code"),
+        "formatted_summary": res.get("formatted_summary", ""),
+        "logs": res.get("logs", [])
+    }
+
+
 
 @app.post("/api/fnb-tunnel/fetch-workflow")
 async def run_fnb_fetch_workflow(data: dict = None):
@@ -721,6 +845,13 @@ def start_desktop_app():
     # Launch PyWebView Native Desktop Window
     try:
         import webview
+        ui_html_path = (UI_DIR / "index.html").resolve()
+        ui_js_path = (UI_DIR / "app.js").resolve()
+        logger.info("[PYWEBVIEW] Creating desktop window")
+        logger.info(f"[PYWEBVIEW] UI HTML path: {ui_html_path}")
+        logger.info(f"[PYWEBVIEW] UI HTML exists: {ui_html_path.exists()}")
+        logger.info(f"[PYWEBVIEW] UI JavaScript path: {ui_js_path}")
+        logger.info(f"[PYWEBVIEW] UI JavaScript exists: {ui_js_path.exists()}")
         logger.info("Opening PyWebView desktop window...")
         window = webview.create_window(
             title=f"{APP_NAME} v{APP_VERSION}",

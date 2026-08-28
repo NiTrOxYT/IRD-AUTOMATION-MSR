@@ -140,6 +140,19 @@ def init_db():
         if col_name not in existing_cols:
             cursor.execute(f"ALTER TABLE sites ADD COLUMN {col_name} {col_type}")
 
+    # Non-destructive Migration for Run Site Results Table
+    cursor.execute("PRAGMA table_info(run_site_results)")
+    rsr_cols = {col[1] for col in cursor.fetchall()}
+    rsr_new_columns = [
+        ("fetch_menu_status", "TEXT DEFAULT 'UNKNOWN'"),
+        ("process_latest_menu_status", "TEXT DEFAULT 'UNKNOWN'"),
+        ("download_status", "TEXT DEFAULT 'UNKNOWN'"),
+        ("failure_code", "TEXT DEFAULT 'NONE'")
+    ]
+    for col_name, col_type in rsr_new_columns:
+        if col_name not in rsr_cols:
+            cursor.execute(f"ALTER TABLE run_site_results ADD COLUMN {col_name} {col_type}")
+
     conn.commit()
     conn.close()
 
@@ -418,6 +431,25 @@ def set_browser_debug_mode(enabled: bool):
     set_setting("browser_debug_mode", val)
     logger.info(f"Browser Debug Mode updated to '{val}'.")
 
+def get_whitelabel_recovery_settings() -> Dict[str, Any]:
+    """Returns Whitelabel error recovery settings."""
+    enabled_val = (get_setting("first_login_whitelabel_recovery") or "ON").upper()
+    enabled = enabled_val in ("ON", "1", "TRUE", "YES")
+    max_attempts_str = get_setting("max_whitelabel_recovery_attempts") or "2"
+    try:
+        max_attempts = int(max_attempts_str)
+    except ValueError:
+        max_attempts = 2
+    return {"enabled": enabled, "mode": "ON" if enabled else "OFF", "max_attempts": max_attempts}
+
+def set_whitelabel_recovery_settings(enabled: bool, max_attempts: int = 2):
+    """Sets Whitelabel error recovery settings."""
+    val = "ON" if enabled else "OFF"
+    set_setting("first_login_whitelabel_recovery", val)
+    set_setting("max_whitelabel_recovery_attempts", str(max(1, min(10, int(max_attempts)))))
+    logger.info(f"First-login Whitelabel Recovery updated to '{val}', max attempts={max_attempts}.")
+
+
 
 # --- OFFICE SSH SERVER SETTINGS ---
 
@@ -565,25 +597,31 @@ def update_run(run: Run):
 def save_run_site_result(result: RunSiteResult) -> int:
     conn = get_db_connection()
     cursor = conn.cursor()
+    f_status = getattr(result, "fetch_menu_status", "UNKNOWN")
+    p_status = getattr(result, "process_latest_menu_status", "UNKNOWN")
+    d_status = getattr(result, "download_status", "UNKNOWN")
+    f_code = getattr(result, "failure_code", "NONE")
+
     if result.id:
         cursor.execute("""
-        UPDATE run_site_results SET status=?, action_point_status=?, csv_path=?, third_line_text=?, start_time=?, end_time=?, duration_seconds=?, retry_count=?, error_message=?, log_snippet=?
+        UPDATE run_site_results SET status=?, action_point_status=?, csv_path=?, third_line_text=?, start_time=?, end_time=?, duration_seconds=?, retry_count=?, error_message=?, log_snippet=?, fetch_menu_status=?, process_latest_menu_status=?, download_status=?, failure_code=?
         WHERE id=?
         """, (
             result.status, result.action_point_status, result.csv_path, result.third_line_text,
             result.start_time, result.end_time, result.duration_seconds, result.retry_count,
-            result.error_message, result.log_snippet, result.id
+            result.error_message, result.log_snippet, f_status, p_status, d_status, f_code, result.id
         ))
         res_id = result.id
     else:
         cursor.execute("""
-        INSERT INTO run_site_results (run_id, site_id, site_name, status, action_point_status, csv_path, third_line_text, start_time, end_time, duration_seconds, retry_count, error_message, log_snippet)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO run_site_results (run_id, site_id, site_name, status, action_point_status, csv_path, third_line_text, start_time, end_time, duration_seconds, retry_count, error_message, log_snippet, fetch_menu_status, process_latest_menu_status, download_status, failure_code)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             result.run_id, result.site_id, result.site_name, result.status,
             result.action_point_status, result.csv_path, result.third_line_text,
             result.start_time, result.end_time, result.duration_seconds,
-            result.retry_count, result.error_message, result.log_snippet
+            result.retry_count, result.error_message, result.log_snippet,
+            f_status, p_status, d_status, f_code
         ))
         res_id = cursor.lastrowid
     conn.commit()
@@ -595,11 +633,15 @@ def get_runs_history(limit: int = 50) -> List[Dict[str, Any]]:
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM runs ORDER BY id DESC LIMIT ?", (limit,))
     rows = cursor.fetchall()
-    conn.close()
 
     runs = []
     for r in rows:
-        runs.append(dict(r))
+        run_dict = dict(r)
+        cursor.execute("SELECT * FROM run_site_results WHERE run_id = ? ORDER BY id ASC", (run_dict["id"],))
+        site_rows = cursor.fetchall()
+        run_dict["results"] = [dict(s) for s in site_rows]
+        runs.append(run_dict)
+    conn.close()
     return runs
 
 def get_run_details(run_id: int) -> Optional[Dict[str, Any]]:

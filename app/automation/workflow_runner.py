@@ -75,10 +75,20 @@ class WorkflowRunner:
 
     def stop_automation(self):
         """Requests graceful stop of automation execution."""
-        logger.info("Stop requested by user. Terminating automation after current task...")
+        logger.info("[RUNNER] Stop requested by user. Terminating automation...")
         self.stop_requested = True
-        self.current_operation = "Stopping..."
+        self.is_running = False
+        self.current_status = SiteStatus.FAILED
+        self.current_operation = "Stopped"
         self.current_status_details = "Automation stopped by user."
+        if self.browser_ctrl:
+            self.browser_ctrl.stop_requested = True
+            try:
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    loop.create_task(self.browser_ctrl.emergency_stop())
+            except Exception as ex:
+                logger.debug(f"Notice triggering emergency stop: {ex}")
         self._broadcast_status()
 
     async def run_single_site_test(self, site_id: int) -> Dict[str, Any]:
@@ -233,7 +243,7 @@ class WorkflowRunner:
 
                 if site.idp_username and site.idp_password:
                     logger.info(f"[{site.name}] Step 4: Authenticating IDP user '{site.idp_username}'...")
-                    login_ok, login_msg = await browser.login(site.idp_username, site.idp_password, timeout_seconds=int(settings.get("login_timeout", 60)))
+                    login_ok, login_msg = await browser.login(site.idp_username, site.idp_password, timeout_seconds=int(settings.get("login_timeout", 60)), site=site)
                     if not login_ok:
                         await browser.capture_screenshot(site.name, "login_test_failed")
                         await browser.close()
@@ -344,12 +354,18 @@ class WorkflowRunner:
             }
 
 
-    async def start_batch_sync(self, selected_site_ids: List[int] = None, dry_run: bool = False, resume_run_id: int = None) -> int:
+    async def start_batch_sync(self, selected_site_ids: List[int] = None, dry_run: bool = False, resume_run_id: int = None, trace_id: str = None) -> int:
         """
         Executes daily multi-site sequential synchronization workflow.
         Returns run_id.
         """
+        logger.info("[PHASE17][RUNNER] ENTRY FUNCTION CALLED")
+        logger.info("[PHASE17][RUNNER] Workflow entry reached")
+        logger.info(f"[PHASE17][RUNNER] Trace ID: {trace_id}")
+        logger.info(f"[PHASE17][RUNNER] Selected site IDs: {selected_site_ids}")
+
         if self.is_running:
+            logger.warning(f"[PHASE17][RUNNER] Rejected — already running. Trace ID: {trace_id}")
             raise RuntimeError("Automation is already running.")
 
         self.is_running = True
@@ -362,13 +378,17 @@ class WorkflowRunner:
 
         # Determine target sites
         all_sites = get_all_sites()
-        if selected_site_ids:
+        if selected_site_ids is not None:
             target_sites = [s for s in all_sites if s.id in selected_site_ids and s.enabled]
         else:
             target_sites = [s for s in all_sites if s.enabled]
 
+        logger.info(f"[PHASE17][RUNNER] Target sites resolved: {[s.name for s in target_sites]}")
+        logger.info(f"[PHASE17][RUNNER] Number of sites: {len(target_sites)}")
+
         if not target_sites:
             self.is_running = False
+            logger.error("[PHASE17][RUNNER ERROR] No enabled sites selected to process.")
             raise ValueError("No enabled sites selected to process.")
 
         # Create or resume run record
@@ -397,6 +417,9 @@ class WorkflowRunner:
             self.current_run_id = create_run(run_obj)
             logger.info(f"Created new batch run #{self.current_run_id} for {len(target_sites)} sites.")
 
+        logger.info("[RUNNER] Automation workflow starting")
+        logger.info(f"[RUNNER] Sites queued: {len(target_sites)}")
+
         # Initialize counters
         completed_count = 0
         action_point_count = 0
@@ -415,6 +438,9 @@ class WorkflowRunner:
             self.current_site_name = site.name
             self.progress_percentage = round(((idx - 1) / total_target) * 100, 1)
 
+            logger.info(f"[PHASE17][RUNNER] Starting site: {site.name} (#{site.id})")
+
+            logger.info(f"[RUNNER] Starting site: {site.name} (#{site.id})")
             logger.info(f"\n==========================================")
             logger.info(f"[{idx}/{total_target}] STARTING SITE: {site.name}")
             logger.info(f"==========================================")
@@ -445,9 +471,9 @@ class WorkflowRunner:
                 failed_count += 1
             else:
                 completed_count += 1
-                if site_result.action_point_status == "ACTION POINT FOUND":
+                if site_result.action_point_status in ("ACTION POINT FOUND", "FOUND"):
                     action_point_count += 1
-                elif site_result.action_point_status == "NO ACTION POINT":
+                elif site_result.action_point_status in ("NO ACTION POINT", "CLEAR", "NO_ACTION_POINT"):
                     no_action_count += 1
 
             # Update overall run progress
@@ -513,6 +539,8 @@ class WorkflowRunner:
                 return result_rec
 
             # Execute real full site sequence
+            self.browser_ctrl = browser_controller
+            browser_controller.stop_requested = False
             res = await browser_controller.run_full_site_automation_sequence(site, browser_url)
 
 
@@ -521,9 +549,24 @@ class WorkflowRunner:
             ap_st = res.get("action_point_status", "FAILED")
             err_msg = res.get("failure_code", "NONE")
 
-            if "SUCCESS" in final_st or final_st == "PASS":
+            sync_dict = res.get("sync_mymenu", {})
+            fetch_info = sync_dict.get("fetch_menu", {})
+            proc_info = sync_dict.get("process_latest_menu", {})
+            dl_info = sync_dict.get("download_action_points", {})
+
+            result_rec.fetch_menu_status = fetch_info.get("status", "SUCCESS" if final_st in ("GOOD", "ACTION POINT FOUND") else "FAILED")
+            result_rec.process_latest_menu_status = proc_info.get("status", "SUCCESS" if final_st in ("GOOD", "ACTION POINT FOUND") else "FAILED")
+            result_rec.download_status = dl_info.get("status", "SUCCESS" if final_st in ("GOOD", "ACTION POINT FOUND") else "FAILED")
+            result_rec.failure_code = err_msg or "NONE"
+
+            if final_st in ("GOOD", "ACTION POINT FOUND") or "SUCCESS" in final_st or final_st == "PASS":
                 result_rec.status = SiteStatus.COMPLETED
-                result_rec.action_point_status = ap_st
+                if ap_st in ("ACTION POINT FOUND", "FOUND"):
+                    result_rec.action_point_status = "ACTION POINT FOUND"
+                elif ap_st in ("NO ACTION POINT", "CLEAR", "NO_ACTION_POINT"):
+                    result_rec.action_point_status = "NO ACTION POINT"
+                else:
+                    result_rec.action_point_status = ap_st
                 result_rec.csv_path = res.get("csv_path", "")
                 result_rec.third_line_text = res.get("line_3", "")
             else:

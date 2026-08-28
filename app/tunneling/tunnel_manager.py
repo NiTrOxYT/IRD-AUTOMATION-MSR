@@ -23,51 +23,88 @@ class TunnelManager:
         # { "process": Popen, "pid": int, "site": Site, "start_time": float, "status": str }
         self.active_tunnels: Dict[int, Dict[str, Any]] = {}
 
+    def is_tunnel_process_alive(self, site_id: int) -> bool:
+        """
+        Verifies if Plink subprocess for the site_id is active, alive, and hasn't exited.
+        """
+        if site_id not in self.active_tunnels:
+            return False
+        t_data = self.active_tunnels[site_id]
+        proc: Optional[subprocess.Popen] = t_data.get("process")
+        if proc and proc.poll() is None:
+            return True
+        t_data["status"] = "FAILED"
+        return False
+
     def is_tunnel_running(self, site: Any) -> bool:
         """
         Checks if Plink process for the site is active and alive.
         """
         site_id = getattr(site, "id", None)
-        if site_id not in self.active_tunnels:
+        if site_id is None:
             return False
-
-        t_data = self.active_tunnels[site_id]
-        proc: Optional[subprocess.Popen] = t_data.get("process")
-        if proc and proc.poll() is None:
-            return True
-
-        # Process died
-        t_data["status"] = "DISCONNECTED"
-        return False
+        return self.is_tunnel_process_alive(site_id)
 
     def get_tunnel_status(self, site: Any) -> Dict[str, Any]:
         """
-        Returns structured status dict for site's tunnel.
+        Returns structured status dict for site's Local Port Forwarding (-L) tunnel.
         """
+        from app.database.models import get_site_web_url
+        from app.database.db import get_office_ssh_config
+        global_ssh = get_office_ssh_config()
+
         site_id = getattr(site, "id", None)
-        local_port = getattr(site, "local_port", 18001) or 18001
         site_name = getattr(site, "name", "Unknown")
+        site_ip = getattr(site, "site_ip", "") or "14.142.185.130"
+        site_port = getattr(site, "site_port", 8082) or 8082
+        local_port = getattr(site, "local_port", 18001) or 18001
+        ssh_host = getattr(site, "ssh_host", "") or global_ssh.get("ssh_host") or "111.93.205.187"
+        ssh_port = getattr(site, "ssh_port", 22) or global_ssh.get("ssh_port") or 22
+        office_ssh = f"{ssh_host}:{ssh_port}"
+        local_endpoint = f"127.0.0.1:{local_port}"
+        browser_url = get_site_web_url(site)
+        forward_spec = f"-L {local_port}:{site_ip}:{site_port}"
+
+        detected = putty_manager.detect_executables()
+        plink_path = detected["plink"] or "tools/putty/plink.exe"
 
         if site_id not in self.active_tunnels:
             return {
                 "site_id": site_id,
                 "site_name": site_name,
-                "status": "STOPPED",
-                "pid": None,
+                "site_ip": site_ip,
+                "site_port": site_port,
+                "office_ssh": office_ssh,
                 "local_port": local_port,
-                "web_url": getattr(site, "web_url", "") or f"http://127.0.0.1:{local_port}"
+                "local_endpoint": local_endpoint,
+                "browser_url": browser_url,
+                "plink": plink_path,
+                "pid": None,
+                "forward": forward_spec,
+                "status": "STOPPED",
+                "process_running": False
             }
 
         t_data = self.active_tunnels[site_id]
-        is_alive = self.is_tunnel_running(site)
+        is_alive = self.is_tunnel_process_alive(site_id)
+        current_status = t_data.get("status", "ESTABLISHED") if is_alive else "FAILED"
+
         return {
             "site_id": site_id,
             "site_name": site_name,
-            "status": t_data.get("status", "CONNECTED") if is_alive else "DISCONNECTED",
-            "pid": t_data.get("pid"),
+            "site_ip": site_ip,
+            "site_port": site_port,
+            "office_ssh": office_ssh,
             "local_port": local_port,
-            "web_url": getattr(site, "web_url", "") or f"http://127.0.0.1:{local_port}"
+            "local_endpoint": local_endpoint,
+            "browser_url": browser_url,
+            "plink": plink_path,
+            "pid": t_data.get("pid"),
+            "forward": forward_spec,
+            "status": current_status,
+            "process_running": is_alive
         }
+
 
     async def run_fnb_tunnel_test(self, site: Any, keep_running: bool = False) -> Dict[str, Any]:
         """
@@ -124,16 +161,14 @@ class TunnelManager:
             logger.info(line)
 
         log("PHASE 5E REAL FNB ENDPOINT VALIDATION STARTED")
-        log(f"Office SSH Server: {ssh_host}:{getattr(site, 'ssh_port', 22) or 22}")
-        log(f"Tunnel Local Port: {local_port}")
-        log(f"Tunnel Site IP: {site_ip}")
-        log(f"Tunnel Site Port: {site_port}")
-        log(f"Local Tunnel: {local_endpoint}")
+        log(f"[TUNNEL] SSH server: {ssh_host}:{getattr(site, 'ssh_port', 22) or 22}")
+        log(f"[TUNNEL] FNB target: {site_ip}:{site_port}")
+        log(f"[TUNNEL] Forward mode: LOCAL")
+        log(f"[TUNNEL] Local endpoint: {local_endpoint}")
+        log(f"[TUNNEL] Remote target: {site_ip}:{site_port}")
+        log(f"[TUNNEL] TCP validation target: {local_endpoint}")
+        log(f"[TUNNEL] HTTP validation URL: {browser_url}")
         log(f"Forward: -L {local_port}:{site_ip}:{site_port}")
-        log(f"Browser URL: {browser_url}")
-
-
-
 
         # STEP 1: Validate configuration & bundled Plink
         log("STEP 1: Validating bundled Plink executable...")
@@ -152,6 +187,7 @@ class TunnelManager:
         try:
             cmd = putty_manager.build_plink_command(site, plink_path)
             scrubbed_cmd = putty_manager.scrub_sensitive_info(" ".join(cmd))
+            log(f"[TUNNEL] Plink command: {scrubbed_cmd}")
             log(f"Generated Plink Command: {scrubbed_cmd}")
 
             proc = subprocess.Popen(

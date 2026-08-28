@@ -1,0 +1,286 @@
+Action Points,,,,,,
+Restaurant Name,Restaurant ID,Item Name,Item Code,Item Price,Category,Sub-Category,Status
+No Action Point,,,,,,
+
+
+
+Price Change Details
+Sl,Restaurant Name,Restaurant ID,Item Name,Item Code,Old Price,Item Price,Current Category,Current Sub-Category,Status
+
+
+
+Publish Status,
+Restaurant Name,Publish Required,Auto Published
+IRD,Yes,No
+
+
+
+Summary,,,,,,
+Sl,Restaurant Name,Restaurant ID,Item Name,Item Code,Old Price,Item Price,Old Category,Old Sub-Category,Current Category,Current Sub-Category,Status
+1,IRD,22,Tofu And Broccoli*,10200009,1555.0,1555.0,Asian Comfort Bowls,Thai Red Curry Bowl,Asian Comfort Bowls,Thai Red Curry Bowl,Updated
+2,IRD,22,Club Sandwich Veg*,11000062,1330.0,1330.0,"Stacks, Rolls & Wraps",Club Sandwiches,"Stacks, Rolls & Wraps",Club Sandwiches,Updated
+3,IRD,22,Pasta In Tomato Marinara Sauce*,11800043,1525.0,1525.0,Artisan Pasta & Risotto,Penne I Spaghetti,Artisan Pasta & Risotto,Penne I Spaghetti,Updated
+4,IRD,22,Mushroom Trio Risotto With Brie*,11800048,1495.0,1495.0,Artisan Pasta & Risotto,Risotto,Artisan Pasta & Risotto,Risotto,Updated
+5,IRD,22,Mezze Platter*,11000057,1130.0,1130.0,Grazing Plates,,Grazing Plates,,Updated
+6,IRD,22,Mushroom And Asparagus*,11800047,1495.0,1495.0,Artisan Pasta & Risotto,Mac N’ Cheese,Artisan Pasta & Risotto,Mac N’ Cheese,Updated
+7,IRD,22,Pasta In Basil Pumpkin Seed Pesto*,11800044,1525.0,1525.0,Artisan Pasta & Risotto,Penne I Spaghetti,Artisan Pasta & Risotto,Penne I Spaghetti,Updated
+8,IRD,22,Prawn Confit Risotto With Goat Cheese And Herbs*,11800054,1525.0,1525.0,Artisan Pasta & Risotto,Risotto,Artisan Pasta & Risotto,Risotto,Updated
+9,IRD,22,Chicken Sausage And Spinach*,11800050,1525.0,1525.0,Artisan Pasta & Risotto,Mac N’ Cheese,Artisan Pasta & Risotto,Mac N’ Cheese,Updated
+10,IRD,22,Club Sandwich Non-Veg*,11700006,1440.0,1440.0,"Stacks, Rolls & Wraps",Club Sandwiches,"Stacks, Rolls & Wraps",Club Sandwiches,Updated
+11,IRD,22,Shrimp And Pokchoy*,10200018,1745.0,1745.0,Asian Comfort Bowls,Thai Red Curry Bowl,Asian Comfort Bowls,Thai Red Curry Bowl,Updated
+12,IRD,22,Aglio Olio Pepperoncino*,11800202,1425.0,1425.0,Artisan Pasta & Risotto,Penne I Spaghetti,Artisan Pasta & Risotto,Penne I Spaghetti,Updated
+13,IRD,22,Chicken And Mushroom*,10200014,1645.0,1645.0,Asian Comfort Bowls,Thai Red Curry Bowl,Asian Comfort Bowls,Thai Red Curry Bowl,Updated
+14,IRD,22,Spaghetti Gautamara*,11800204,1525.0,1525.0,Artisan Pasta & Risotto,Penne I Spaghetti,Artisan Pasta & Risotto,Penne I Spaghetti,Updated
+15,IRD,22,Shrimp Saffron Cream*,11800055,1545.0,1545.0,Artisan Pasta & Risotto,Penne I Spaghetti,Artisan Pasta & Risotto,Penne I Spaghetti,Updated
+16,IRD,22,Smoked Chicken Carbonara*,11800049,1595.0,1595.0,Artisan Pasta & Risotto,Penne I Spaghetti,Artisan Pasta & Risotto,Penne I Spaghetti,Updated
+17,IRD,22,Lamb Bolognese*,11800205,1595.0,1595.0,Artisan Pasta & Risotto,Penne I Spaghetti,Artisan Pasta & Risotto,Penne I Spaghetti,Updated
+18,IRD,22,Mozzarella Caprese*,11000058,1095.0,1095.0,Grazing Plates,,Grazing Plates,,Updated
+19,IRD,22,Build Your Salad Veg*,11000060,1095.0,1095.0,Grazing Plates,,Grazing Plates,,Updated
+20,IRD,22,Build Your Salad Non Veg*,11200071,1325.0,1325.0,Grazing Plates,,Grazing Plates,,Updated
+21,IRD,22,Caesar's Salad Veg*,11000081,1145.0,1145.0,Grazing Plates,,Grazing Plates,,Updated
+22,IRD,22,Caesar's Salad Non Veg*,11000082,1275.0,1275.0,Grazing Plates,,Grazing Plates,,Updated
+23,IRD,22,Tofu And Potato Rendang*,10200010,1595.0,1595.0,Asian Comfort Bowls,Indonesian Rendang Curry,Asian Comfort Bowls,Indonesian Rendang Curry,Updated
+24,IRD,22,Mushroom Croque*,11000063,1255.0,1255.0,"Stacks, Rolls & Wraps",Signature Croques,"Stacks, Rolls & Wraps",Signature Croques,Updated
+25,IRD,22,Slow Roast Tomato Soup*,11000088,820.0,820.0,From The Tureen,,From The Tureen,,Updated
+26,IRD,22,Bircher Muesli*,12200004,695.0,695.0,24X7 Breakfasts,Cereals and Such,24X7 Breakfasts,Cereals and Such,Updated
+27,IRD,22,Lamb And Potato Rendang*,10200017,1755.0,1755.0,Asian Comfort Bowls,Indonesian Rendang Curry,Asian Comfort Bowls,Indonesian Rendang Curry,Updated
+28,IRD,22,Hearty Bean Soup Veg* ,11601009,820.0,820.0,From The Tureen,,From The Tureen,,Updated
+29,IRD,22,Croque Madame*,11200078,1425.0,1425.0,"Stacks, Rolls & Wraps",Signature Croques,"Stacks, Rolls & Wraps",Signature Croques,Updated
+30,IRD,22,Pearl Millet Porridge*,10500026,695.0,695.0,24X7 Breakfasts,Cereals and Such,24X7 Breakfasts,Cereals and Such,Updated
+31,IRD,22,Hearty Bean Soup Non Veg*,11601011,845.0,845.0,From The Tureen,,From The Tureen,,Updated
+32,IRD,22,Madras Mulligatawny Veg*,11601003,820.0,820.0,From The Tureen,,From The Tureen,,Updated
+33,IRD,22,Madras Mulligatawny Non Veg*,11601004,845.0,845.0,From The Tureen,,From The Tureen,,Updated
+34,IRD,22,Chennai Chowder*,11601005,945.0,945.0,From The Tureen,,From The Tureen,,Updated
+35,IRD,22,Pepper Rasam*,11601014,820.0,820.0,From The Tureen,,From The Tureen,,Updated
+36,IRD,22,Fried Tofu And Shiitake Mushroom*,10200011,1575.0,1575.0,Asian Comfort Bowls,Korean Rice Bowl,Asian Comfort Bowls,Korean Rice Bowl,Updated
+37,IRD,22,Fried Chicken And Egg With Shiitake Mushroom*,10200015,1695.0,1695.0,Asian Comfort Bowls,Korean Rice Bowl,Asian Comfort Bowls,Korean Rice Bowl,Updated
+38,IRD,22,Cottage Cheese And Peppers*,10200012,1595.0,1595.0,Asian Comfort Bowls,Chinese Kung Pao Bowl,Asian Comfort Bowls,Chinese Kung Pao Bowl,Updated
+39,IRD,22,Asparagus Leek Bechamel With Native Brie*,11000065,1245.0,1245.0,"Stacks, Rolls & Wraps",Butter Brioche Rolls,"Stacks, Rolls & Wraps",Butter Brioche Rolls,Updated
+40,IRD,22,Chicken And Peppers*,10200016,1695.0,1695.0,Asian Comfort Bowls,Chinese Kung Pao Bowl,Asian Comfort Bowls,Chinese Kung Pao Bowl,Updated
+41,IRD,22,Prawn Confit With Native Mustard Mayo*,11200083,1445.0,1445.0,"Stacks, Rolls & Wraps",Butter Brioche Rolls,"Stacks, Rolls & Wraps",Butter Brioche Rolls,Updated
+42,IRD,22,BBQ Pulled Chicken With Spiced Honey Glaze*,11200079,1445.0,1445.0,"Stacks, Rolls & Wraps",Butter Brioche Rolls,"Stacks, Rolls & Wraps",Butter Brioche Rolls,Updated
+43,IRD,22,"Chickpea Spinach Patty, Red Pepper Relish And Native Goat Cheese*",11000066,1325.0,1325.0,"Stacks, Rolls & Wraps",Pantry Burgers,"Stacks, Rolls & Wraps",Pantry Burgers,Updated
+44,IRD,22,Indie Spinach Ricotta Dumplings*,10200019,1595.0,1595.0,Comfort Classics,,Comfort Classics,,Updated
+45,IRD,22,Plant Based Burger*,13300025,1325.0,1325.0,"Stacks, Rolls & Wraps",Pantry Burgers,"Stacks, Rolls & Wraps",Pantry Burgers,Updated
+46,IRD,22,Twin Flower Casserole*,10200020,1595.0,1595.0,Comfort Classics,,Comfort Classics,,Updated
+47,IRD,22,Bobby Bay Flipper*,11200082,1425.0,1425.0,"Stacks, Rolls & Wraps",Pantry Burgers,"Stacks, Rolls & Wraps",Pantry Burgers,Updated
+48,IRD,22,Madikeri Roast Chicken*,14100727,1795.0,1795.0,Comfort Classics,,Comfort Classics,,Updated
+49,IRD,22,Fresh Catch Of The Day*,11800211,1795.0,1795.0,Comfort Classics,,Comfort Classics,,Updated
+50,IRD,22,Herbed Chicken Mince Patty Burger*,11501021,1425.0,1425.0,"Stacks, Rolls & Wraps",Pantry Burgers,"Stacks, Rolls & Wraps",Pantry Burgers,Updated
+51,IRD,22,Grilled Salmon*,12300010,3025.0,3025.0,Comfort Classics,,Comfort Classics,,Updated
+52,IRD,22,Fish n' Fries*,10200025,1795.0,1795.0,Comfort Classics,,Comfort Classics,,Updated
+53,IRD,22,Spiced Paneer*,11900002,1375.0,1375.0,"Stacks, Rolls & Wraps",Kathi Wraps,"Stacks, Rolls & Wraps",Kathi Wraps,Updated
+54,IRD,22,Chicken Tikka Masala*,11200081,1425.0,1425.0,"Stacks, Rolls & Wraps",Kathi Wraps,"Stacks, Rolls & Wraps",Kathi Wraps,Updated
+55,IRD,22,Eggs To Order*,10501001,1125.0,1125.0,24X7 Breakfasts,Pavilion Signature Eggs,24X7 Breakfasts,Pavilion Signature Eggs,Updated
+56,IRD,22,Soft Rolled Omelette*,10501002,1095.0,1095.0,24X7 Breakfasts,Pavilion Signature Eggs,24X7 Breakfasts,Pavilion Signature Eggs,Updated
+57,IRD,22,Pavilion Eggs Benedict*,10501003,1195.0,1195.0,24X7 Breakfasts,Pavilion Signature Eggs,24X7 Breakfasts,Pavilion Signature Eggs,Updated
+58,IRD,22,Fritter Platter*,11201005,1125.0,1125.0,Local Love A La Carte,,Local Love A La Carte,,Updated
+59,IRD,22,Vazhaipoo Cutlet*,11201004,1195.0,1195.0,Local Love A La Carte,,Local Love A La Carte,,Updated
+60,IRD,22,Idli*,10400002,1025.0,1025.0,24X7 Breakfasts,South Indian Tiffin,24X7 Breakfasts,South Indian Tiffin,Updated
+61,IRD,22,Medu Vada*,10400005,1025.0,1025.0,24X7 Breakfasts,South Indian Tiffin,24X7 Breakfasts,South Indian Tiffin,Updated
+62,IRD,22,Madras Fried Chicken*,11301001,1525.0,1525.0,Local Love A La Carte,,Local Love A La Carte,,Updated
+63,IRD,22,Karuvepillai Yera*,11301002,1595.0,1595.0,Local Love A La Carte,,Local Love A La Carte,,Updated
+64,IRD,22,Masala Uttappam*,10400003,1025.0,1025.0,24X7 Breakfasts,South Indian Tiffin,24X7 Breakfasts,South Indian Tiffin,Updated
+65,IRD,22,Meen Varuval*,11301003,1525.0,1525.0,Local Love A La Carte,,Local Love A La Carte,,Updated
+66,IRD,22,Vendagi Korma*,12700002,1495.0,1495.0,Local Love A La Carte,,Local Love A La Carte,,Updated
+67,IRD,22,Melagu Kozhi Chettinad*,12700010,1725.0,1725.0,Local Love A La Carte,,Local Love A La Carte,,Updated
+68,IRD,22,Mutton Melagu Fry*,12700012,1725.0,1725.0,Local Love A La Carte,,Local Love A La Carte,,Updated
+69,IRD,22,Prawn Gassi*,12700008,1825.0,1825.0,Local Love A La Carte,,Local Love A La Carte,,Updated
+70,IRD,22,Meen Da Gassi*,12700006,1725.0,1725.0,Local Love A La Carte,,Local Love A La Carte,,Updated
+71,IRD,22,Malabar Kozhi Kari*,12700011,1725.0,1725.0,Local Love A La Carte,,Local Love A La Carte,,Updated
+72,IRD,22,Pondicherry Pork Roast*,12700013,1795.0,1795.0,Local Love A La Carte,,Local Love A La Carte,,Updated
+73,IRD,22,Batata Curry*,12700003,1495.0,1495.0,Local Love A La Carte,,Local Love A La Carte,,Updated
+74,IRD,22,Tomato Pappu*,12700005,1325.0,1325.0,Local Love A La Carte,,Local Love A La Carte,,Updated
+75,IRD,22,Vendakai More Kozhambu*,12700004,1495.0,1495.0,Local Love A La Carte,,Local Love A La Carte,,Updated
+76,IRD,22,"Chickpea Spinach Patty, Red Pepper Relish And Native Goat Cheese- Kids portion*",11000075,695.0,695.0,Ollies Club Treats,Ollies Pantry Burgers,Ollies Club Treats,Ollies Pantry Burgers,Updated
+77,IRD,22,Sunheri Paneer Tikka*,11201001,1175.0,1175.0,Kitchens Of India A La Carte,,Kitchens Of India A La Carte,,Updated
+78,IRD,22,Mini Samosas*,13800005,1195.0,1195.0,Kitchens Of India A La Carte,,Kitchens Of India A La Carte,,Updated
+79,IRD,22,Herbed Chicken Mince Patty Burger- Kids Portion*,11000097,713.0,713.0,Ollies Club Treats,Ollies Pantry Burgers,Ollies Club Treats,Ollies Pantry Burgers,Updated
+80,IRD,22,Murgh Laal Mirchi Tikka*,11301004,1395.0,1395.0,Kitchens Of India A La Carte,,Kitchens Of India A La Carte,,Updated
+81,IRD,22,Bobby Bay Flipper- Kids Portion*,11000098,713.0,713.0,Ollies Club Treats,Ollies Pantry Burgers,Ollies Club Treats,Ollies Pantry Burgers,Updated
+82,IRD,22,Poori Aloo*,10500028,1195.0,1195.0,24X7 Breakfasts,North Indian Signaturess,24X7 Breakfasts,North Indian Signaturess,Updated
+83,IRD,22,Palak Chaman Kofta*,13800015,1525.0,1525.0,Kitchens Of India A La Carte,,Kitchens Of India A La Carte,,Updated
+84,IRD,22,Stuffed Paratha*,10300002,1195.0,1195.0,24X7 Breakfasts,North Indian Signaturess,24X7 Breakfasts,North Indian Signaturess,Updated
+85,IRD,22,Paneer- E - Mashooq*,12501002,1525.0,1525.0,Kitchens Of India A La Carte,,Kitchens Of India A La Carte,,Updated
+86,IRD,22,Dal Makhani*,12501006,1245.0,1245.0,Kitchens Of India A La Carte,,Kitchens Of India A La Carte,,Updated
+87,IRD,22,Yellow Dal Tadka*,12501005,1195.0,1195.0,Kitchens Of India A La Carte,,Kitchens Of India A La Carte,,Updated
+88,IRD,22,Lahsooni Jhinga*,13800013,1825.0,1825.0,Kitchens Of India A La Carte,,Kitchens Of India A La Carte,,Updated
+89,IRD,22,Delhi Butter Chicken***,13800011,1695.0,1695.0,Kitchens Of India A La Carte,,Kitchens Of India A La Carte,,Updated
+90,IRD,22,Gosht Taar Korma*,12501009,1725.0,1725.0,Kitchens Of India A La Carte,,Kitchens Of India A La Carte,,Updated
+91,IRD,22,Welcommeal- Paneer- E - Mashooq*,12700020,1999.0,1999.0,Kitchens Of India A La Carte,Welcommeal- Kitchen Of India,Kitchens Of India A La Carte,Welcommeal- Kitchen Of India,Updated
+92,IRD,22,Continental Breakfast*,10500029,1375.0,1375.0,24X7 Breakfasts,Composite Breakfast Experience,24X7 Breakfasts,Composite Breakfast Experience,Updated
+93,IRD,22,Welcommeal- Palak Chaman Kofta*,12700021,1999.0,1999.0,Kitchens Of India A La Carte,Welcommeal- Kitchen Of India,Kitchens Of India A La Carte,Welcommeal- Kitchen Of India,Updated
+94,IRD,22,Nimona Pulao*,13800019,1495.0,1495.0,Biryani & Pulao,,Biryani & Pulao,,Updated
+95,IRD,22,Welcommeal- Lahsooni Jhinga*,12700022,2075.0,2075.0,Kitchens Of India A La Carte,Welcommeal- Kitchen Of India,Kitchens Of India A La Carte,Welcommeal- Kitchen Of India,Updated
+96,IRD,22,Welcommeal- Gosht Taar Korma*,12700023,2075.0,2075.0,Kitchens Of India A La Carte,Welcommeal- Kitchen Of India,Kitchens Of India A La Carte,Welcommeal- Kitchen Of India,Updated
+97,IRD,22,Finest Selection Of Seasonal Fruits*,12100120,525.0,525.0,Sweet Adventures,,Sweet Adventures,,Updated
+98,IRD,22,Steamed Basmati Rice*,13800003,425.0,425.0,Kitchens Of India A La Carte,Rice Fair,Kitchens Of India A La Carte,Rice Fair,Updated
+99,IRD,22,Dal Khichdi*,12501029,1325.0,1325.0,Kitchens Of India A La Carte,Rice Fair,Kitchens Of India A La Carte,Rice Fair,Updated
+100,IRD,22,Gulab Jamun*,12100127,720.0,720.0,Sweet Adventures,,Sweet Adventures,,Updated
+101,IRD,22,Subz Dum Biriyani*,12501004,1495.0,1495.0,Kitchens Of India A La Carte,Rice Fair,Kitchens Of India A La Carte,Rice Fair,Updated
+102,IRD,22,Badam Halwa*,12100125,720.0,720.0,Sweet Adventures,,Sweet Adventures,,Updated
+103,IRD,22,Taap Nalli Biriyani*,12501010,1825.0,1825.0,Kitchens Of India A La Carte,Rice Fair,Kitchens Of India A La Carte,Rice Fair,Updated
+104,IRD,22,Elaneer Payasam*,12100126,720.0,720.0,Sweet Adventures,,Sweet Adventures,,Updated
+105,IRD,22,Rasmalai*,12000015,720.0,720.0,Sweet Adventures,,Sweet Adventures,,Updated
+106,IRD,22,Roast Apple Amaranth Crumble*,12100113,775.0,775.0,Sweet Adventures,,Sweet Adventures,,Updated
+107,IRD,22,Charoli Milk Chocolate Mousse*,12100114,775.0,775.0,Sweet Adventures,,Sweet Adventures,,Updated
+108,IRD,22,Chocolate Pot*,12100115,895.0,895.0,Sweet Adventures,,Sweet Adventures,,Updated
+109,IRD,22,Tropical Caramel Custard*,12000014,895.0,895.0,Sweet Adventures,,Sweet Adventures,,Updated
+110,IRD,22,Baked Cheese Cake*,12100116,825.0,825.0,Sweet Adventures,,Sweet Adventures,,Updated
+111,IRD,22,Banoffee N’ Cream*,12100118,825.0,825.0,Sweet Adventures,,Sweet Adventures,,Updated
+112,IRD,22,Classic Vanilla Frozen Cream*,12100300,445.0,445.0,Sweet Adventures,Frozen Creams,Sweet Adventures,Frozen Creams,Updated
+113,IRD,22,Chapati*,13000056,425.0,425.0,Kitchens Of India A La Carte,Choice Of Indian Breads,Kitchens Of India A La Carte,Choice Of Indian Breads,Updated
+114,IRD,22,Caesar's Salad Veg- Kids Portion*,11000072,548.0,548.0,Ollies Club Treats,,Ollies Club Treats,,Updated
+115,IRD,22,Butter Naan*,13000004,425.0,425.0,Kitchens Of India A La Carte,Choice Of Indian Breads,Kitchens Of India A La Carte,Choice Of Indian Breads,Updated
+116,IRD,22,Caesar’s Salad Non Veg- Kids Portion*,11200086,648.0,648.0,Ollies Club Treats,,Ollies Club Treats,,Updated
+117,IRD,22,Mango Frozen Cream*,12100301,445.0,445.0,Sweet Adventures,Frozen Creams,Sweet Adventures,Frozen Creams,Updated
+118,IRD,22,Slow Roast Tomato Soup- Kids Portion*,12200003,410.0,410.0,Ollies Club Treats,,Ollies Club Treats,,Updated
+119,IRD,22,Very Berry Strawberry Frozen Cream*,12100302,445.0,445.0,Sweet Adventures,Frozen Creams,Sweet Adventures,Frozen Creams,Updated
+120,IRD,22,Lachcha Paratha*,13000059,425.0,425.0,Kitchens Of India A La Carte,Choice Of Indian Breads,Kitchens Of India A La Carte,Choice Of Indian Breads,Updated
+121,IRD,22,Twin Flower Casserole- Kids Portion*,11000076,625.0,625.0,Ollies Club Treats,,Ollies Club Treats,,Updated
+122,IRD,22,Khamiri Kulcha*,13000065,425.0,425.0,Kitchens Of India A La Carte,Choice Of Indian Breads,Kitchens Of India A La Carte,Choice Of Indian Breads,Updated
+123,IRD,22,Chocolate Frozen Cream*,12100119,445.0,445.0,Sweet Adventures,Frozen Creams,Sweet Adventures,Frozen Creams,Updated
+124,IRD,22,Mushroom And Asparagus Mac N' Cheese- Kids Portion*,11000077,695.0,695.0,Ollies Club Treats,,Ollies Club Treats,,Updated
+125,IRD,22,Saat Anaj Ki Roti*,13000062,425.0,425.0,Kitchens Of India A La Carte,Choice Of Indian Breads,Kitchens Of India A La Carte,Choice Of Indian Breads,Updated
+126,IRD,22,Chicken Sausage And Spinach Mac N’ Cheese- Kids Portion*,11200084,725.0,725.0,Ollies Club Treats,,Ollies Club Treats,,Updated
+127,IRD,22,Mughlai Paratha*,13000066,425.0,425.0,Kitchens Of India A La Carte,Choice Of Indian Breads,Kitchens Of India A La Carte,Choice Of Indian Breads,Updated
+128,IRD,22,Fish N' Fries- Kids Portion*,12200010,845.0,845.0,Ollies Club Treats,,Ollies Club Treats,,Updated
+129,IRD,22,Besan Methi Roti*,13000063,425.0,425.0,Kitchens Of India A La Carte,Choice Of Indian Breads,Kitchens Of India A La Carte,Choice Of Indian Breads,Updated
+130,IRD,22,Garlic Naan*,13000058,425.0,425.0,Kitchens Of India A La Carte,Choice Of Indian Breads,Kitchens Of India A La Carte,Choice Of Indian Breads,Updated
+131,IRD,22,Li’l Chocolate Pot- Kids Portion*,12100110,445.0,445.0,Ollies Club Treats,,Ollies Club Treats,,Updated
+132,IRD,22,Frozen Creams- Kids Portion*,12100139,223.0,223.0,Ollies Club Treats,,Ollies Club Treats,,Updated
+133,IRD,22,Gehun Khamiri*,13000064,425.0,425.0,Kitchens Of India A La Carte,Choice Of Indian Breads,Kitchens Of India A La Carte,Choice Of Indian Breads,Updated
+134,IRD,22,Welcommeal -Vendakai More Kozhambu*,12700016,1999.0,1999.0,Local Love A La Carte,Welcommeal -Local Love,Local Love A La Carte,Welcommeal -Local Love,Updated
+135,IRD,22,Welcommeal- Vendagi Korma*,12700017,1999.0,1999.0,Local Love A La Carte,Welcommeal -Local Love,Local Love A La Carte,Welcommeal -Local Love,Updated
+136,IRD,22,Welcommeal- Melagu Kozhi Chettinad*,12700019,2025.0,2025.0,Local Love A La Carte,Welcommeal -Local Love,Local Love A La Carte,Welcommeal -Local Love,Updated
+137,IRD,22,Welcommeal- Meen Da Gassi*,12700018,2075.0,2075.0,Local Love A La Carte,Welcommeal -Local Love,Local Love A La Carte,Welcommeal -Local Love,Updated
+138,IRD,22,Malabar Parotta*,13000052,425.0,425.0,Local Love A La Carte,South Indian Section,Local Love A La Carte,South Indian Section,Updated
+139,IRD,22,Kal Dosa*,13000053,425.0,425.0,Local Love A La Carte,South Indian Section,Local Love A La Carte,South Indian Section,Updated
+140,IRD,22,Idiyappam*,13000054,425.0,425.0,Local Love A La Carte,South Indian Section,Local Love A La Carte,South Indian Section,Updated
+141,IRD,22,Bisi Bela Bhaat*,13100002,1325.0,1325.0,Local Love A La Carte,Rice Fair,Local Love A La Carte,Rice Fair,Updated
+142,IRD,22,Thayyir Sadam*,13100003,975.0,975.0,Local Love A La Carte,Rice Fair,Local Love A La Carte,Rice Fair,Updated
+143,IRD,22,Ponni Sadam*,13100004,425.0,425.0,Local Love A La Carte,Rice Fair,Local Love A La Carte,Rice Fair,Updated
+144,IRD,22,Kerala Red Rice*,13100005,425.0,425.0,Local Love A La Carte,Rice Fair,Local Love A La Carte,Rice Fair,Updated
+145,IRD,22,Kozhi Biryani*,13100006,1825.0,1825.0,Local Love A La Carte,Rice Fair,Local Love A La Carte,Rice Fair,Updated
+146,IRD,22,Kaikari Biryani*,15000280,1495.0,1495.0,Local Love A La Carte,Rice Fair,Local Love A La Carte,Rice Fair,Updated
+147,IRD,22,Mutton Kheema Biryani*,13100089,1825.0,1825.0,Local Love A La Carte,Rice Fair,Local Love A La Carte,Rice Fair,Updated
+148,IRD,22,Malabar Prawn Biryani*,13100090,1825.0,1825.0,Local Love A La Carte,Rice Fair,Local Love A La Carte,Rice Fair,Updated
+149,IRD,22,Classic Vanilla*,90800046,450.0,450.0,Iced Shakes,,Iced Shakes,,Updated
+150,IRD,22,Classic Vanilla (Almond Drink)*,90800047,450.0,450.0,Iced Shakes,,Iced Shakes,,Updated
+151,IRD,22,Turmeric And Honey*,90800048,450.0,450.0,Iced Shakes,,Iced Shakes,,Updated
+152,IRD,22,Turmeric And Honey (Almond Drink)*,90800049,450.0,450.0,Iced Shakes,,Iced Shakes,,Updated
+153,IRD,22,Forest Berry*,90800050,450.0,450.0,Iced Shakes,,Iced Shakes,,Updated
+154,IRD,22,Forest Berry (Almond Drink)*,90800051,450.0,450.0,Iced Shakes,,Iced Shakes,,Updated
+155,IRD,22,Banana And Cinnamon*,90800052,450.0,450.0,Iced Shakes,,Iced Shakes,,Updated
+156,IRD,22,Banana And Cinnamon (Almond Drink)*,90800053,450.0,450.0,Iced Shakes,,Iced Shakes,,Updated
+157,IRD,22,Chocolate And Salted Caramel Iced Shake*,90800054,450.0,450.0,Iced Shakes,,Iced Shakes,,Updated
+158,IRD,22,Chocolate And Salted Caramel Iced Shake (Almond Drink)*,90800055,450.0,450.0,Iced Shakes,,Iced Shakes,,Updated
+159,IRD,22,Pavilion Cold Coffee*,90800056,450.0,450.0,Iced Shakes,,Iced Shakes,,Updated
+160,IRD,22,Cardamom And Pistachio Lassi*,90800057,450.0,450.0,Lassi,,Lassi,,Updated
+161,IRD,22,Mango Lassi*,90800058,450.0,450.0,Lassi,,Lassi,,Updated
+162,IRD,22,Cumin And Coriander Lassi*,90800059,450.0,450.0,Lassi,,Lassi,,Updated
+163,IRD,22,Orange*,90600011,450.0,450.0,Pavilion Juicery,,Pavilion Juicery,,Updated
+164,IRD,22,Sweet Lime*,90500027,450.0,450.0,Pavilion Juicery,,Pavilion Juicery,,Updated
+165,IRD,22,Watermelon*,90500024,450.0,450.0,Pavilion Juicery,,Pavilion Juicery,,Updated
+166,IRD,22,Pineapple*,90500025,450.0,450.0,Pavilion Juicery,,Pavilion Juicery,,Updated
+167,IRD,22,Mango Juice*,90800065,425.0,425.0,Preserved Juices,,Preserved Juices,,Updated
+168,IRD,22,Orange Juice*,90800066,425.0,425.0,Preserved Juices,,Preserved Juices,,Updated
+169,IRD,22,Apple Juice*,90600022,425.0,425.0,Preserved Juices,,Preserved Juices,,Updated
+170,IRD,22,Cranberry Juice*,90600017,425.0,425.0,Preserved Juices,,Preserved Juices,,Updated
+171,IRD,22,Mixed Fruit Juice*,90600020,425.0,425.0,Preserved Juices,,Preserved Juices,,Updated
+172,IRD,22,Litchi Juice*,90600019,425.0,425.0,Preserved Juices,,Preserved Juices,,Updated
+173,IRD,22,"Cucumber, Spinach, Celery And Apple*",90800063,450.0,450.0,Pavilion Juicery,Caringly Selected Combinations:,Pavilion Juicery,Caringly Selected Combinations:,Updated
+174,IRD,22,"Apple, Beetroot And Ginger*",90800064,450.0,450.0,Pavilion Juicery,Caringly Selected Combinations:,Pavilion Juicery,Caringly Selected Combinations:,Updated
+175,IRD,22,Assam Tea,90200045,450.0,450.0,Tea,,Tea,,Updated
+176,IRD,22,Darjeeling Tea,90200046,450.0,450.0,Tea,,Tea,,Updated
+177,IRD,22,Green Tea,90200047,450.0,450.0,Tea,,Tea,,Updated
+178,IRD,22,ITC Blend Tea,90200051,450.0,450.0,Tea,,Tea,,Updated
+179,IRD,22,South indian Filter Coffee,90300020,450.0,450.0,Coffee,,Coffee,,Updated
+180,IRD,22,Latte,90300030,450.0,450.0,Coffee,,Coffee,,Updated
+181,IRD,22,Cappuccino,90300008,450.0,450.0,Coffee,,Coffee,,Updated
+182,IRD,22,Espresso,90300027,450.0,450.0,Coffee,,Coffee,,Updated
+183,IRD,22,Decaffeinated Coffee,90300024,450.0,450.0,Coffee,,Coffee,,Updated
+184,IRD,22,Coffee Freshly Brewed,90300040,450.0,450.0,Coffee,,Coffee,,Updated
+185,IRD,22,Hot Chocolate,90800016,450.0,450.0,Hot Beverage,,Hot Beverage,,Updated
+186,IRD,22,The Ruby Soup,12400151,825.0,825.0,Wellness Soup and Starters,,Wellness Soup and Starters,,Updated
+187,IRD,22,Pavilion Good for You Souper,12400152,825.0,825.0,Wellness Soup and Starters,,Wellness Soup and Starters,,Updated
+188,IRD,22,Edamame Black Rice Khichdi,12400154,1775.0,1775.0,The Indi-Genous Box,,The Indi-Genous Box,,Updated
+189,IRD,22,Gucchi Varr,12400155,1775.0,1775.0,The Indi-Genous Box,,The Indi-Genous Box,,Updated
+190,IRD,22,Murgh Varr,12400156,1825.0,1825.0,The Indi-Genous Box,,The Indi-Genous Box,,Updated
+191,IRD,22,Pearl Millet Mushroom Risotto,12400158,1725.0,1725.0,The Western Wellness Box,,The Western Wellness Box,,Updated
+192,IRD,22,Pearl Millet Prawn Risotto,12400159,1925.0,1925.0,The Western Wellness Box,,The Western Wellness Box,,Updated
+193,IRD,22,Ginger Cilantro Steamed Fish,12400157,1825.0,1825.0,Asian Wellness Box,,Asian Wellness Box,,Updated
+194,IRD,22,Almond Flour Brownie,12400160,795.0,795.0,Dessert,,Dessert,,Updated
+195,IRD,22,Bajra Phirni,12400161,795.0,795.0,Dessert,,Dessert,,Updated
+196,IRD,22,Banana Almond Smoothie,10100112,450.0,450.0,Beverages,,Beverages,,Updated
+197,IRD,22,Turmeric Pepper Milk,10100113,450.0,450.0,Beverages,,Beverages,,Updated
+198,IRD,22,Cardamom Mint Tea,10100114,425.0,425.0,Beverages,,Beverages,,Updated
+199,IRD,22,Avocado Toast with Feta and Edamame,10100115,1295.0,1295.0,Grazing Plates & Soups,,Grazing Plates & Soups,,Updated
+200,IRD,22,Tomato Mozzarella Caprese,10100116,1065.0,1065.0,Grazing Plates & Soups,,Grazing Plates & Soups,,Updated
+201,IRD,22,Hearty Bean Soup Veg,10100117,820.0,820.0,Grazing Plates & Soups,,Grazing Plates & Soups,,Updated
+202,IRD,22,Indie Spinach Ricotta Dumplings,10100119,1595.0,1595.0,Comfort Classics,,Comfort Classics,,Updated
+203,IRD,22,Savoury Oat Poha,10100118,995.0,995.0,Comfort Classics,,Comfort Classics,,Updated
+204,IRD,22,Kodo Millet and Apple Pudding,10100121,725.0,725.0,Desserts,,Desserts,,Updated
+
+
+
+Category Information,
+Restaurant ID, Restaurant Name, Category Name, Category Order, Sub-Category Name, Sub-Category Order
+22,IRD,Grazing Plates,1,Dimsum,1
+22,IRD,Grazing Plates,1,Pavilion Caesar’S Salad,2
+22,IRD,Grazing Plates,1,Baked Potato Spudz,3
+22,IRD,Grazing Plates,1,Fritter Flights,4
+22,IRD,From The Tureen,2,,
+22,IRD,"Stacks, Rolls & Wraps",3,Club Sandwiches,1
+22,IRD,"Stacks, Rolls & Wraps",3,Signature Croques,2
+22,IRD,"Stacks, Rolls & Wraps",3,Pull Apart Buns,3
+22,IRD,"Stacks, Rolls & Wraps",3,Butter Brioche Rolls,4
+22,IRD,"Stacks, Rolls & Wraps",3,Pantry Burgers,5
+22,IRD,"Stacks, Rolls & Wraps",3,Kathi Wraps,6
+22,IRD,Asian Comfort Bowls,4,Thai Red Curry Bowl,1
+22,IRD,Asian Comfort Bowls,4,Indonesian Rendang Curry,2
+22,IRD,Asian Comfort Bowls,4,Korean Rice Bowl,3
+22,IRD,Asian Comfort Bowls,4,Chinese Kung Pao Bowl,4
+22,IRD,Comfort Classics,5,,
+22,IRD,Artisan Pasta & Risotto,6,Penne I Spaghetti,1
+22,IRD,Artisan Pasta & Risotto,6,Mac N’ Cheese,2
+22,IRD,Artisan Pasta & Risotto,6,Risotto,3
+22,IRD,Local Love A La Carte,7,Welcommeal -Local Love,1
+22,IRD,Local Love A La Carte,7,South Indian Section,2
+22,IRD,Local Love A La Carte,7,Rice Fair,3
+22,IRD,Kitchens Of India A La Carte,8,Welcommeal- Kitchen Of India,1
+22,IRD,Kitchens Of India A La Carte,8,Rice Fair,2
+22,IRD,Kitchens Of India A La Carte,8,Choice Of Indian Breads,3
+22,IRD,Biryani & Pulao,9,,
+22,IRD,Sweet Adventures,10,Ice Creams,1
+22,IRD,Sweet Adventures,10,Frozen Creams,2
+22,IRD,Ollies Club Treats,11,Ollies Pantry Burgers,1
+22,IRD,24X7 Breakfasts,12,Pavilion Boulangerie,1
+22,IRD,24X7 Breakfasts,12,Pavilion Boulangerie,2
+22,IRD,24X7 Breakfasts,12,Cereals and Such,3
+22,IRD,24X7 Breakfasts,12,Yoghurt Bar,4
+22,IRD,24X7 Breakfasts,12,Toast Bread,5
+22,IRD,24X7 Breakfasts,12,Breakfast Sides,6
+22,IRD,24X7 Breakfasts,12,Breakfats classics,7
+22,IRD,24X7 Breakfasts,12,Pavilion Signature Eggs,8
+22,IRD,24X7 Breakfasts,12,South Indian Tiffin,9
+22,IRD,24X7 Breakfasts,12,North Indian Signaturess,10
+22,IRD,24X7 Breakfasts,12,Composite Breakfast Experience,11
+22,IRD,Iced Shakes,14,,
+22,IRD,Lassi,16,,
+22,IRD,Pavilion Juicery,18,Caringly Selected Combinations:,1
+22,IRD,Pavilion Juicery,18,Caringly Selected Combinations:,2
+22,IRD,Preserved Juices,20,,
+22,IRD,Tea,23,,
+22,IRD,Coffee,26,,
+22,IRD,Hot Beverage,29,,
+22,IRD,Wellness Soup and Starters,33,,
+22,IRD,The Indi-Genous Box,37,,
+22,IRD,The Western Wellness Box,41,,
+22,IRD,Asian Wellness Box,45,,
+22,IRD,Dessert,49,,
+22,IRD,Beverages,54,,
+22,IRD,Grazing Plates & Soups,59,,
+22,IRD,Comfort Classics,64,,
+22,IRD,Desserts,69,,
+

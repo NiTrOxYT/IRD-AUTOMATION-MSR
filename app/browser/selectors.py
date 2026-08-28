@@ -76,11 +76,20 @@ class SelectorRegistry:
                     ".process-menu-btn", "button[id*='process']", "button:has-text('Process Menu')", "button:has-text('Process')"
                 ],
                 "download_action_point": [
+                    "button:has-text('Download Action Points')", "a:has-text('Download Action Points')", "text='Download Action Points'",
                     "button:has-text('Download Action Point')", "a:has-text('Download Action Point')", "text='Download Action Point'",
                     "a[href*='download']", ".download-btn", "button:has-text('Download')", "a:has-text('Download CSV')"
+                ],
+                "download_action_points": [
+                    "button:has-text('Download Action Points')", "a:has-text('Download Action Points')", "text='Download Action Points'",
+                    "button:has-text('Download Action Point')", "a:has-text('Download Action Point')", "text='Download Action Point'",
+                    "a[href*='download']", ".download-btn", "button:has-text('Download')", "a:has-text('Download CSV')"
+                ],
+                "fetch_menu_loading": [
+                    ".spinner-border", ".loading", ".spinner", ".progress-bar", "text='Processing...'", "text='Loading...'"
                 ]
             }
-            return defaults.get(step_key, [f"text='{step_key}'"])
+            return defaults.get(step_key, [f".{step_key}"])
 
         selectors = []
         if sel.primary_selector:

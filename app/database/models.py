@@ -78,6 +78,10 @@ class RunSiteResult:
     retry_count: int = 0
     error_message: str = ""
     log_snippet: str = ""
+    fetch_menu_status: str = "UNKNOWN"
+    process_latest_menu_status: str = "UNKNOWN"
+    download_status: str = "UNKNOWN"
+    failure_code: str = "NONE"
 
 @dataclass
 class Selector:

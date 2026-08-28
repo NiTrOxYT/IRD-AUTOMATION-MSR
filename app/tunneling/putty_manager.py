@@ -154,15 +154,10 @@ class PuTTYManager:
         # Forwarding Specification: Local Port, Site IP, Site Port
         local_port = getattr(site, "local_port", 18001) or 18001
         site_ip = getattr(site, "site_ip", "") or getattr(site, "remote_host", "127.0.0.1") or "127.0.0.1"
-        site_port = getattr(site, "site_port", 0) or getattr(site, "remote_port", 0) or global_tunnel_cfg.get("tunnel_remote_port") or 80
-        tunnel_type = str(getattr(site, "tunnel_type", "") or global_tunnel_cfg.get("tunnel_type") or "local").lower()
-
-        if tunnel_type in ("reverse", "-r"):
-            # Reverse forwarding: -R <site_port>:<site_ip>:<local_port>
-            cmd.extend(["-R", f"{site_port}:{site_ip}:{local_port}"])
-        else:
-            # Local forwarding (default): -L <local_port>:<site_ip>:<site_port>
-            cmd.extend(["-L", f"{local_port}:{site_ip}:{site_port}"])
+        site_port = getattr(site, "site_port", 0) or getattr(site, "remote_port", 0) or global_tunnel_cfg.get("tunnel_remote_port") or 8082
+        
+        # Architecture is LOCAL PORT FORWARDING (-L) for desktop browser access (127.0.0.1:<local_port> -> <site_ip>:<site_port>)
+        cmd.extend(["-L", f"{local_port}:{site_ip}:{site_port}"])
 
         # Target SSH Host
         if not (auth_type == "session" and session_name):
