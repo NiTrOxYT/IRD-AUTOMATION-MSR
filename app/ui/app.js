@@ -1099,6 +1099,90 @@ async function runRemoteConnectivityTestUI() {
   }
 }
 
+// --- DIAGNOSTICS & PACKAGE HEALTH TAB HELPERS ---
+async function loadPackageHealth() {
+  const badge = document.getElementById('badge-package-overall');
+  const container = document.getElementById('package-health-checklist');
+  if (badge) {
+    badge.textContent = 'CHECKING...';
+    badge.className = 'status-badge badge-ready';
+  }
+
+  try {
+    const res = await fetch('/api/diagnostics/package-health');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    if (badge) {
+      badge.textContent = data.overall_status || (data.all_ok ? 'READY' : 'INCOMPLETE');
+      badge.className = `status-badge ${data.all_ok ? 'badge-no-action' : 'badge-failed'}`;
+    }
+
+    if (container && Array.isArray(data.checks)) {
+      container.innerHTML = data.checks.map(c => {
+        const badgeClass = c.status === 'PASS' ? 'badge-no-action' : (c.status === 'WARN' || c.status === 'INFO' ? 'badge-action-found' : 'badge-failed');
+        return `
+          <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 12px 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <span style="font-weight: 600; color: #f8fafc; font-size: 0.95rem;">${escapeHtml(c.name)}</span>
+              <span class="status-badge ${badgeClass}">${escapeHtml(c.status)}</span>
+            </div>
+            <div style="font-family: monospace; font-size: 0.8rem; color: #94a3b8; margin-bottom: 4px; word-break: break-all;">${escapeHtml(c.path)}</div>
+            <div style="font-size: 0.825rem; color: #cbd5e1;">${escapeHtml(c.description)}</div>
+          </div>
+        `;
+      }).join('');
+    }
+  } catch (e) {
+    console.error("Error loading package health:", e);
+    if (badge) {
+      badge.textContent = 'ERROR';
+      badge.className = 'status-badge badge-failed';
+    }
+    if (container) {
+      container.innerHTML = `<div style="color: var(--accent-red); padding: 12px;">Failed to load package health: ${escapeHtml(e.message)}</div>`;
+    }
+  }
+}
+
+async function scanWindows() {
+  const tbody = document.getElementById('tbody-diagnostics');
+  if (!tbody) return;
+
+  tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #94a3b8; padding: 20px;">Scanning active desktop windows...</td></tr>`;
+
+  try {
+    const res = await fetch('/api/diagnostics/windows');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const windows = await res.json();
+
+    if (!Array.isArray(windows) || windows.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #94a3b8; padding: 20px;">No top-level windows detected</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = windows.map(w => {
+      const hwndStr = w.hwnd ? `0x${w.hwnd.toString(16).toUpperCase()}` : 'N/A';
+      const procStr = w.process_name ? `${escapeHtml(w.process_name)} (PID: ${w.pid || 'N/A'})` : (w.process || 'N/A');
+      const btnList = (w.buttons && w.buttons.length > 0)
+        ? w.buttons.map(b => `<span style="display: inline-block; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); color: #93c5fd; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; margin: 2px;">${escapeHtml(b.text || b.class || 'Button')}</span>`).join(' ')
+        : `<span style="color: #64748b; font-size: 0.8rem; font-style: italic;">No button controls found</span>`;
+
+      return `
+        <tr>
+          <td style="font-family: monospace; color: #94a3b8;">${hwndStr}</td>
+          <td style="font-weight: 500; color: #e2e8f0;">${procStr}</td>
+          <td style="color: #f8fafc; font-weight: 500;">${escapeHtml(w.title || 'Untitled')}</td>
+          <td>${btnList}</td>
+        </tr>
+      `;
+    }).join('');
+  } catch (e) {
+    console.error("Error scanning windows:", e);
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--accent-red); padding: 20px;">Failed to scan windows: ${escapeHtml(e.message)}</td></tr>`;
+  }
+}
+
 async function runFnbTunnelTestUI() {
 
   const banner = document.getElementById('fnb-feedback-banner');
@@ -1568,6 +1652,8 @@ document.addEventListener("click", function(event) {
 });
 
 window.startAutomation = startAutomation;
+window.loadPackageHealth = loadPackageHealth;
+window.scanWindows = scanWindows;
 
 // --- MAIN APPLICATION ENTRY POINT ---
 document.addEventListener('DOMContentLoaded', () => {
