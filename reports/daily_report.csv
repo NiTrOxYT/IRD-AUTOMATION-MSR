@@ -1,2 +1,2 @@
 ﻿Date,Site,Status,Action Point Status,CSV File,Third Line,Start Time,End Time,Duration (s),Retries,Error
-2026-09-02,ITC Grand Chola,COMPLETED,NO ACTION POINT,,[DRY RUN PASSED],20:07:50,20:07:51,1.01,0,
+2026-09-30,"Mementos by ITC Hotels, Ekaaya Udaipur",FAILED,FAILED,,,05:06:18,05:06:20,2.33,0,Site automation failed: TUNNEL_PROCESS_DIED

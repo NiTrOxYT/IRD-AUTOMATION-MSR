@@ -1,0 +1,256 @@
+12:14:03 | INFO  | IRD_Seed | Database already contains 18 sites. Checking port assignments...
+12:14:03 | INFO  | IRD_Main | IRD Sync Automation server started at http://127.0.0.1:18492
+12:14:04 | INFO  | IRD_Main | [PYWEBVIEW] Creating desktop window
+12:14:04 | INFO  | IRD_Main | [PYWEBVIEW] UI HTML path: C:\IRD AUTO\app\ui\index.html
+12:14:04 | INFO  | IRD_Main | [PYWEBVIEW] UI HTML exists: True
+12:14:04 | INFO  | IRD_Main | [PYWEBVIEW] UI JavaScript path: C:\IRD AUTO\app\ui\app.js
+12:14:04 | INFO  | IRD_Main | [PYWEBVIEW] UI JavaScript exists: True
+12:14:04 | INFO  | IRD_Main | Opening PyWebView desktop window...
+12:15:13 | INFO  | IRD_Main | [PHASE17][API] START SYNC request received
+12:15:13 | INFO  | IRD_Main | [PHASE17][API] Trace ID: STARTSYNC-1788417913902
+12:15:13 | INFO  | IRD_Main | [PHASE17][API] Request body: {'site_ids': [67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 22], 'dry_run': False, 'trace_id': 'STARTSYNC-1788417913902'}
+12:15:13 | INFO  | IRD_Main | [API] START SYNC request received
+12:15:13 | INFO  | IRD_Main | [PHASE17][API] Selected site IDs: [67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 22]
+12:15:13 | INFO  | IRD_Main | [PHASE17][API] dry_run: False
+12:15:13 | INFO  | IRD_Main | [PHASE17][API] Calling workflow runner
+12:15:13 | INFO  | IRD_Main | [API] Selected site IDs: [67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 22]
+12:15:13 | INFO  | IRD_Main | [API] Automation start requested
+12:15:13 | INFO  | IRD_Main | [PHASE17][API] BEFORE scheduling runner
+12:15:13 | INFO  | IRD_Main | [PHASE17][API] AFTER scheduling runner
+12:15:13 | INFO  | IRD_Main | [PHASE17][API] Background task created
+12:15:13 | INFO  | IRD_Main | [PHASE17][API] Background task ID: 2409390588160
+12:15:13 | INFO  | IRD_Main | [API] Automation runner started
+12:15:13 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] ENTRY FUNCTION CALLED
+12:15:13 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Workflow entry reached
+12:15:13 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Trace ID: STARTSYNC-1788417913902
+12:15:13 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Selected site IDs: [67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 22]
+12:15:13 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Target sites resolved: ['WH Bhubaneswar', 'ITC Maurya', 'ITC Royal Bengal', 'ITC Kohenur', 'ITC Narmada', 'ITC Grand Goa', 'ITC Gardenia', 'ITC Windsor', 'WH Amritsar', 'ITC Mughal Agra', 'WH Guntur', 'WH Coimbatore', 'ITC Sonar', 'ITC Grand Bharat, Gurugram', 'WH Mohali by ITC', 'ITC Rajputana', 'ITC Grand Central, Mumbai', 'ITC Grand Chola']
+12:15:13 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Number of sites: 18
+12:15:13 | INFO  | IRD_WorkflowRunner | Created new batch run #48 for 18 sites.
+12:15:13 | INFO  | IRD_WorkflowRunner | [RUNNER] Automation workflow starting
+12:15:13 | INFO  | IRD_WorkflowRunner | [RUNNER] Sites queued: 18
+12:15:13 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Starting site: WH Bhubaneswar (#67)
+12:15:13 | INFO  | IRD_WorkflowRunner | [RUNNER] Starting site: WH Bhubaneswar (#67)
+12:15:13 | INFO  | IRD_WorkflowRunner | 
+==========================================
+12:15:13 | INFO  | IRD_WorkflowRunner | [1/18] STARTING SITE: WH Bhubaneswar
+12:15:13 | INFO  | IRD_WorkflowRunner | ==========================================
+12:15:13 | INFO  | IRD_BrowserController | 12:15:13 | INFO | [WH Bhubaneswar] [PHASE17][TUNNEL] Starting tunnel for WH Bhubaneswar
+12:15:13 | INFO  | IRD_BrowserController | 12:15:13 | INFO | [WH Bhubaneswar] [PHASE17][BROWSER] Browser workflow starting for WH Bhubaneswar
+12:15:13 | INFO  | IRD_BrowserController | 12:15:13 | INFO | [WH Bhubaneswar] Starting reverse SSH tunnel verification...
+12:15:13 | INFO  | IRD_TunnelManager | 12:15:13 | INFO | [WH Bhubaneswar] PHASE 5E REAL FNB ENDPOINT VALIDATION STARTED
+12:15:13 | INFO  | IRD_TunnelManager | 12:15:13 | INFO | [WH Bhubaneswar] [TUNNEL] SSH server: 111.93.205.187:22
+12:15:13 | INFO  | IRD_TunnelManager | 12:15:13 | INFO | [WH Bhubaneswar] [TUNNEL] FNB target: 103.243.40.46:8082
+12:15:13 | INFO  | IRD_TunnelManager | 12:15:13 | INFO | [WH Bhubaneswar] [TUNNEL] Forward mode: LOCAL
+12:15:13 | INFO  | IRD_TunnelManager | 12:15:13 | INFO | [WH Bhubaneswar] [TUNNEL] Local endpoint: 127.0.0.1:18002
+12:15:13 | INFO  | IRD_TunnelManager | 12:15:13 | INFO | [WH Bhubaneswar] [TUNNEL] Remote target: 103.243.40.46:8082
+12:15:13 | INFO  | IRD_TunnelManager | 12:15:13 | INFO | [WH Bhubaneswar] [TUNNEL] TCP validation target: 127.0.0.1:18002
+12:15:13 | INFO  | IRD_TunnelManager | 12:15:13 | INFO | [WH Bhubaneswar] [TUNNEL] HTTP validation URL: http://localhost:18002/zmp/main-menu.do
+12:15:13 | INFO  | IRD_TunnelManager | 12:15:13 | INFO | [WH Bhubaneswar] Forward: -L 18002:103.243.40.46:8082
+12:15:13 | INFO  | IRD_TunnelManager | 12:15:13 | INFO | [WH Bhubaneswar] STEP 1: Validating bundled Plink executable...
+12:15:14 | INFO  | IRD_TunnelManager | 12:15:14 | INFO | [WH Bhubaneswar] Bundled Plink detected: tools\putty\plink.exe
+12:15:14 | INFO  | IRD_TunnelManager | 12:15:14 | INFO | [WH Bhubaneswar] STEP 2 & 3 & 4: Launching Plink to 111.93.205.187:22...
+12:15:14 | INFO  | IRD_TunnelManager | 12:15:14 | INFO | [WH Bhubaneswar] [TUNNEL] Plink command: C:\IRD AUTO\tools\putty\plink.exe -batch -N -ssh -P 22 -l sourik -pw ******** -L 18002:103.243.40.46:8082 111.93.205.187
+12:15:14 | INFO  | IRD_TunnelManager | 12:15:14 | INFO | [WH Bhubaneswar] Generated Plink Command: C:\IRD AUTO\tools\putty\plink.exe -batch -N -ssh -P 22 -l sourik -pw ******** -L 18002:103.243.40.46:8082 111.93.205.187
+12:15:14 | INFO  | IRD_TunnelManager | 12:15:14 | INFO | [WH Bhubaneswar] Plink process launched cleanly with PID: 17420
+12:15:14 | INFO  | IRD_TunnelManager | 12:15:14 | INFO | [WH Bhubaneswar] Waiting for SSH authentication & reverse tunnel setup (Timeout: 15s)...
+12:15:14 | INFO  | IRD_Main | [PHASE17][API] START SYNC request received
+12:15:14 | INFO  | IRD_Main | [PHASE17][API] Trace ID: STARTSYNC-1788417913903
+12:15:14 | INFO  | IRD_Main | [PHASE17][API] Request body: {'site_ids': [67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 22], 'dry_run': False, 'trace_id': 'STARTSYNC-1788417913903'}
+12:15:14 | INFO  | IRD_Main | [API] START SYNC request received
+12:15:14 | WARNING | IRD_Main | [PHASE17][API] Automation request rejected — already running. Trace ID: STARTSYNC-1788417913903
+12:15:14 | WARNING | IRD_Main | [API] Automation request rejected — already running.
+12:15:16 | INFO  | IRD_TunnelManager | 12:15:16 | INFO | [WH Bhubaneswar] ✓ SSH Connection & Authentication Successful. Reverse Tunnel Established.
+12:15:16 | INFO  | IRD_TunnelManager | 12:15:16 | INFO | [WH Bhubaneswar] STEP 5: Verifying TCP socket connect to 127.0.0.1:18002 (Timeout: 15s)...
+12:15:16 | INFO  | IRD_TunnelManager | 12:15:16 | INFO | [WH Bhubaneswar] ✓ STEP 5 PASS: [REDACTED] Socket Connected on 127.0.0.1:18002
+12:15:16 | INFO  | IRD_TunnelManager | 12:15:16 | INFO | [WH Bhubaneswar] STEP 6: Executing HTTP GET request to http://localhost:18002/zmp/main-menu.do...
+12:15:19 | INFO  | IRD_TunnelManager | 12:15:19 | INFO | [WH Bhubaneswar] ✓ STEP 6 PASS: [REDACTED] Response Received. Status: 200, Latency: 3377ms
+12:15:19 | INFO  | IRD_TunnelManager | 12:15:19 | INFO | [WH Bhubaneswar] STEP 7: Inspecting HTTP body content for FNB Service markers...
+12:15:19 | INFO  | IRD_TunnelManager | 12:15:19 | INFO | [WH Bhubaneswar] ✓ STEP 7 PASS: [REDACTED] Service / Portal Content Verified.
+12:15:19 | INFO  | IRD_TunnelManager | 12:15:19 | INFO | [WH Bhubaneswar] ★ REAL FNB TUNNEL & ENDPOINT VALIDATED SUCCESSFULLY!
+12:15:19 | INFO  | IRD_TunnelManager | 12:15:19 | INFO | [WH Bhubaneswar] Option 'Keep tunnel running' is ENABLED. Tunnel remains RUNNING.
+12:15:19 | INFO  | IRD_BrowserController | 12:15:19 | INFO | [WH Bhubaneswar] [PHASE17][LOGIN] Login workflow starting for WH Bhubaneswar
+12:15:19 | INFO  | IRD_BrowserController | 12:15:19 | INFO | [WH Bhubaneswar] [PHASE17][SYNC] Sync workflow starting for WH Bhubaneswar
+12:15:19 | INFO  | IRD_BrowserController | 12:15:19 | INFO | [WH Bhubaneswar] Executing IDP Login + Sync MyMenu sequence...
+12:15:19 | INFO  | IRD_BrowserController | 12:15:19 | INFO | [WH Bhubaneswar] PLAYWRIGHT TARGET: http://localhost:18002/zmp/main-menu.do
+12:15:19 | INFO  | IRD_BrowserController | 12:15:19 | INFO | [WH Bhubaneswar] [BROWSER] Navigating to http://localhost:18002/zmp/main-menu.do
+12:15:19 | INFO  | IRD_BrowserController | Initializing Playwright Browser (type: chromium, headless: False)...
+12:15:23 | INFO  | IRD_BrowserController | Browser initialized successfully.
+12:15:23 | INFO  | IRD_BrowserController | Navigating to webpage: http://localhost:18002/zmp/main-menu.do...
+12:15:24 | INFO  | IRD_BrowserController | Webpage reached successfully (HTTP 200).
+12:15:24 | INFO  | IRD_BrowserController | 12:15:24 | INFO | [WH Bhubaneswar] [BROWSER] Initial page loaded
+12:15:24 | INFO  | IRD_BrowserController | 12:15:24 | INFO | [WH Bhubaneswar] [BROWSER] Current URL: http://localhost:18002/login
+12:15:24 | INFO  | IRD_BrowserController | 12:15:24 | INFO | [WH Bhubaneswar] [BROWSER] Checking for Whitelabel Error Page...
+12:15:28 | INFO  | IRD_BrowserController | [WH Bhubaneswar] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-09-03\WH_Bhubaneswar\01_tunnel_ready_1788417924.png
+12:15:28 | INFO  | IRD_BrowserController | [WH Bhubaneswar] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-09-03\WH_Bhubaneswar\02_zmp_page_1788417928.png
+12:15:28 | INFO  | IRD_BrowserController | 12:15:28 | INFO | [WH Bhubaneswar] [LOGIN] Starting login workflow...
+12:15:28 | INFO  | IRD_BrowserController | 12:15:28 | INFO | [WH Bhubaneswar] Page Loaded — Title: 'Login', URL: 'http://localhost:18002/login'
+12:15:28 | INFO  | IRD_BrowserController | 12:15:28 | INFO | [WH Bhubaneswar] ✓ STAGE 3 PASS: [REDACTED] opened and ZMP portal loaded successfully.
+12:15:28 | INFO  | IRD_BrowserController | 12:15:28 | INFO | [WH Bhubaneswar] ✓ STAGE 4 PASS: [REDACTED]
+12:15:28 | INFO  | IRD_BrowserController | 12:15:28 | INFO | [WH Bhubaneswar] [LOGIN] Username field detected
+12:15:28 | INFO  | IRD_BrowserController | 12:15:28 | INFO | [WH Bhubaneswar] [LOGIN] Password field detected
+12:15:28 | INFO  | IRD_BrowserController | 12:15:28 | INFO | [WH Bhubaneswar] STAGE 5 & 6: Filling credentials for IDP user 'admin'...
+12:15:28 | INFO  | IRD_BrowserController | 12:15:28 | INFO | [WH Bhubaneswar] [LOGIN] Entering credentials...
+12:15:28 | INFO  | IRD_BrowserController | [WH Bhubaneswar] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-09-03\WH_Bhubaneswar\04_login_attempt1_credentials_1788417928.png
+12:15:28 | INFO  | IRD_BrowserController | [WH Bhubaneswar] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-09-03\WH_Bhubaneswar\03_login_attempt1_before_submit_1788417928.png
+12:15:28 | INFO  | IRD_BrowserController | 12:15:28 | INFO | [WH Bhubaneswar] [LOGIN] Login submitted
+12:15:29 | INFO  | IRD_BrowserController | 12:15:29 | INFO | [WH Bhubaneswar] [LOGIN] Post-submit verification started
+12:15:29 | INFO  | IRD_BrowserController | [WH Bhubaneswar] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-09-03\WH_Bhubaneswar\05_after_login_attempt1_1788417929.png
+12:15:29 | INFO  | IRD_BrowserController | 12:15:29 | INFO | [WH Bhubaneswar] [LOGIN] Waiting for authentication state...
+12:15:38 | INFO  | IRD_BrowserController | 12:15:38 | INFO | [WH Bhubaneswar] CRITICAL ERROR: Whitelabel Error Page detected after submit attempt 1!
+12:15:38 | INFO  | IRD_BrowserController | 12:15:38 | INFO | [WH Bhubaneswar] [LOGIN] Whitelabel Error Page detected after login attempt 1
+12:15:38 | INFO  | IRD_BrowserController | 12:15:38 | INFO | [WH Bhubaneswar] [RECOVERY] Login recovery triggered
+12:15:38 | INFO  | IRD_BrowserController | 12:15:38 | INFO | [WH Bhubaneswar] [RECOVERY] Navigating directly to http://localhost:18002/login
+12:15:38 | INFO  | IRD_BrowserController | 12:15:38 | INFO | [WH Bhubaneswar] [RECOVERY] Login page reload started
+12:15:38 | INFO  | IRD_BrowserController | [WH Bhubaneswar] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-09-03\WH_Bhubaneswar\05a_whitelabel_after_login_attempt1_1788417938.png
+12:15:39 | INFO  | IRD_BrowserController | 12:15:39 | INFO | [WH Bhubaneswar] [RECOVERY] Login page verified
+12:15:39 | INFO  | IRD_BrowserController | 12:15:39 | INFO | [WH Bhubaneswar] [RECOVERY] Username field detected
+12:15:39 | INFO  | IRD_BrowserController | 12:15:39 | INFO | [WH Bhubaneswar] [RECOVERY] Password field detected
+12:15:39 | INFO  | IRD_BrowserController | 12:15:39 | INFO | [WH Bhubaneswar] STAGE 5 & 6: Re-filling credentials for IDP user 'admin' (attempt 2)...
+12:15:39 | INFO  | IRD_BrowserController | 12:15:39 | INFO | [WH Bhubaneswar] [LOGIN] Entering credentials...
+12:15:39 | INFO  | IRD_BrowserController | [WH Bhubaneswar] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-09-03\WH_Bhubaneswar\04_login_attempt2_credentials_1788417939.png
+12:15:39 | INFO  | IRD_BrowserController | [WH Bhubaneswar] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-09-03\WH_Bhubaneswar\03_login_attempt2_before_submit_1788417939.png
+12:15:39 | INFO  | IRD_BrowserController | 12:15:39 | INFO | [WH Bhubaneswar] [LOGIN] Login attempt 2 submitted
+12:15:40 | INFO  | IRD_BrowserController | 12:15:40 | INFO | [WH Bhubaneswar] [LOGIN] Post-submit verification started for attempt 2
+12:15:40 | INFO  | IRD_BrowserController | [WH Bhubaneswar] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-09-03\WH_Bhubaneswar\05_after_login_attempt2_1788417940.png
+12:15:40 | INFO  | IRD_BrowserController | 12:15:40 | INFO | [WH Bhubaneswar] [LOGIN] Waiting for authentication state...
+12:16:00 | INFO  | IRD_BrowserController | 12:16:00 | INFO | [WH Bhubaneswar] [LOGIN] Authentication verified on attempt 2
+12:16:00 | INFO  | IRD_BrowserController | 12:16:00 | INFO | [WH Bhubaneswar] [LOGIN] Authenticated page detected
+12:16:00 | INFO  | IRD_BrowserController | 12:16:00 | INFO | [WH Bhubaneswar] [LOGIN] Authentication state: SUCCESS
+12:16:00 | INFO  | IRD_BrowserController | 12:16:00 | INFO | [WH Bhubaneswar] ✓ STAGE 8 PASS: [REDACTED] Authentication Verified & Post-Login State Confirmed.
+12:16:00 | INFO  | IRD_BrowserController | 12:16:00 | INFO | [WH Bhubaneswar] [SYNC] Searching for Sync MyMenu...
+12:16:00 | INFO  | IRD_BrowserController | 12:16:00 | INFO | [WH Bhubaneswar] [SYNC] Sync MyMenu element found
+12:16:00 | INFO  | IRD_BrowserController | 12:16:00 | INFO | [WH Bhubaneswar] [SYNC] Sync MyMenu visible: True
+12:16:00 | INFO  | IRD_BrowserController | 12:16:00 | INFO | [WH Bhubaneswar] [SYNC] Sync MyMenu enabled: True
+12:16:00 | INFO  | IRD_BrowserController | [WH Bhubaneswar] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-09-03\WH_Bhubaneswar\06_sync_mymenu_before_click_1788417960.png
+12:16:00 | INFO  | IRD_BrowserController | 12:16:00 | INFO | [WH Bhubaneswar] [SYNC] Clicking Sync MyMenu...
+12:16:03 | INFO  | IRD_BrowserController | 12:16:03 | INFO | [WH Bhubaneswar] [SYNC] Sync MyMenu click completed
+12:16:03 | INFO  | IRD_BrowserController | 12:16:03 | INFO | [WH Bhubaneswar] [SYNC] Verifying Sync MyMenu result...
+12:16:04 | INFO  | IRD_BrowserController | [WH Bhubaneswar] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-09-03\WH_Bhubaneswar\07_sync_mymenu_after_click_1788417964.png
+12:16:04 | INFO  | IRD_BrowserController | 12:16:04 | INFO | [WH Bhubaneswar] [SYNC] Sync result verified
+12:16:04 | INFO  | IRD_BrowserController | 12:16:04 | INFO | [WH Bhubaneswar] ✓ STAGE 9 PASS: [REDACTED] MyMenu click executed and resulting page loaded.
+12:16:04 | INFO  | IRD_BrowserController | 12:16:04 | INFO | [WH Bhubaneswar] STAGE 10: Verifying Sync MyMenu destination page...
+12:16:04 | INFO  | IRD_BrowserController | [WH Bhubaneswar] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-09-03\WH_Bhubaneswar\08_sync_result_1788417964.png
+12:16:04 | INFO  | IRD_BrowserController | 12:16:04 | INFO | [WH Bhubaneswar] ✓ STAGE 10 PASS: [REDACTED] MyMenu page verified and 'Fetch Menu' control is detected!
+12:16:04 | INFO  | IRD_BrowserController | 12:16:04 | INFO | [WH Bhubaneswar] ★ PHASE 9 REAL PLAYWRIGHT IDP LOGIN + SYNCMYMENU COMPLETED SUCCESSFULLY!
+12:16:04 | INFO  | IRD_BrowserController | 12:16:04 | INFO | [WH Bhubaneswar] [SYNC] Sync MyMenu dashboard verified
+12:16:04 | INFO  | IRD_BrowserController | 12:16:04 | INFO | [WH Bhubaneswar] [SYNC] Searching for Fetch Menu...
+12:16:04 | INFO  | IRD_BrowserController | 12:16:04 | INFO | [WH Bhubaneswar] [SYNC] Fetch Menu element found
+12:16:04 | INFO  | IRD_BrowserController | 12:16:04 | INFO | [WH Bhubaneswar] [SYNC] Fetch Menu visible: True
+12:16:04 | INFO  | IRD_BrowserController | 12:16:04 | INFO | [WH Bhubaneswar] [SYNC] Fetch Menu enabled: True
+12:16:04 | INFO  | IRD_BrowserController | [WH Bhubaneswar] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-09-03\WH_Bhubaneswar\06_fetch_menu_attempt1_before_1788417964.png
+12:16:04 | INFO  | IRD_BrowserController | 12:16:04 | INFO | [WH Bhubaneswar] [SYNC] Clicking Fetch Menu...
+12:16:04 | INFO  | IRD_BrowserController | 12:16:04 | INFO | [WH Bhubaneswar] [SYNC] Fetch Menu clicked
+12:16:04 | INFO  | IRD_BrowserController | 12:16:04 | INFO | [WH Bhubaneswar] [SYNC] Waiting for Fetch Menu completion...
+12:16:06 | INFO  | IRD_BrowserController | 12:16:06 | INFO | [WH Bhubaneswar] [SYNC] Fetch Menu elapsed: 2 seconds
+12:16:06 | INFO  | IRD_BrowserController | 12:16:06 | INFO | [WH Bhubaneswar] [SYNC] Last Received Time updated to today's date during Fetch Menu execution.
+12:16:06 | INFO  | IRD_BrowserController | 12:16:06 | INFO | [WH Bhubaneswar] [SYNC] Fetch Menu execution completed
+12:16:06 | INFO  | IRD_BrowserController | 12:16:06 | INFO | [WH Bhubaneswar] [SYNC] Last Received Time: 2026-09-03 03:40:53.0
+12:16:06 | INFO  | IRD_BrowserController | 12:16:06 | INFO | [WH Bhubaneswar] [SYNC] Last Received Time DATE: 2026-09-03
+12:16:06 | INFO  | IRD_BrowserController | 12:16:06 | INFO | [WH Bhubaneswar] [SYNC] Expected DATE: 2026-09-03
+12:16:06 | INFO  | IRD_BrowserController | 12:16:06 | INFO | [WH Bhubaneswar] [SYNC] Last Received Time date validation PASS: [REDACTED] 03:40:53.0' (Today: 2026-09-03)
+12:16:06 | INFO  | IRD_BrowserController | 12:16:06 | INFO | [WH Bhubaneswar] [SYNC] Fetch Menu business result: SUCCESS
+12:16:06 | INFO  | IRD_BrowserController | [WH Bhubaneswar] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-09-03\WH_Bhubaneswar\06a_fetch_menu_attempt1_after_1788417966.png
+12:16:06 | INFO  | IRD_BrowserController | 12:16:06 | INFO | [WH Bhubaneswar] [SYNC] Checking whether Process Latest Menu was already completed today...
+12:16:06 | INFO  | IRD_BrowserController | 12:16:06 | INFO | [WH Bhubaneswar] [SYNC] Last Processing Time BEFORE: 2026-09-03 03:46:33.0
+12:16:06 | INFO  | IRD_BrowserController | 12:16:06 | INFO | [WH Bhubaneswar] [SYNC] Last Processing Time DATE: 2026-09-03
+12:16:06 | INFO  | IRD_BrowserController | 12:16:06 | INFO | [WH Bhubaneswar] [SYNC] Expected DATE: 2026-09-03
+12:16:06 | INFO  | IRD_BrowserController | 12:16:06 | INFO | [WH Bhubaneswar] [SYNC] Last Processing Time is already today's date.
+12:16:06 | INFO  | IRD_BrowserController | 12:16:06 | INFO | [WH Bhubaneswar] [SYNC] Process Latest Menu has already been successfully completed today.
+12:16:06 | INFO  | IRD_BrowserController | 12:16:06 | INFO | [WH Bhubaneswar] [SYNC] Process Latest Menu execution SKIPPED — already completed today.
+12:16:06 | INFO  | IRD_BrowserController | 12:16:06 | INFO | [WH Bhubaneswar] [SYNC] Process Latest Menu business result: SUCCESS
+12:16:06 | INFO  | IRD_BrowserController | 12:16:06 | INFO | [WH Bhubaneswar] [SYNC] Searching for Download Action Points...
+12:16:06 | INFO  | IRD_BrowserController | 12:16:06 | INFO | [WH Bhubaneswar] [SYNC] Download Action Points element found
+12:16:06 | INFO  | IRD_BrowserController | 12:16:06 | INFO | [WH Bhubaneswar] [SYNC] Download Action Points visible: True
+12:16:06 | INFO  | IRD_BrowserController | 12:16:06 | INFO | [WH Bhubaneswar] [SYNC] Download Action Points enabled: True
+12:16:06 | INFO  | IRD_BrowserController | [WH Bhubaneswar] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-09-03\WH_Bhubaneswar\08_download_action_points_before_1788417966.png
+12:16:06 | INFO  | IRD_BrowserController | 12:16:06 | INFO | [WH Bhubaneswar] [SYNC] Clicking Download Action Points...
+12:16:06 | INFO  | IRD_BrowserController | 12:16:06 | INFO | [WH Bhubaneswar] [SYNC] Waiting for CSV download...
+12:16:11 | INFO  | IRD_BrowserController | 12:16:11 | INFO | [WH Bhubaneswar] [SYNC] CSV download detected
+12:16:11 | INFO  | IRD_BrowserController | 12:16:11 | INFO | [WH Bhubaneswar] [SYNC] CSV saved to: logs\downloads\2026-09-03\WH_Bhubaneswar\12-16-06_action_points.csv
+12:16:11 | INFO  | IRD_BrowserController | [WH Bhubaneswar] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-09-03\WH_Bhubaneswar\08a_download_action_points_after_1788417971.png
+12:16:11 | INFO  | IRD_BrowserController | 12:16:11 | INFO | [WH Bhubaneswar] [REPORT] Reading downloaded Action Points CSV...
+12:16:11 | INFO  | IRD_BrowserController | 12:16:11 | INFO | [WH Bhubaneswar] [REPORT] CSV path: logs\downloads\2026-09-03\WH_Bhubaneswar\12-16-06_action_points.csv
+12:16:11 | INFO  | IRD_CSVAnalyzer | Inspected CSV '12-16-06_action_points.csv' 3rd line: 'No Action Point'. Result: CLEAR
+12:16:11 | INFO  | IRD_BrowserController | 12:16:11 | INFO | [WH Bhubaneswar] [REPORT] CSV rows detected: 283
+12:16:12 | INFO  | IRD_BrowserController | [WH Bhubaneswar] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-09-03\WH_Bhubaneswar\09_action_points_csv_result_1788417971.png
+12:16:12 | INFO  | IRD_BrowserController | 12:16:12 | INFO | [WH Bhubaneswar] [REPORT] CSV Line 1: Action Points -> TITLE
+12:16:12 | INFO  | IRD_BrowserController | 12:16:12 | INFO | [WH Bhubaneswar] [REPORT] CSV Line 2: Restaurant Name Restaurant ID Item Name Item Code Item Price Category Sub-Category Status -> HEADER
+12:16:12 | INFO  | IRD_BrowserController | 12:16:12 | INFO | [WH Bhubaneswar] [REPORT] CSV Line 3: No Action Point -> NO ACTION POINT
+12:16:12 | INFO  | IRD_BrowserController | 12:16:12 | INFO | [WH Bhubaneswar] [REPORT] Action Point Status: NO ACTION POINT
+12:16:12 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Starting site: ITC Maurya (#68)
+12:16:12 | INFO  | IRD_WorkflowRunner | [RUNNER] Starting site: ITC Maurya (#68)
+12:16:12 | INFO  | IRD_WorkflowRunner | 
+==========================================
+12:16:12 | INFO  | IRD_WorkflowRunner | [2/18] STARTING SITE: ITC Maurya
+12:16:12 | INFO  | IRD_WorkflowRunner | ==========================================
+12:16:12 | INFO  | IRD_BrowserController | 12:16:12 | INFO | [ITC Maurya] [PHASE17][TUNNEL] Starting tunnel for ITC Maurya
+12:16:12 | INFO  | IRD_BrowserController | 12:16:12 | INFO | [ITC Maurya] [PHASE17][BROWSER] Browser workflow starting for ITC Maurya
+12:16:12 | INFO  | IRD_BrowserController | 12:16:12 | INFO | [ITC Maurya] Starting reverse SSH tunnel verification...
+12:16:12 | INFO  | IRD_TunnelManager | 12:16:12 | INFO | [ITC Maurya] PHASE 5E REAL FNB ENDPOINT VALIDATION STARTED
+12:16:12 | INFO  | IRD_TunnelManager | 12:16:12 | INFO | [ITC Maurya] [TUNNEL] SSH server: 111.93.205.187:22
+12:16:12 | INFO  | IRD_TunnelManager | 12:16:12 | INFO | [ITC Maurya] [TUNNEL] FNB target: 116.212.178.250:8082
+12:16:12 | INFO  | IRD_TunnelManager | 12:16:12 | INFO | [ITC Maurya] [TUNNEL] Forward mode: LOCAL
+12:16:12 | INFO  | IRD_TunnelManager | 12:16:12 | INFO | [ITC Maurya] [TUNNEL] Local endpoint: 127.0.0.1:18003
+12:16:12 | INFO  | IRD_TunnelManager | 12:16:12 | INFO | [ITC Maurya] [TUNNEL] Remote target: 116.212.178.250:8082
+12:16:12 | INFO  | IRD_TunnelManager | 12:16:12 | INFO | [ITC Maurya] [TUNNEL] TCP validation target: 127.0.0.1:18003
+12:16:12 | INFO  | IRD_TunnelManager | 12:16:12 | INFO | [ITC Maurya] [TUNNEL] HTTP validation URL: http://localhost:18003/zmp/main-menu.do
+12:16:12 | INFO  | IRD_TunnelManager | 12:16:12 | INFO | [ITC Maurya] Forward: -L 18003:116.212.178.250:8082
+12:16:12 | INFO  | IRD_TunnelManager | 12:16:12 | INFO | [ITC Maurya] STEP 1: Validating bundled Plink executable...
+12:16:12 | INFO  | IRD_TunnelManager | 12:16:12 | INFO | [ITC Maurya] Bundled Plink detected: tools\putty\plink.exe
+12:16:12 | INFO  | IRD_TunnelManager | 12:16:12 | INFO | [ITC Maurya] STEP 2 & 3 & 4: Launching Plink to 111.93.205.187:22...
+12:16:12 | INFO  | IRD_TunnelManager | 12:16:12 | INFO | [ITC Maurya] [TUNNEL] Plink command: C:\IRD AUTO\tools\putty\plink.exe -batch -N -ssh -P 22 -l sourik -pw ******** -L 18003:116.212.178.250:8082 111.93.205.187
+12:16:12 | INFO  | IRD_TunnelManager | 12:16:12 | INFO | [ITC Maurya] Generated Plink Command: C:\IRD AUTO\tools\putty\plink.exe -batch -N -ssh -P 22 -l sourik -pw ******** -L 18003:116.212.178.250:8082 111.93.205.187
+12:16:12 | INFO  | IRD_TunnelManager | 12:16:12 | INFO | [ITC Maurya] Plink process launched cleanly with PID: 17676
+12:16:12 | INFO  | IRD_TunnelManager | 12:16:12 | INFO | [ITC Maurya] Waiting for SSH authentication & reverse tunnel setup (Timeout: 15s)...
+12:16:14 | INFO  | IRD_TunnelManager | 12:16:14 | INFO | [ITC Maurya] ✓ SSH Connection & Authentication Successful. Reverse Tunnel Established.
+12:16:14 | INFO  | IRD_TunnelManager | 12:16:14 | INFO | [ITC Maurya] STEP 5: Verifying TCP socket connect to 127.0.0.1:18003 (Timeout: 15s)...
+12:16:14 | INFO  | IRD_TunnelManager | 12:16:14 | INFO | [ITC Maurya] ✓ STEP 5 PASS: [REDACTED] Socket Connected on 127.0.0.1:18003
+12:16:14 | INFO  | IRD_TunnelManager | 12:16:14 | INFO | [ITC Maurya] STEP 6: Executing HTTP GET request to http://localhost:18003/zmp/main-menu.do...
+12:16:14 | INFO  | IRD_TunnelManager | 12:16:14 | INFO | [ITC Maurya] ✓ STEP 6 PASS: [REDACTED] Response Received. Status: 200, Latency: 239ms
+12:16:14 | INFO  | IRD_TunnelManager | 12:16:14 | INFO | [ITC Maurya] STEP 7: Inspecting HTTP body content for FNB Service markers...
+12:16:14 | INFO  | IRD_TunnelManager | 12:16:14 | INFO | [ITC Maurya] ✓ STEP 7 PASS: [REDACTED] Service / Portal Content Verified.
+12:16:14 | INFO  | IRD_TunnelManager | 12:16:14 | INFO | [ITC Maurya] ★ REAL FNB TUNNEL & ENDPOINT VALIDATED SUCCESSFULLY!
+12:16:14 | INFO  | IRD_TunnelManager | 12:16:14 | INFO | [ITC Maurya] Option 'Keep tunnel running' is ENABLED. Tunnel remains RUNNING.
+12:16:14 | INFO  | IRD_BrowserController | 12:16:14 | INFO | [ITC Maurya] [PHASE17][LOGIN] Login workflow starting for ITC Maurya
+12:16:14 | INFO  | IRD_BrowserController | 12:16:14 | INFO | [ITC Maurya] [PHASE17][SYNC] Sync workflow starting for ITC Maurya
+12:16:14 | INFO  | IRD_BrowserController | 12:16:14 | INFO | [ITC Maurya] Executing IDP Login + Sync MyMenu sequence...
+12:16:14 | INFO  | IRD_BrowserController | 12:16:14 | INFO | [ITC Maurya] PLAYWRIGHT TARGET: http://localhost:18003/zmp/main-menu.do
+12:16:14 | INFO  | IRD_BrowserController | 12:16:14 | INFO | [ITC Maurya] [BROWSER] Navigating to http://localhost:18003/zmp/main-menu.do
+12:16:14 | INFO  | IRD_BrowserController | Navigating to webpage: http://localhost:18003/zmp/main-menu.do...
+12:16:15 | INFO  | IRD_BrowserController | Webpage reached successfully (HTTP 200).
+12:16:15 | INFO  | IRD_BrowserController | 12:16:15 | INFO | [ITC Maurya] [BROWSER] Initial page loaded
+12:16:15 | INFO  | IRD_BrowserController | 12:16:15 | INFO | [ITC Maurya] [BROWSER] Current URL: http://localhost:18003/login
+12:16:15 | INFO  | IRD_BrowserController | 12:16:15 | INFO | [ITC Maurya] [BROWSER] Checking for Whitelabel Error Page...
+12:16:17 | INFO  | IRD_BrowserController | 12:16:17 | INFO | [ITC Maurya] [LOGIN] Starting login workflow...
+12:16:17 | INFO  | IRD_BrowserController | 12:16:17 | INFO | [ITC Maurya] CRITICAL: Playwright browser error: Page.title: Target page, context or browser has been closed
+12:16:17 | INFO  | IRD_BrowserController | 12:16:17 | INFO | [ITC Maurya] IDP Login / Sync MyMenu failed.
+12:16:17 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Starting site: ITC Royal Bengal (#69)
+12:16:17 | INFO  | IRD_WorkflowRunner | [RUNNER] Starting site: ITC Royal Bengal (#69)
+12:16:17 | INFO  | IRD_WorkflowRunner | 
+==========================================
+12:16:17 | INFO  | IRD_WorkflowRunner | [3/18] STARTING SITE: ITC Royal Bengal
+12:16:17 | INFO  | IRD_WorkflowRunner | ==========================================
+12:16:17 | INFO  | IRD_BrowserController | 12:16:17 | INFO | [ITC Royal Bengal] [PHASE17][TUNNEL] Starting tunnel for ITC Royal Bengal
+12:16:17 | INFO  | IRD_BrowserController | 12:16:17 | INFO | [ITC Royal Bengal] [PHASE17][BROWSER] Browser workflow starting for ITC Royal Bengal
+12:16:17 | INFO  | IRD_BrowserController | 12:16:17 | INFO | [ITC Royal Bengal] Starting reverse SSH tunnel verification...
+12:16:17 | INFO  | IRD_TunnelManager | 12:16:17 | INFO | [ITC Royal Bengal] PHASE 5E REAL FNB ENDPOINT VALIDATION STARTED
+12:16:17 | INFO  | IRD_TunnelManager | 12:16:17 | INFO | [ITC Royal Bengal] [TUNNEL] SSH server: 111.93.205.187:22
+12:16:17 | INFO  | IRD_TunnelManager | 12:16:17 | INFO | [ITC Royal Bengal] [TUNNEL] FNB target: 59.162.74.68:8082
+12:16:17 | INFO  | IRD_TunnelManager | 12:16:17 | INFO | [ITC Royal Bengal] [TUNNEL] Forward mode: LOCAL
+12:16:17 | INFO  | IRD_TunnelManager | 12:16:17 | INFO | [ITC Royal Bengal] [TUNNEL] Local endpoint: 127.0.0.1:18004
+12:16:17 | INFO  | IRD_TunnelManager | 12:16:17 | INFO | [ITC Royal Bengal] [TUNNEL] Remote target: 59.162.74.68:8082
+12:16:17 | INFO  | IRD_TunnelManager | 12:16:17 | INFO | [ITC Royal Bengal] [TUNNEL] TCP validation target: 127.0.0.1:18004
+12:16:17 | INFO  | IRD_TunnelManager | 12:16:17 | INFO | [ITC Royal Bengal] [TUNNEL] HTTP validation URL: http://localhost:18004/zmp/main-menu.do
+12:16:17 | INFO  | IRD_TunnelManager | 12:16:17 | INFO | [ITC Royal Bengal] Forward: -L 18004:59.162.74.68:8082
+12:16:17 | INFO  | IRD_TunnelManager | 12:16:17 | INFO | [ITC Royal Bengal] STEP 1: Validating bundled Plink executable...
+12:16:17 | INFO  | IRD_TunnelManager | 12:16:17 | INFO | [ITC Royal Bengal] Bundled Plink detected: tools\putty\plink.exe
+12:16:17 | INFO  | IRD_TunnelManager | 12:16:17 | INFO | [ITC Royal Bengal] STEP 2 & 3 & 4: Launching Plink to 111.93.205.187:22...
+12:16:17 | INFO  | IRD_TunnelManager | 12:16:17 | INFO | [ITC Royal Bengal] [TUNNEL] Plink command: C:\IRD AUTO\tools\putty\plink.exe -batch -N -ssh -P 22 -l sourik -pw ******** -L 18004:59.162.74.68:8082 111.93.205.187
+12:16:17 | INFO  | IRD_TunnelManager | 12:16:17 | INFO | [ITC Royal Bengal] Generated Plink Command: C:\IRD AUTO\tools\putty\plink.exe -batch -N -ssh -P 22 -l sourik -pw ******** -L 18004:59.162.74.68:8082 111.93.205.187
+12:16:17 | INFO  | IRD_TunnelManager | 12:16:17 | INFO | [ITC Royal Bengal] Plink process launched cleanly with PID: 17868
+12:16:17 | INFO  | IRD_TunnelManager | 12:16:17 | INFO | [ITC Royal Bengal] Waiting for SSH authentication & reverse tunnel setup (Timeout: 15s)...
+12:16:19 | INFO  | IRD_TunnelManager | 12:16:19 | INFO | [ITC Royal Bengal] ✓ SSH Connection & Authentication Successful. Reverse Tunnel Established.
+12:16:19 | INFO  | IRD_TunnelManager | 12:16:19 | INFO | [ITC Royal Bengal] STEP 5: Verifying TCP socket connect to 127.0.0.1:18004 (Timeout: 15s)...
+12:16:19 | INFO  | IRD_TunnelManager | 12:16:19 | INFO | [ITC Royal Bengal] ✓ STEP 5 PASS: [REDACTED] Socket Connected on 127.0.0.1:18004
+12:16:19 | INFO  | IRD_TunnelManager | 12:16:19 | INFO | [ITC Royal Bengal] STEP 6: Executing HTTP GET request to http://localhost:18004/zmp/main-menu.do...

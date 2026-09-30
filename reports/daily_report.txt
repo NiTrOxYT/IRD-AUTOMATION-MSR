@@ -1,14 +1,14 @@
 ======================================
           IRD SYNC REPORT             
-Date: 2026-09-02
+Date: 2026-09-30
 ======================================
 Total Sites: 1
-Completed:   1
+Completed:   0
 --------------------------------------
 
 NO ACTION POINT
 
-• ITC Grand Chola
+None
 
 --------------------------------------
 
@@ -20,10 +20,10 @@ None
 
 FAILED
 
-None
+• Mementos by ITC Hotels, Ekaaya Udaipur
 
 --------------------------------------
 Action Point Found: 0
-No Action Point:    1
-Failed:             0
+No Action Point:    0
+Failed:             1
 ======================================
