@@ -10,6 +10,19 @@ from app.security.credentials import encrypt_password, decrypt_password
 
 logger = logging.getLogger("IRD_Database")
 
+DEFAULT_DTH_SETTINGS = {
+    "default_mode": "DRY_RUN",
+    "channel_delay_seconds": "1.0",
+    "max_row_count": "5000",
+    "max_file_size_mb": "10",
+    "page_load_timeout": "60",
+    "save_timeout": "30",
+    "debug_screenshots": "true",
+    "log_level": "INFO",
+    "image_allowed_extensions": ".png,.jpg,.jpeg,.bmp,.webp",
+    "max_image_size_kb": "2048"
+}
+
 def get_db_connection() -> sqlite3.Connection:
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
@@ -114,6 +127,79 @@ def init_db():
     );
     """)
 
+    # DTH Runs Table
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS dth_runs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        run_date TEXT NOT NULL,
+        start_time TEXT NOT NULL,
+        end_time TEXT,
+        mode TEXT DEFAULT 'DRY_RUN',
+        status TEXT DEFAULT 'PENDING',
+        filename TEXT NOT NULL,
+        total_channels INTEGER DEFAULT 0,
+        processed_channels INTEGER DEFAULT 0,
+        successful_channels INTEGER DEFAULT 0,
+        failed_channels INTEGER DEFAULT 0,
+        skipped_duplicates INTEGER DEFAULT 0,
+        invalid_channels INTEGER DEFAULT 0,
+        unknown_channels INTEGER DEFAULT 0,
+        site_id INTEGER,
+        site_name TEXT,
+        error_message TEXT DEFAULT ''
+    );
+    """)
+
+    # DTH Channel Results Table
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS dth_channel_results (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        run_id INTEGER NOT NULL,
+        row_number INTEGER NOT NULL,
+        channel_number TEXT NOT NULL,
+        name TEXT NOT NULL,
+        osd TEXT DEFAULT '',
+        image TEXT DEFAULT '',
+        categories TEXT DEFAULT '',
+        status TEXT DEFAULT 'PENDING',
+        attempt_count INTEGER DEFAULT 0,
+        duration_seconds REAL DEFAULT 0.0,
+        error_reason TEXT DEFAULT '',
+        verified_in_portal INTEGER DEFAULT 0,
+        started_at TEXT,
+        completed_at TEXT,
+        FOREIGN KEY (run_id) REFERENCES dth_runs (id) ON DELETE CASCADE
+    );
+    """)
+
+    # DTH Sites Table (Isolated from IRD sites)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS dth_sites (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT UNIQUE NOT NULL,
+        portal_url TEXT DEFAULT '',
+        local_port INTEGER DEFAULT 18001,
+        site_ip TEXT DEFAULT '',
+        site_port INTEGER DEFAULT 80,
+        idp_username TEXT DEFAULT '',
+        idp_password_encrypted TEXT DEFAULT '',
+        enabled INTEGER DEFAULT 1,
+        sort_order INTEGER DEFAULT 0,
+        notes TEXT DEFAULT '',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    """)
+
+    # DTH Settings Table (Isolated from IRD settings)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS dth_settings (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    """)
+
 
     # Non-destructive Migration for Sites Table Tunnel Fields
     cursor.execute("PRAGMA table_info(sites)")
@@ -153,15 +239,38 @@ def init_db():
         if col_name not in rsr_cols:
             cursor.execute(f"ALTER TABLE run_site_results ADD COLUMN {col_name} {col_type}")
 
+    # Non-destructive Migration for DTH Sites Table Tunnel Fields
+    cursor.execute("PRAGMA table_info(dth_sites)")
+    existing_dth_cols = {col[1] for col in cursor.fetchall()}
+    dth_tunnel_columns = [
+        ("remote_host", "TEXT DEFAULT '127.0.0.1'"),
+        ("remote_port", "INTEGER DEFAULT 80"),
+        ("ssh_host", "TEXT DEFAULT ''"),
+        ("ssh_port", "INTEGER DEFAULT 22"),
+        ("ssh_username", "TEXT DEFAULT ''"),
+        ("ssh_password_encrypted", "TEXT DEFAULT ''"),
+        ("ssh_key_path", "TEXT DEFAULT ''"),
+        ("auth_type", "TEXT DEFAULT 'key'"),
+        ("putty_session", "TEXT DEFAULT ''"),
+        ("tunnel_type", "TEXT DEFAULT 'reverse'"),
+        ("web_url", "TEXT DEFAULT ''")
+    ]
+    for col_name, col_type in dth_tunnel_columns:
+        if col_name not in existing_dth_cols:
+            cursor.execute(f"ALTER TABLE dth_sites ADD COLUMN {col_name} {col_type}")
+
     conn.commit()
     conn.close()
-
-
 
     # Ensure default settings exist
     for key, val in DEFAULT_SETTINGS.items():
         if get_setting(key) is None:
             set_setting(key, str(val))
+
+    # Ensure default DTH settings exist
+    for key, val in DEFAULT_DTH_SETTINGS.items():
+        if get_dth_setting(key) is None:
+            set_dth_setting(key, str(val))
 
     # Populate default selectors if empty
     _init_default_selectors()
@@ -736,4 +845,445 @@ def record_run_history(rec_dict: Dict[str, Any]) -> int:
     conn.commit()
     conn.close()
     return rec_id
+
+
+# --- DTH CHANNEL AUTOMATION CRUD ---
+
+def create_dth_run(run_dict: Dict[str, Any]) -> int:
+    """Creates a new DTH execution run record and returns run ID."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+    INSERT INTO dth_runs (
+        run_date, start_time, end_time, mode, status, filename,
+        total_channels, processed_channels, successful_channels,
+        failed_channels, skipped_duplicates, invalid_channels,
+        unknown_channels, site_id, site_name, error_message
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        run_dict.get("run_date", datetime.now().strftime("%Y-%m-%d")),
+        run_dict.get("start_time", datetime.now().strftime("%H:%M:%S")),
+        run_dict.get("end_time"),
+        run_dict.get("mode", "DRY_RUN"),
+        run_dict.get("status", "PENDING"),
+        run_dict.get("filename", "channels.csv"),
+        run_dict.get("total_channels", 0),
+        run_dict.get("processed_channels", 0),
+        run_dict.get("successful_channels", 0),
+        run_dict.get("failed_channels", 0),
+        run_dict.get("skipped_duplicates", 0),
+        run_dict.get("invalid_channels", 0),
+        run_dict.get("unknown_channels", 0),
+        run_dict.get("site_id"),
+        run_dict.get("site_name"),
+        run_dict.get("error_message", "")
+    ))
+    run_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+    return run_id
+
+
+def update_dth_run(run_id: int, updates: Dict[str, Any]):
+    """Updates fields of a DTH run record."""
+    if not updates:
+        return
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    fields = []
+    values = []
+    for k, v in updates.items():
+        fields.append(f"{k} = ?")
+        values.append(v)
+    values.append(run_id)
+    sql = f"UPDATE dth_runs SET {', '.join(fields)} WHERE id = ?"
+    cursor.execute(sql, tuple(values))
+    conn.commit()
+    conn.close()
+
+
+def save_dth_channel_result(result_dict: Dict[str, Any]) -> int:
+    """Inserts a per-channel execution result into dth_channel_results."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    categories = result_dict.get("categories", [])
+    categories_str = json.dumps(categories) if isinstance(categories, list) else str(categories)
+
+    cursor.execute("""
+    INSERT INTO dth_channel_results (
+        run_id, row_number, channel_number, name, osd, image,
+        categories, status, attempt_count, duration_seconds,
+        error_reason, verified_in_portal, started_at, completed_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        result_dict.get("run_id", 0),
+        result_dict.get("row_number", 0),
+        str(result_dict.get("channel_number", "")),
+        str(result_dict.get("name", "")),
+        str(result_dict.get("osd", "")),
+        str(result_dict.get("image", "")),
+        categories_str,
+        str(result_dict.get("status", "PENDING")),
+        result_dict.get("attempt_count", 0),
+        float(result_dict.get("duration_seconds", 0.0)),
+        str(result_dict.get("error_reason", "")),
+        1 if result_dict.get("verified_in_portal") else 0,
+        result_dict.get("started_at"),
+        result_dict.get("completed_at")
+    ))
+    res_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+    return res_id
+
+
+def get_dth_runs_history(limit: int = 50) -> List[Dict[str, Any]]:
+    """Fetches past DTH execution runs in reverse chronological order."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM dth_runs ORDER BY id DESC LIMIT ?", (limit,))
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def get_dth_run_details(run_id: int) -> Optional[Dict[str, Any]]:
+    """Fetches a specific DTH run summary and its per-channel results."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM dth_runs WHERE id = ?", (run_id,))
+    run_row = cursor.fetchone()
+    if not run_row:
+        conn.close()
+        return None
+
+    cursor.execute("SELECT * FROM dth_channel_results WHERE run_id = ? ORDER BY row_number ASC", (run_id,))
+    channel_rows = cursor.fetchall()
+    conn.close()
+
+    parsed_channels = []
+    for c in channel_rows:
+        cd = dict(c)
+        try:
+            cd["categories"] = json.loads(cd["categories"])
+        except Exception:
+            cd["categories"] = [cd["categories"]] if cd["categories"] else []
+        parsed_channels.append(cd)
+
+    return {
+        "run": dict(run_row),
+        "channels": parsed_channels
+    }
+
+
+# --- DTH SITES CRUD ---
+
+def _row_to_dth_site(r: sqlite3.Row, include_passwords: bool = False) -> Dict[str, Any]:
+    keys = r.keys()
+    has_pwd = bool(r["idp_password_encrypted"]) if "idp_password_encrypted" in keys and r["idp_password_encrypted"] else False
+    has_ssh_pwd = bool(r["ssh_password_encrypted"]) if "ssh_password_encrypted" in keys and r["ssh_password_encrypted"] else False
+
+    dec_pass = decrypt_password(r["idp_password_encrypted"]) if has_pwd and include_passwords else ""
+    dec_ssh_pass = decrypt_password(r["ssh_password_encrypted"]) if has_ssh_pwd and include_passwords else ""
+
+    portal_url = r["portal_url"] if "portal_url" in keys and r["portal_url"] else ""
+    local_port = r["local_port"] if "local_port" in keys and r["local_port"] is not None else 18001
+    web_url = r["web_url"] if "web_url" in keys and r["web_url"] else (portal_url or f"http://localhost:{local_port}/zmp/main-menu.do")
+
+    data = {
+        "id": r["id"],
+        "name": r["name"],
+        "portal_url": portal_url,
+        "local_port": local_port,
+        "site_ip": r["site_ip"] if "site_ip" in keys and r["site_ip"] is not None else "",
+        "site_port": r["site_port"] if "site_port" in keys and r["site_port"] is not None else 80,
+        "remote_host": r["remote_host"] if "remote_host" in keys and r["remote_host"] is not None else "127.0.0.1",
+        "remote_port": r["remote_port"] if "remote_port" in keys and r["remote_port"] is not None else 80,
+        "ssh_host": r["ssh_host"] if "ssh_host" in keys and r["ssh_host"] is not None else "",
+        "ssh_port": r["ssh_port"] if "ssh_port" in keys and r["ssh_port"] is not None else 22,
+        "ssh_username": r["ssh_username"] if "ssh_username" in keys and r["ssh_username"] is not None else "",
+        "auth_type": r["auth_type"] if "auth_type" in keys and r["auth_type"] is not None else "key",
+        "putty_session": r["putty_session"] if "putty_session" in keys and r["putty_session"] is not None else "",
+        "tunnel_type": r["tunnel_type"] if "tunnel_type" in keys and r["tunnel_type"] is not None else "reverse",
+        "web_url": web_url,
+        "idp_username": r["idp_username"] if "idp_username" in keys and r["idp_username"] is not None else "",
+        "has_password": has_pwd,
+        "has_credentials": bool(has_pwd or has_ssh_pwd),
+        "idp_password_masked": "••••••••" if has_pwd else "",
+        "has_ssh_password": has_ssh_pwd,
+        "ssh_password_masked": "••••••••" if has_ssh_pwd else "",
+        "enabled": bool(r["enabled"]),
+        "sort_order": r["sort_order"] if "sort_order" in keys and r["sort_order"] is not None else 0,
+        "notes": r["notes"] if "notes" in keys and r["notes"] is not None else "",
+        "created_at": r["created_at"] if "created_at" in keys else None,
+        "updated_at": r["updated_at"] if "updated_at" in keys else None
+    }
+    if include_passwords:
+        data["idp_password"] = dec_pass
+        data["ssh_password"] = dec_ssh_pass
+    return data
+
+
+def get_all_dth_sites(enabled_only: bool = False, include_passwords: bool = False) -> List[Dict[str, Any]]:
+    """Fetches all DTH site configurations."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    if enabled_only:
+        cursor.execute("SELECT * FROM dth_sites WHERE enabled = 1 ORDER BY sort_order ASC, name ASC")
+    else:
+        cursor.execute("SELECT * FROM dth_sites ORDER BY sort_order ASC, name ASC")
+    rows = cursor.fetchall()
+    conn.close()
+    return [_row_to_dth_site(r, include_passwords=include_passwords) for r in rows]
+
+
+def get_dth_site_by_id(site_id: int, include_passwords: bool = False) -> Optional[Dict[str, Any]]:
+    """Fetches a single DTH site by its ID."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM dth_sites WHERE id = ?", (site_id,))
+    r = cursor.fetchone()
+    conn.close()
+    if not r:
+        return None
+    return _row_to_dth_site(r, include_passwords=include_passwords)
+
+
+def get_dth_site_by_name(name: str, include_passwords: bool = False) -> Optional[Dict[str, Any]]:
+    """Fetches a DTH site by name (case-insensitive)."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM dth_sites WHERE LOWER(name) = LOWER(?)", (name.strip(),))
+    r = cursor.fetchone()
+    conn.close()
+    if not r:
+        return None
+    return _row_to_dth_site(r, include_passwords=include_passwords)
+
+
+def add_dth_site(site_data: Dict[str, Any]) -> int:
+    """Inserts a new DTH site into dth_sites table."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    raw_pwd = site_data.get("idp_password", "")
+    enc_pwd = encrypt_password(raw_pwd) if raw_pwd else ""
+    raw_ssh_pwd = site_data.get("ssh_password", "")
+    enc_ssh_pwd = encrypt_password(raw_ssh_pwd) if raw_ssh_pwd else ""
+
+    cursor.execute("SELECT MAX(sort_order) FROM dth_sites")
+    max_order = cursor.fetchone()[0] or 0
+    sort_order = site_data.get("sort_order") or (max_order + 1)
+    now = datetime.now().isoformat()
+
+    portal_url = str(site_data.get("portal_url", "")).strip()
+    local_port = int(site_data.get("local_port") or 18001)
+    web_url = str(site_data.get("web_url", "")).strip() or (portal_url or f"http://localhost:{local_port}/zmp/main-menu.do")
+
+    cursor.execute("""
+    INSERT INTO dth_sites (
+        name, portal_url, local_port, site_ip, site_port, remote_host, remote_port,
+        ssh_host, ssh_port, ssh_username, ssh_password_encrypted, ssh_key_path,
+        auth_type, putty_session, tunnel_type, web_url, idp_username, idp_password_encrypted,
+        enabled, sort_order, notes, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        str(site_data.get("name", "")).strip(),
+        portal_url,
+        local_port,
+        str(site_data.get("site_ip", "")).strip(),
+        int(site_data.get("site_port") or 80),
+        str(site_data.get("remote_host", "127.0.0.1")).strip(),
+        int(site_data.get("remote_port") or 80),
+        str(site_data.get("ssh_host", "")).strip(),
+        int(site_data.get("ssh_port") or 22),
+        str(site_data.get("ssh_username", "")).strip(),
+        enc_ssh_pwd,
+        str(site_data.get("ssh_key_path", "")).strip(),
+        str(site_data.get("auth_type", "key")).strip(),
+        str(site_data.get("putty_session", "")).strip(),
+        str(site_data.get("tunnel_type", "reverse")).strip(),
+        web_url,
+        str(site_data.get("idp_username", "")).strip(),
+        enc_pwd,
+        1 if site_data.get("enabled", True) else 0,
+        sort_order,
+        str(site_data.get("notes", "")).strip(),
+        now,
+        now
+    ))
+    new_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+    return new_id
+
+
+def update_dth_site(site_id: int, site_data: Dict[str, Any]) -> bool:
+    """Updates an existing DTH site record."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT idp_password_encrypted, ssh_password_encrypted FROM dth_sites WHERE id = ?", (site_id,))
+    row = cursor.fetchone()
+    if not row:
+        conn.close()
+        return False
+
+    enc_idp = row["idp_password_encrypted"]
+    if "idp_password" in site_data and site_data["idp_password"]:
+        enc_idp = encrypt_password(site_data["idp_password"])
+
+    enc_ssh = row["ssh_password_encrypted"]
+    if "ssh_password" in site_data and site_data["ssh_password"]:
+        enc_ssh = encrypt_password(site_data["ssh_password"])
+
+    now = datetime.now().isoformat()
+    portal_url = str(site_data.get("portal_url", "")).strip()
+    local_port = int(site_data.get("local_port") or 18001)
+    web_url = str(site_data.get("web_url", "")).strip() or (portal_url or f"http://localhost:{local_port}/zmp/main-menu.do")
+
+    cursor.execute("""
+    UPDATE dth_sites SET
+        name = ?, portal_url = ?, local_port = ?, site_ip = ?, site_port = ?,
+        remote_host = ?, remote_port = ?, ssh_host = ?, ssh_port = ?, ssh_username = ?,
+        ssh_password_encrypted = ?, ssh_key_path = ?, auth_type = ?, putty_session = ?,
+        tunnel_type = ?, web_url = ?, idp_username = ?, idp_password_encrypted = ?,
+        enabled = ?, sort_order = ?, notes = ?, updated_at = ?
+    WHERE id = ?
+    """, (
+        str(site_data.get("name", "")).strip(),
+        portal_url,
+        local_port,
+        str(site_data.get("site_ip", "")).strip(),
+        int(site_data.get("site_port") or 80),
+        str(site_data.get("remote_host", "127.0.0.1")).strip(),
+        int(site_data.get("remote_port") or 80),
+        str(site_data.get("ssh_host", "")).strip(),
+        int(site_data.get("ssh_port") or 22),
+        str(site_data.get("ssh_username", "")).strip(),
+        enc_ssh,
+        str(site_data.get("ssh_key_path", "")).strip(),
+        str(site_data.get("auth_type", "key")).strip(),
+        str(site_data.get("putty_session", "")).strip(),
+        str(site_data.get("tunnel_type", "reverse")).strip(),
+        web_url,
+        str(site_data.get("idp_username", "")).strip(),
+        enc_idp,
+        1 if site_data.get("enabled", True) else 0,
+        int(site_data.get("sort_order") or 0),
+        str(site_data.get("notes", "")).strip(),
+        now,
+        site_id
+    ))
+    conn.commit()
+    conn.close()
+    return True
+
+
+def delete_dth_site(site_id: int) -> bool:
+    """Deletes a DTH site from dth_sites table."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM dth_sites WHERE id = ?", (site_id,))
+    deleted = cursor.rowcount > 0
+    conn.commit()
+    conn.close()
+    return deleted
+
+
+def toggle_dth_site(site_id: int, enabled: bool) -> bool:
+    """Enables or disables a DTH site."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE dth_sites SET enabled = ?, updated_at = ? WHERE id = ?", (1 if enabled else 0, datetime.now().isoformat(), site_id))
+    ok = cursor.rowcount > 0
+    conn.commit()
+    conn.close()
+    return ok
+
+
+# --- DTH SETTINGS CRUD ---
+
+def get_dth_setting(key: str, default: Optional[str] = None) -> Optional[str]:
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT value FROM dth_settings WHERE key = ?", (key,))
+    row = cursor.fetchone()
+    conn.close()
+    if row:
+        return row[0]
+    return default
+
+
+def set_dth_setting(key: str, value: str):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+    INSERT INTO dth_settings (key, value, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)
+    ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=CURRENT_TIMESTAMP
+    """, (key, str(value)))
+    conn.commit()
+    conn.close()
+
+
+def get_all_dth_settings() -> Dict[str, Any]:
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT key, value FROM dth_settings")
+    rows = cursor.fetchall()
+    conn.close()
+    result = dict(DEFAULT_DTH_SETTINGS)
+    for r in rows:
+        result[r[0]] = r[1]
+    return result
+
+
+def update_dth_settings(settings: Dict[str, Any]):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    for k, v in settings.items():
+        cursor.execute("""
+        INSERT INTO dth_settings (key, value, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)
+        ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=CURRENT_TIMESTAMP
+        """, (k, str(v)))
+    conn.commit()
+    conn.close()
+
+
+def get_dth_dashboard_metrics() -> Dict[str, Any]:
+    """Calculates DTH-specific metrics strictly from dth_sites and dth_runs."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT COUNT(*) FROM dth_sites")
+    total_sites = cursor.fetchone()[0] or 0
+
+    cursor.execute("SELECT COUNT(*) FROM dth_runs")
+    total_runs = cursor.fetchone()[0] or 0
+
+    cursor.execute("""
+    SELECT 
+        COALESCE(SUM(processed_channels), 0),
+        COALESCE(SUM(successful_channels), 0),
+        COALESCE(SUM(failed_channels), 0),
+        COALESCE(SUM(skipped_duplicates), 0)
+    FROM dth_runs
+    """)
+    sum_row = cursor.fetchone()
+    total_processed = sum_row[0] if sum_row else 0
+    successful_channels = sum_row[1] if sum_row else 0
+    failed_channels = sum_row[2] if sum_row else 0
+    skipped_duplicates = sum_row[3] if sum_row else 0
+
+    cursor.execute("SELECT * FROM dth_runs ORDER BY id DESC LIMIT 5")
+    recent_runs = [dict(r) for r in cursor.fetchall()]
+
+    conn.close()
+    return {
+        "total_sites": total_sites,
+        "total_runs": total_runs,
+        "total_channels_processed": total_processed,
+        "successful_channels": successful_channels,
+        "failed_channels": failed_channels,
+        "skipped_duplicates": skipped_duplicates,
+        "recent_runs": recent_runs
+    }
 

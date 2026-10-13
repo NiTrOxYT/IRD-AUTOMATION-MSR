@@ -1,0 +1,26 @@
+{
+  "summary": {
+    "id": 999,
+    "run_date": "2026-10-13",
+    "mode": "DRY_RUN",
+    "status": "COMPLETED",
+    "total_channels": 1,
+    "successful_channels": 1
+  },
+  "channels": [
+    {
+      "row_number": 2,
+      "channel_number": "101",
+      "name": "DD National",
+      "osd": "DD National",
+      "categories": [
+        "all",
+        "News"
+      ],
+      "status": "READY",
+      "verified_in_portal": false,
+      "duration_seconds": 0.5,
+      "error_reason": "Dry run preview"
+    }
+  ]
+}

@@ -108,8 +108,75 @@ function bindEvent(id, eventType, handler) {
 }
 
 
-// --- TAB NAVIGATION SYSTEM (Independent of Backend APIs) ---
+// --- DUAL-MODULE NAVIGATION SYSTEM (IRD Automation & DTH Automation) ---
+let currentAppModule = 'ird';
+
+function switchAppModule(moduleName, targetTab = null) {
+  currentAppModule = moduleName;
+  try { localStorage.setItem('active_module', moduleName); } catch(e) {}
+
+  const btnIrd = document.getElementById('btn-module-ird');
+  const btnDth = document.getElementById('btn-module-dth');
+  const menuIrd = document.getElementById('menu-ird');
+  const menuDth = document.getElementById('menu-dth');
+
+  if (moduleName === 'dth') {
+    if (btnIrd) { btnIrd.classList.remove('active'); btnIrd.setAttribute('aria-selected', 'false'); }
+    if (btnDth) { btnDth.classList.add('active'); btnDth.setAttribute('aria-selected', 'true'); }
+    if (menuIrd) menuIrd.classList.remove('active');
+    if (menuDth) menuDth.classList.add('active');
+
+    const nextTab = targetTab || localStorage.getItem('active_dth_tab') || 'dth-dashboard';
+    navigateToTab(nextTab);
+  } else {
+    if (btnDth) { btnDth.classList.remove('active'); btnDth.setAttribute('aria-selected', 'false'); }
+    if (btnIrd) { btnIrd.classList.add('active'); btnIrd.setAttribute('aria-selected', 'true'); }
+    if (menuDth) menuDth.classList.remove('active');
+    if (menuIrd) menuIrd.classList.add('active');
+
+    const nextTab = targetTab || localStorage.getItem('active_ird_tab') || 'dashboard';
+    navigateToTab(nextTab);
+  }
+}
+
 function navigateToTab(tabId) {
+  // Alias backward-compatible tab IDs
+  if (tabId === 'dth') tabId = 'dth-channels';
+
+  const isDthTab = tabId.startsWith('dth-');
+
+  // Sync module switcher buttons & menus
+  const btnIrd = document.getElementById('btn-module-ird');
+  const btnDth = document.getElementById('btn-module-dth');
+  const menuIrd = document.getElementById('menu-ird');
+  const menuDth = document.getElementById('menu-dth');
+
+  if (isDthTab) {
+    currentAppModule = 'dth';
+    try {
+      localStorage.setItem('active_module', 'dth');
+      localStorage.setItem('active_dth_tab', tabId);
+      window.location.hash = `#dth/${tabId.replace('dth-', '')}`;
+    } catch(e) {}
+
+    if (btnIrd) { btnIrd.classList.remove('active'); btnIrd.setAttribute('aria-selected', 'false'); }
+    if (btnDth) { btnDth.classList.add('active'); btnDth.setAttribute('aria-selected', 'true'); }
+    if (menuIrd) menuIrd.classList.remove('active');
+    if (menuDth) menuDth.classList.add('active');
+  } else {
+    currentAppModule = 'ird';
+    try {
+      localStorage.setItem('active_module', 'ird');
+      localStorage.setItem('active_ird_tab', tabId);
+      window.location.hash = `#ird/${tabId}`;
+    } catch(e) {}
+
+    if (btnDth) { btnDth.classList.remove('active'); btnDth.setAttribute('aria-selected', 'false'); }
+    if (btnIrd) { btnIrd.classList.add('active'); btnIrd.setAttribute('aria-selected', 'true'); }
+    if (menuDth) menuDth.classList.remove('active');
+    if (menuIrd) menuIrd.classList.add('active');
+  }
+
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
 
@@ -119,7 +186,7 @@ function navigateToTab(tabId) {
   const targetTab = document.getElementById(`tab-${tabId}`);
   if (targetTab) {
     targetTab.classList.add('active');
-    console.log(`[NAVIGATION] Switched to tab: ${tabId}`);
+    console.log(`[NAVIGATION] Switched to tab: ${tabId} (Module: ${currentAppModule})`);
   } else {
     console.warn(`[NAVIGATION WARNING] Tab element #tab-${tabId} not found.`);
   }
@@ -129,9 +196,58 @@ function navigateToTab(tabId) {
   if (tabId === 'history') safeInit('loadHistory', loadHistory);
   if (tabId === 'settings') safeInit('loadSettingsTabs', () => { loadPuTTYInfo(); loadOfficeSshSettings(); loadGlobalTunnelSettings(); });
   if (tabId === 'diagnostics') safeInit('loadDiagnostics', () => { scanWindows(); loadPackageHealth(); });
+
+  // DTH Pages lazy component loaders
+  if (tabId === 'dth-dashboard') safeInit('loadDthDashboard', loadDthDashboard);
+  if (tabId === 'dth-sites') safeInit('loadDthSitesConfig', loadDthSitesConfig);
+  if (tabId === 'dth-channels') safeInit('initDthTab', initDthTab);
+  if (tabId === 'dth-history') safeInit('loadDthHistory', loadDthHistory);
+  if (tabId === 'dth-reports') safeInit('loadDthReports', loadDthReports);
+  if (tabId === 'dth-settings') safeInit('loadDthSettings', loadDthSettings);
+}
+
+function handleHashRouting() {
+  const hash = window.location.hash.replace('#', '').trim();
+  if (!hash) return;
+
+  if (hash.startsWith('dth/')) {
+    const sub = hash.replace('dth/', '');
+    const tabId = `dth-${sub}`;
+    switchAppModule('dth', tabId);
+  } else if (hash.startsWith('ird/')) {
+    const tabId = hash.replace('ird/', '');
+    switchAppModule('ird', tabId);
+  } else if (hash === 'dth') {
+    switchAppModule('dth', 'dth-dashboard');
+  } else {
+    // Legacy direct tab hash
+    const el = document.getElementById(`tab-${hash}`);
+    if (el) {
+      if (hash.startsWith('dth-')) {
+        switchAppModule('dth', hash);
+      } else {
+        switchAppModule('ird', hash);
+      }
+    }
+  }
 }
 
 function initNavigation() {
+  const btnModuleIrd = document.getElementById('btn-module-ird');
+  const btnModuleDth = document.getElementById('btn-module-dth');
+  if (btnModuleIrd) {
+    btnModuleIrd.addEventListener('click', (e) => {
+      e.preventDefault();
+      switchAppModule('ird');
+    });
+  }
+  if (btnModuleDth) {
+    btnModuleDth.addEventListener('click', (e) => {
+      e.preventDefault();
+      switchAppModule('dth');
+    });
+  }
+
   document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
@@ -139,6 +255,21 @@ function initNavigation() {
       if (tabId) navigateToTab(tabId);
     });
   });
+
+  // Handle URL hash changes for deep linking & history
+  window.addEventListener('hashchange', () => {
+    handleHashRouting();
+  });
+
+  // Initial routing
+  if (window.location.hash) {
+    handleHashRouting();
+  } else {
+    const savedModule = localStorage.getItem('active_module');
+    if (savedModule === 'dth') {
+      switchAppModule('dth');
+    }
+  }
 }
 
 // Temporary diagnostic helper
@@ -206,6 +337,8 @@ function initWebSocket() {
           appendLogToTestConsole(msg.data);
         } else if (msg.type === 'status') {
           updateAutomationStatusUI(msg.data);
+        } else if (msg.type === 'dth_status') {
+          updateDthStatusUI(msg.data);
         }
       } catch (e) {
         console.error("Error parsing WS message:", e);
@@ -275,7 +408,9 @@ function handleStartSyncClick() {
   const btn = document.getElementById("btn-start-sync");
   if (btn) btn.disabled = true;
 
-  startAutomation(false);
+  console.log("[UI] Confirmation modal opened");
+  const modal = document.getElementById('modal-confirm-real-run');
+  if (modal) modal.classList.add('active');
 }
 
 // --- AUTOMATION STATUS UI UPDATER ---
@@ -576,6 +711,7 @@ async function startAutomation(isDryRun) {
   }
 
   console.log(`[PHASE17][UI] Final selected site IDs for payload: ${JSON.stringify(selectedIds)}`);
+  console.log("[UI] Selected site IDs:", selectedIds);
 
   console.log("[UI] startAutomation(false) called");
   console.log(`[PHASE17][UI] window.location.href = ${window.location.href}`);
@@ -603,6 +739,7 @@ async function startAutomation(isDryRun) {
   console.log(`[PHASE17][UI] START SYNC endpoint = ${endpointPath}`);
   console.log(`[PHASE17][UI] Calling backend`);
   console.log(`[PHASE17][UI] API URL: ${fullUrl}`);
+  console.log("[UI] API URL:", fullUrl);
 
   const reqPayload = { site_ids: selectedIds, dry_run: isDryRun, trace_id: traceId };
   console.log(`[PHASE17][UI] Request payload:`, reqPayload);
@@ -1713,6 +1850,7 @@ document.addEventListener('DOMContentLoaded', () => {
   safeInit("WebSocket Connection", initWebSocket);
   safeInit("Load Sites", loadSites);
   safeInit("Load Run History", loadHistory);
+  safeInit("Init DTH Module", initDthModule);
 });
 
 
@@ -1720,3 +1858,1212 @@ function escapeHtml(str) {
   if (!str) return '';
   return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
+
+// ==========================================
+// DTH CHANNEL CONFIGURATION AUTOMATION UI
+// ==========================================
+
+const dthState = {
+  uploadedFilename: null,
+  uploadedFilePath: null,
+  lastRunId: null,
+  validationData: null,
+  isExecuting: false
+};
+
+function initDthTab() {
+  console.log("[DTH UI] Initializing DTH Channels Tab...");
+  populateDthSitesDropdown();
+  bindDthEvents();
+  loadDthHistory();
+  pollDthStatus();
+}
+
+async function populateDthSitesDropdown() {
+  const sel = document.getElementById('dth-select-site');
+  if (!sel) return;
+
+  try {
+    const res = await fetch('/api/dth/sites');
+    if (res.ok) {
+      const dthSites = await res.json();
+      if (dthSites && dthSites.length > 0) {
+        sel.innerHTML = '';
+        dthSites.forEach(s => {
+          const opt = document.createElement('option');
+          opt.value = s.id;
+          opt.textContent = `${s.name} (Port: ${s.local_port || 18001})`;
+          if (s.enabled) opt.selected = true;
+          sel.appendChild(opt);
+        });
+        return;
+      }
+    }
+
+    const irdRes = await fetch('/api/sites');
+    if (irdRes.ok) {
+      const sites = await irdRes.json();
+      sel.innerHTML = '';
+      sites.forEach(site => {
+        const opt = document.createElement('option');
+        opt.value = site.id;
+        opt.textContent = `${site.name} (Port: ${site.local_port || 18001})`;
+        if (site.name === "FNB" || site.enabled) opt.selected = true;
+        sel.appendChild(opt);
+      });
+    }
+  } catch (e) {
+    console.error("[DTH UI] Error populating sites:", e);
+  }
+}
+
+function bindDthEvents() {
+  // 1. Template Downloads
+  const btnCsvTpl = document.getElementById('btn-dth-download-csv-template');
+  if (btnCsvTpl) btnCsvTpl.onclick = () => window.open('/api/dth/template?format=csv', '_blank');
+
+  const btnXlsxTpl = document.getElementById('btn-dth-download-xlsx-template');
+  if (btnXlsxTpl) btnXlsxTpl.onclick = () => window.open('/api/dth/template?format=xlsx', '_blank');
+
+  // 2. File Input Selection
+  const fileInput = document.getElementById('dth-file-input');
+  if (fileInput) {
+    fileInput.onchange = async () => {
+      if (fileInput.files && fileInput.files[0]) {
+        await uploadDthFile(fileInput.files[0]);
+      }
+    };
+  }
+
+  // 3. Upload & Validate Buttons
+  const btnUploadParse = document.getElementById('btn-dth-upload-parse');
+  if (btnUploadParse) {
+    btnUploadParse.onclick = async () => {
+      if (fileInput && fileInput.files && fileInput.files[0]) {
+        await uploadDthFile(fileInput.files[0]);
+      } else {
+        alert("Please select a .csv or .xlsx file first.");
+      }
+    };
+  }
+
+  const btnValidate = document.getElementById('btn-dth-validate');
+  if (btnValidate) btnValidate.onclick = () => runDthValidation();
+
+  // 4. Dry Run Button
+  const btnDryRun = document.getElementById('btn-dth-dry-run');
+  if (btnDryRun) btnDryRun.onclick = () => executeDthRun('DRY_RUN', false);
+
+  // 5. Live Run Confirmation Modal
+  const btnStartLive = document.getElementById('btn-dth-start-live');
+  if (btnStartLive) {
+    btnStartLive.onclick = () => {
+      if (!dthState.uploadedFilename) {
+        alert("Please upload and validate a channel configuration file first.");
+        return;
+      }
+      const siteSel = document.getElementById('dth-select-site');
+      const siteName = siteSel ? siteSel.options[siteSel.selectedIndex].text : "Selected Site";
+      const siteLbl = document.getElementById('dth-confirm-site-name');
+      if (siteLbl) siteLbl.textContent = siteName;
+
+      const modal = document.getElementById('modal-confirm-dth-run');
+      if (modal) modal.classList.add('active');
+    };
+  }
+
+  const btnCancelConfirm = document.getElementById('btn-cancel-dth-confirm');
+  const btnCloseConfirm = document.getElementById('btn-close-dth-confirm-modal');
+  const closeDthModal = () => {
+    const modal = document.getElementById('modal-confirm-dth-run');
+    if (modal) modal.classList.remove('active');
+  };
+  if (btnCancelConfirm) btnCancelConfirm.onclick = closeDthModal;
+  if (btnCloseConfirm) btnCloseConfirm.onclick = closeDthModal;
+
+  const btnProceedLive = document.getElementById('btn-proceed-dth-live');
+  if (btnProceedLive) {
+    btnProceedLive.onclick = () => {
+      closeDthModal();
+      executeDthRun('LIVE', true);
+    };
+  }
+
+  // 6. Stop Button
+  const btnStop = document.getElementById('btn-dth-stop');
+  if (btnStop) {
+    btnStop.onclick = async () => {
+      try {
+        const res = await fetch('/api/dth/stop', { method: 'POST' });
+        const data = await res.json();
+        alert(data.message);
+      } catch (e) {
+        alert("Error requesting stop: " + e.message);
+      }
+    };
+  }
+
+  // 7. Refresh History
+  const btnRefreshHist = document.getElementById('btn-dth-refresh-history');
+  if (btnRefreshHist) btnRefreshHist.onclick = () => loadDthHistory();
+
+  // 8. Report Downloads
+  const btnRepCsv = document.getElementById('btn-dth-export-report-csv');
+  if (btnRepCsv) {
+    btnRepCsv.onclick = () => {
+      if (dthState.lastRunId) window.open(`/api/dth/reports/${dthState.lastRunId}/csv`, '_blank');
+    };
+  }
+  const btnRepJson = document.getElementById('btn-dth-export-report-json');
+  if (btnRepJson) {
+    btnRepJson.onclick = () => {
+      if (dthState.lastRunId) window.open(`/api/dth/reports/${dthState.lastRunId}/json`, '_blank');
+    };
+  }
+}
+
+async function uploadDthFile(file) {
+  const lblFilename = document.getElementById('dth-uploaded-filename');
+  const lblStatus = document.getElementById('dth-upload-status');
+  if (lblStatus) lblStatus.textContent = "Uploading file...";
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  try {
+    const res = await fetch('/api/dth/upload', {
+      method: 'POST',
+      body: formData
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      dthState.uploadedFilename = data.filename;
+      dthState.uploadedFilePath = data.file_path;
+      if (lblFilename) lblFilename.textContent = `Uploaded: ${data.filename} (${(data.size_bytes/1024).toFixed(1)} KB)`;
+      if (lblStatus) lblStatus.textContent = "Upload complete. Click Validate & Preview.";
+      // Automatically validate
+      await runDthValidation();
+    } else {
+      if (lblStatus) lblStatus.textContent = `Upload failed: ${data.detail || 'Unknown error'}`;
+    }
+  } catch (e) {
+    if (lblStatus) lblStatus.textContent = `Upload error: ${e.message}`;
+  }
+}
+
+async function runDthValidation() {
+  if (!dthState.uploadedFilename) {
+    alert("Please select and upload a configuration file first.");
+    return;
+  }
+
+  const lblStatus = document.getElementById('dth-upload-status');
+  if (lblStatus) lblStatus.textContent = "Validating records...";
+
+  const imgDirInput = document.getElementById('dth-image-dir-input');
+  const imgDir = imgDirInput ? imgDirInput.value.trim() : "";
+
+  const formData = new FormData();
+  formData.append('filename', dthState.uploadedFilename);
+  if (imgDir) formData.append('image_dir', imgDir);
+
+  try {
+    const res = await fetch('/api/dth/validate', {
+      method: 'POST',
+      body: formData
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      dthState.validationData = data;
+      updateDthKpis(data);
+      renderDthPreviewTable(data.items, data.validation_results);
+      if (lblStatus) lblStatus.textContent = `Validation finished: ${data.valid_rows} ready, ${data.invalid_rows} invalid, ${data.duplicate_rows} duplicates.`;
+    } else {
+      const err = data.parse_errors ? data.parse_errors.join('; ') : (data.detail || "Validation failed");
+      alert("Validation failed: " + err);
+      if (lblStatus) lblStatus.textContent = err;
+    }
+  } catch (e) {
+    console.error("[DTH UI] Validation error:", e);
+    if (lblStatus) lblStatus.textContent = "Error: " + e.message;
+  }
+}
+
+function updateDthKpis(data) {
+  const elTotal = document.getElementById('dth-stat-total');
+  const elValid = document.getElementById('dth-stat-valid');
+  const elInvalid = document.getElementById('dth-stat-invalid');
+  const elDuplicates = document.getElementById('dth-stat-duplicates');
+
+  if (elTotal) elTotal.textContent = data.total_rows || 0;
+  if (elValid) elValid.textContent = data.valid_rows || 0;
+  if (elInvalid) elInvalid.textContent = data.invalid_rows || 0;
+  if (elDuplicates) elDuplicates.textContent = data.duplicate_rows || 0;
+}
+
+function renderDthPreviewTable(items, results) {
+  const tbody = document.getElementById('tbody-dth-channels');
+  if (!tbody) return;
+
+  if (!items || items.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 30px;">No channels found in file.</td></tr>`;
+    return;
+  }
+
+  let html = '';
+  items.forEach((item, idx) => {
+    const vr = results && results[idx] ? results[idx] : null;
+    const status = vr ? vr.status : 'PENDING';
+    const statusClass = getDthStatusBadgeClass(status);
+
+    const categories = item.categories || [];
+    const catBadges = categories.map(c => {
+      const isMandatory = c.toLowerCase() === 'all';
+      return `<span class="dth-cat-tag ${isMandatory ? 'mandatory' : ''}">${escapeHtml(c)}</span>`;
+    }).join(' ');
+
+    const details = vr ? (vr.errors.length ? vr.errors.join('; ') : (vr.warnings.length ? vr.warnings.join('; ') : 'OK')) : '';
+
+    html += `
+      <tr>
+        <td>${item.row_number}</td>
+        <td><strong>${escapeHtml(item.channel_number)}</strong></td>
+        <td>${escapeHtml(item.name)}</td>
+        <td>${escapeHtml(item.osd)}</td>
+        <td>${catBadges}</td>
+        <td><small style="color: var(--text-muted);">${escapeHtml(item.image)}</small></td>
+        <td><span class="status-badge ${statusClass}">${escapeHtml(status)}</span></td>
+        <td>${status === 'SKIPPED_DUPLICATE' ? 'ALREADY IN PORTAL' : '-'}</td>
+        <td style="font-size: 12px; color: ${status === 'INVALID' ? 'var(--accent-red)' : 'var(--text-muted)'};">${escapeHtml(details)}</td>
+      </tr>
+    `;
+  });
+  tbody.innerHTML = html;
+}
+
+function getDthStatusBadgeClass(status) {
+  switch (status) {
+    case 'READY': return 'badge-dth-ready';
+    case 'SUCCESS': return 'badge-dth-success';
+    case 'INVALID': return 'badge-dth-invalid';
+    case 'SKIPPED_DUPLICATE': return 'badge-dth-duplicate';
+    case 'UNKNOWN': return 'badge-dth-unknown';
+    case 'FAILED': return 'badge-dth-failed';
+    default: return 'badge-dth-ready';
+  }
+}
+
+async function executeDthRun(mode, authorized) {
+  if (!dthState.uploadedFilename) {
+    alert("Please upload and validate a channel configuration file first.");
+    return;
+  }
+
+  const siteSel = document.getElementById('dth-select-site');
+  const siteId = siteSel ? parseInt(siteSel.value) : 1;
+  const imgDirInput = document.getElementById('dth-image-dir-input');
+  const imgDir = imgDirInput ? imgDirInput.value.trim() : "";
+  const delayInput = document.getElementById('dth-delay-input');
+  const delay = delayInput ? parseFloat(delayInput.value) || 1.0 : 1.0;
+
+  const modeBadge = document.getElementById('badge-dth-mode');
+  if (modeBadge) {
+    modeBadge.textContent = `MODE: ${mode}`;
+    modeBadge.className = `status-badge ${mode === 'LIVE' ? 'badge-dth-failed' : 'badge-dth-ready'}`;
+  }
+
+  try {
+    const payload = {
+      filename: dthState.uploadedFilename,
+      image_dir: imgDir,
+      mode: mode,
+      site_id: siteId,
+      channel_delay_seconds: delay,
+      authorized: authorized
+    };
+
+    const res = await fetch('/api/dth/execute', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      console.log(`[DTH UI] ${mode} execution started successfully.`);
+      dthState.isExecuting = true;
+      toggleDthActionButtons(true);
+      pollDthStatus();
+    } else {
+      alert(`Could not start ${mode}: ${data.detail || 'Unknown error'}`);
+    }
+  } catch (e) {
+    alert("Execution error: " + e.message);
+  }
+}
+
+function toggleDthActionButtons(isRunning) {
+  const btnStart = document.getElementById('btn-dth-start-live');
+  const btnDry = document.getElementById('btn-dth-dry-run');
+  const btnValidate = document.getElementById('btn-dth-validate');
+  const btnStop = document.getElementById('btn-dth-stop');
+
+  if (btnStart) btnStart.disabled = isRunning;
+  if (btnDry) btnDry.disabled = isRunning;
+  if (btnValidate) btnValidate.disabled = isRunning;
+  if (btnStop) btnStop.disabled = !isRunning;
+}
+
+function updateDthStatusUI(statusData) {
+  if (!statusData) return;
+
+  const isRunning = !!statusData.is_running;
+  toggleDthActionButtons(isRunning);
+
+  const elOp = document.getElementById('dth-status-operation');
+  if (elOp) elOp.textContent = `Status: ${statusData.operation || statusData.status || 'Idle'}`;
+
+  const elCh = document.getElementById('dth-status-current-channel');
+  if (elCh) elCh.textContent = `Current: ${statusData.current_channel || 'None'}`;
+
+  const elProgress = document.getElementById('dth-progress-bar-fill');
+  if (elProgress) elProgress.style.width = `${statusData.progress_percentage || 0}%`;
+
+  const dot = document.getElementById('dth-status-dot');
+  if (dot) dot.style.background = isRunning ? 'var(--accent-green)' : 'var(--text-muted)';
+
+  if (statusData.run_id) {
+    dthState.lastRunId = statusData.run_id;
+    const btnCsv = document.getElementById('btn-dth-export-report-csv');
+    const btnJson = document.getElementById('btn-dth-export-report-json');
+    if (btnCsv) btnCsv.disabled = false;
+    if (btnJson) btnJson.disabled = false;
+  }
+
+  // Also update Dashboard Tab banner
+  if (typeof updateDthDashboardActiveBanner === 'function') {
+    updateDthDashboardActiveBanner(statusData);
+  }
+
+  // Refresh history, dashboard, and reports when execution completes
+  if (!isRunning && dthState.isExecuting) {
+    dthState.isExecuting = false;
+    loadDthHistory();
+    if (typeof loadDthDashboard === 'function') loadDthDashboard();
+    if (typeof loadDthReports === 'function') loadDthReports();
+  }
+}
+
+let dthPollInterval = null;
+function pollDthStatus() {
+  if (dthPollInterval) clearInterval(dthPollInterval);
+  dthPollInterval = setInterval(async () => {
+    try {
+      const res = await fetch('/api/dth/status');
+      const data = await res.json();
+      updateDthStatusUI(data);
+      if (!data.is_running && !dthState.isExecuting) {
+        clearInterval(dthPollInterval);
+        dthPollInterval = null;
+      }
+    } catch (e) {
+      // Ignore background polling errors
+    }
+  }, 2000);
+}
+
+async function loadDthHistory() {
+  const tbody = document.getElementById('tbody-dth-history');
+  const countBadge = document.getElementById('dth-history-count-badge');
+  if (!tbody) return;
+
+  try {
+    const res = await fetch('/api/dth/history?limit=50');
+    const data = await res.json();
+    const runs = data.runs || [];
+
+    if (countBadge) countBadge.textContent = `${runs.length} Run${runs.length === 1 ? '' : 's'}`;
+
+    if (!res.ok || runs.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="12" style="text-align: center; color: var(--text-muted); padding: 25px;">No past DTH execution runs recorded.</td></tr>`;
+      return;
+    }
+
+    let html = '';
+    runs.forEach(r => {
+      const statusBadge = r.status === 'COMPLETED' ? 'badge-dth-success' : (r.status === 'STOPPED' ? 'badge-dth-duplicate' : 'badge-dth-failed');
+      const modeBadge = r.mode === 'LIVE' ? 'badge-dth-failed' : 'badge-dth-ready';
+
+      html += `
+        <tr>
+          <td><strong>#${r.id}</strong></td>
+          <td>${escapeHtml(r.run_date || '')}</td>
+          <td><small>${escapeHtml(r.start_time || '')} - ${escapeHtml(r.end_time || 'In Progress')}</small></td>
+          <td><span class="status-badge ${modeBadge}">${r.mode}</span></td>
+          <td>${escapeHtml(r.site_name || 'FNB')}</td>
+          <td><small style="word-break: break-all;">${escapeHtml(r.filename || '')}</small></td>
+          <td>${r.total_channels || 0}</td>
+          <td style="color: var(--accent-green); font-weight: 600;">${r.successful_channels || 0}</td>
+          <td style="color: var(--accent-amber);">${r.skipped_duplicates || 0}</td>
+          <td style="color: var(--accent-red);">${(r.failed_channels || 0) + (r.invalid_channels || 0)}</td>
+          <td><span class="status-badge ${statusBadge}">${r.status}</span></td>
+          <td>
+            <div style="display: flex; gap: 4px; align-items: center;">
+              <button class="btn btn-secondary btn-sm" onclick="openDthRunDetails(${r.id})">Details</button>
+              <a href="/api/dth/reports/${r.id}/csv" target="_blank" class="btn btn-secondary btn-sm" title="Download CSV">CSV</a>
+              <a href="/api/dth/reports/${r.id}/json" target="_blank" class="btn btn-secondary btn-sm" title="Download JSON">JSON</a>
+            </div>
+          </td>
+        </tr>
+      `;
+    });
+    tbody.innerHTML = html;
+  } catch (e) {
+    tbody.innerHTML = `<tr><td colspan="12" style="text-align: center; color: var(--accent-red); padding: 20px;">Error loading history: ${escapeHtml(e.message)}</td></tr>`;
+  }
+}
+
+// ==========================================
+// DTH MODULE CONTROLLERS & DATA LOGIC
+// ==========================================
+
+// 1. DTH DASHBOARD CONTROLLER
+async function loadDthDashboard() {
+  console.log("[DTH UI] Loading DTH Dashboard...");
+  try {
+    const res = await fetch('/api/dth/dashboard');
+    if (!res.ok) {
+      console.warn("[DTH UI] /api/dth/dashboard returned non-ok, falling back to /api/dth/stats");
+      const fallbackRes = await fetch('/api/dth/stats');
+      if (fallbackRes.ok) {
+        const stats = await fallbackRes.json();
+        updateDthDashboardMetrics(stats);
+      }
+      return;
+    }
+    const data = await res.json();
+    const metrics = data.metrics || {};
+    updateDthDashboardMetrics(metrics);
+
+    // Render Recent Runs table on Dashboard
+    renderDthDashboardRecentRuns(data.recent_runs || []);
+
+    // Render Sites Overview table on Dashboard
+    renderDthDashboardSitesOverview(data.sites || []);
+
+    // Sync active run banner on Dashboard
+    if (data.active_run) {
+      updateDthDashboardActiveBanner(data.active_run);
+    }
+  } catch (e) {
+    console.error("[DTH UI] Error loading DTH Dashboard:", e);
+  }
+}
+
+function updateDthDashboardMetrics(m) {
+  const elSites = document.getElementById('dth-dash-stat-sites');
+  const elProc = document.getElementById('dth-dash-stat-processed');
+  const elSucc = document.getElementById('dth-dash-stat-success');
+  const elFail = document.getElementById('dth-dash-stat-failed');
+  const elDup = document.getElementById('dth-dash-stat-duplicates');
+  const elRuns = document.getElementById('dth-dash-stat-runs');
+
+  if (elSites) elSites.textContent = m.configured_sites || 0;
+  if (elProc) elProc.textContent = m.channels_processed || 0;
+  if (elSucc) elSucc.textContent = m.successful_creations || 0;
+  if (elFail) elFail.textContent = m.failed_operations || 0;
+  if (elDup) elDup.textContent = m.skipped_duplicates || 0;
+  if (elRuns) elRuns.textContent = m.total_runs || 0;
+}
+
+function renderDthDashboardRecentRuns(runs) {
+  const tbody = document.getElementById('tbody-dth-dash-runs');
+  if (!tbody) return;
+
+  if (!runs || runs.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 35px 20px;">
+          <div style="font-size: 15px; margin-bottom: 6px;">No DTH runs recorded yet</div>
+          <div style="font-size: 12px; margin-bottom: 12px;">Import a channel configuration file to execute your first batch run.</div>
+          <button class="btn btn-secondary btn-sm" onclick="navigateToTab('dth-channels')">Go to Channel Configuration</button>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  let html = '';
+  runs.slice(0, 7).forEach(r => {
+    const statusBadge = r.status === 'COMPLETED' ? 'badge-dth-success' : (r.status === 'STOPPED' ? 'badge-dth-duplicate' : 'badge-dth-failed');
+    const modeBadge = r.mode === 'LIVE' ? 'badge-dth-failed' : 'badge-dth-ready';
+    html += `
+      <tr style="cursor: pointer;" onclick="openDthRunDetails(${r.id})" title="Click to inspect row-level channel results">
+        <td><strong>#${r.id}</strong></td>
+        <td>${escapeHtml(r.run_date || '')}</td>
+        <td>${escapeHtml(r.site_name || 'FNB')}</td>
+        <td><span class="status-badge ${modeBadge}">${r.mode}</span></td>
+        <td>${r.total_channels || 0}</td>
+        <td style="color: var(--accent-green); font-weight: 600;">${r.successful_channels || 0}</td>
+        <td><span class="status-badge ${statusBadge}">${r.status}</span></td>
+      </tr>
+    `;
+  });
+  tbody.innerHTML = html;
+}
+
+function renderDthDashboardSitesOverview(sites) {
+  const tbody = document.getElementById('tbody-dth-dash-sites');
+  if (!tbody) return;
+
+  if (!sites || sites.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 35px 20px;">
+          <div style="font-size: 15px; margin-bottom: 6px;">No DTH sites configured</div>
+          <div style="font-size: 12px; margin-bottom: 12px;">Add a target portal site to enable channel automation.</div>
+          <button class="btn btn-primary btn-sm" onclick="navigateToTab('dth-sites')">+ Configure Sites</button>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  let html = '';
+  sites.forEach(s => {
+    const stateBadge = s.enabled ? '<span class="status-badge badge-ready">Enabled</span>' : '<span class="status-badge" style="color: var(--text-muted);">Disabled</span>';
+    const targetUrl = s.portal_url || `localhost:${s.local_port || 18001}`;
+    html += `
+      <tr>
+        <td><strong>${escapeHtml(s.name)}</strong></td>
+        <td><small style="color: var(--accent-cyan); word-break: break-all;">${escapeHtml(targetUrl)}</small></td>
+        <td>${stateBadge}</td>
+        <td>
+          <button class="btn btn-secondary btn-sm" onclick="testDthSiteFromTable(${s.id}, this)">Check</button>
+        </td>
+      </tr>
+    `;
+  });
+  tbody.innerHTML = html;
+}
+
+function updateDthDashboardActiveBanner(statusData) {
+  const isRunning = !!statusData.is_running;
+  const dot = document.getElementById('dth-dash-status-dot');
+  const op = document.getElementById('dth-dash-status-operation');
+  const ch = document.getElementById('dth-dash-status-channel');
+  const fill = document.getElementById('dth-dash-progress-bar-fill');
+  const btnStop = document.getElementById('btn-dth-dash-stop');
+
+  if (dot) dot.style.background = isRunning ? 'var(--accent-green)' : 'var(--text-muted)';
+  if (op) op.textContent = `Execution Status: ${statusData.operation || statusData.status || (isRunning ? 'Running' : 'Idle')}`;
+  if (ch) ch.textContent = `Current: ${statusData.current_channel || 'None'}`;
+  if (fill) fill.style.width = `${statusData.progress_percentage || 0}%`;
+  if (btnStop) btnStop.style.display = isRunning ? 'inline-block' : 'none';
+}
+
+// 2. DTH SITES CONFIGURATION CONTROLLER
+let dthSitesCache = [];
+
+async function loadDthSitesConfig() {
+  const tbody = document.getElementById('tbody-dth-sites-table');
+  const countBadge = document.getElementById('dth-sites-count-badge');
+  if (!tbody) return;
+
+  try {
+    const res = await fetch('/api/dth/sites');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const sites = await res.json();
+    dthSitesCache = sites;
+
+    if (countBadge) countBadge.textContent = `${sites.length} Site${sites.length === 1 ? '' : 's'}`;
+
+    if (!sites || sites.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="9" style="text-align: center; color: var(--text-muted); padding: 40px 20px;">
+            <div style="font-size: 16px; margin-bottom: 8px;">No DTH sites configured yet</div>
+            <div style="font-size: 13px; margin-bottom: 16px;">Create independent DTH portal configurations or import copies from IRD sites.</div>
+            <div style="display: flex; justify-content: center; gap: 10px;">
+              <button class="btn btn-primary" onclick="openAddDthSiteModal()">+ Add DTH Site</button>
+              <button class="btn btn-secondary" onclick="importIrdSitesToDth()">Copy from IRD Sites</button>
+            </div>
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    let html = '';
+    sites.forEach(s => {
+      const stateBadge = s.enabled
+        ? `<span class="status-badge badge-ready" style="cursor: pointer;" onclick="toggleDthSite(${s.id})" title="Click to toggle">Enabled</span>`
+        : `<span class="status-badge" style="color: var(--text-muted); cursor: pointer;" onclick="toggleDthSite(${s.id})" title="Click to toggle">Disabled</span>`;
+
+      const credBadge = s.has_credentials
+        ? `<span class="status-badge badge-ready" title="Protected in encrypted vault">Encrypted</span>`
+        : `<span class="status-badge" style="color: var(--text-muted);">None</span>`;
+
+      const tunnelInfo = s.ssh_host
+        ? `SSH: ${escapeHtml(s.ssh_host)}:${s.ssh_port || 22}`
+        : (s.putty_session ? `PuTTY: ${escapeHtml(s.putty_session)}` : `Port ${s.local_port || 18001}`);
+
+      const portalDisplay = s.portal_url || `http://localhost:${s.local_port || 18001}/zmp/main-menu.do`;
+
+      html += `
+        <tr>
+          <td>#${s.id}</td>
+          <td><strong>${escapeHtml(s.name)}</strong></td>
+          <td><small style="color: var(--accent-cyan); word-break: break-all;">${escapeHtml(portalDisplay)}</small></td>
+          <td>${escapeHtml(s.idp_username || 'admin')}</td>
+          <td>${credBadge}</td>
+          <td><small style="color: var(--text-muted);">${escapeHtml(tunnelInfo)}</small></td>
+          <td>${stateBadge}</td>
+          <td id="dth-site-conn-${s.id}">
+            <button class="btn btn-secondary btn-sm" onclick="testDthSiteFromTable(${s.id}, this)">Test</button>
+          </td>
+          <td>
+            <div style="display: flex; gap: 6px;">
+              <button class="btn btn-secondary btn-sm" onclick="openEditDthSiteModal(${s.id})">Edit</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteDthSite(${s.id}, '${escapeHtml(s.name)}')">Delete</button>
+            </div>
+          </td>
+        </tr>
+      `;
+    });
+    tbody.innerHTML = html;
+
+    // Keep Channel selector up to date
+    populateDthSitesDropdown();
+  } catch (e) {
+    console.error("[DTH UI] Error loading DTH sites:", e);
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--accent-red); padding: 25px;">Error loading DTH sites: ${escapeHtml(e.message)}</td></tr>`;
+  }
+}
+
+// 3. DTH SITE MODAL & ACTIONS
+function openAddDthSiteModal() {
+  const modal = document.getElementById('modal-dth-site');
+  if (!modal) return;
+
+  const title = document.getElementById('modal-dth-site-title');
+  if (title) title.textContent = "Add New DTH Site Configuration";
+
+  const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+  setVal('modal-dth-site-id', "");
+  setVal('modal-dth-site-name', "");
+  setVal('modal-dth-portal-url', "");
+  setVal('modal-dth-local-port', "18001");
+  setVal('modal-dth-site-ip', "");
+  setVal('modal-dth-site-port', "80");
+  setVal('modal-dth-idp-username', "admin");
+  setVal('modal-dth-idp-password', "");
+  setVal('modal-dth-ssh-host', "");
+  setVal('modal-dth-ssh-port', "22");
+  setVal('modal-dth-ssh-username', "");
+  setVal('modal-dth-ssh-password', "");
+  setVal('modal-dth-putty-session', "");
+  setVal('modal-dth-notes', "");
+
+  const chk = document.getElementById('modal-dth-enabled');
+  if (chk) chk.checked = true;
+
+  modal.classList.add('active');
+}
+
+async function openEditDthSiteModal(siteId) {
+  const modal = document.getElementById('modal-dth-site');
+  if (!modal) return;
+
+  try {
+    const res = await fetch(`/api/dth/sites/${siteId}`);
+    const data = await res.json();
+    const s = data.site || data;
+
+    const title = document.getElementById('modal-dth-site-title');
+    if (title) title.textContent = `Edit DTH Site: ${s.name}`;
+
+    const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val !== null && val !== undefined ? val : ""; };
+    setVal('modal-dth-site-id', s.id);
+    setVal('modal-dth-site-name', s.name);
+    setVal('modal-dth-portal-url', s.portal_url);
+    setVal('modal-dth-local-port', s.local_port || 18001);
+    setVal('modal-dth-site-ip', s.remote_host);
+    setVal('modal-dth-site-port', s.remote_port || 80);
+    setVal('modal-dth-idp-username', s.idp_username || "admin");
+    setVal('modal-dth-idp-password', ""); // Do not expose password
+    setVal('modal-dth-ssh-host', s.ssh_host);
+    setVal('modal-dth-ssh-port', s.ssh_port || 22);
+    setVal('modal-dth-ssh-username', s.ssh_username);
+    setVal('modal-dth-ssh-password', ""); // Do not expose password
+    setVal('modal-dth-putty-session', s.putty_session);
+    setVal('modal-dth-notes', s.notes);
+
+    const chk = document.getElementById('modal-dth-enabled');
+    if (chk) chk.checked = !!s.enabled;
+
+    modal.classList.add('active');
+  } catch (e) {
+    alert("Error loading DTH site: " + e.message);
+  }
+}
+
+function closeDthSiteModal() {
+  const modal = document.getElementById('modal-dth-site');
+  if (modal) modal.classList.remove('active');
+}
+
+async function saveDthSite() {
+  const nameInput = document.getElementById('modal-dth-site-name');
+  const name = nameInput ? nameInput.value.trim() : "";
+  if (!name) {
+    alert("Please enter a site name.");
+    return;
+  }
+
+  const idVal = document.getElementById('modal-dth-site-id')?.value;
+  const isEdit = !!idVal;
+  const siteId = isEdit ? parseInt(idVal) : null;
+
+  const payload = {
+    name: name,
+    portal_url: document.getElementById('modal-dth-portal-url')?.value.trim() || null,
+    local_port: parseInt(document.getElementById('modal-dth-local-port')?.value) || 18001,
+    remote_host: document.getElementById('modal-dth-site-ip')?.value.trim() || null,
+    remote_port: parseInt(document.getElementById('modal-dth-site-port')?.value) || 80,
+    idp_username: document.getElementById('modal-dth-idp-username')?.value.trim() || "admin",
+    ssh_host: document.getElementById('modal-dth-ssh-host')?.value.trim() || null,
+    ssh_port: parseInt(document.getElementById('modal-dth-ssh-port')?.value) || 22,
+    ssh_username: document.getElementById('modal-dth-ssh-username')?.value.trim() || null,
+    putty_session: document.getElementById('modal-dth-putty-session')?.value.trim() || null,
+    notes: document.getElementById('modal-dth-notes')?.value.trim() || null,
+    enabled: document.getElementById('modal-dth-enabled')?.checked ?? true
+  };
+
+  const idpPass = document.getElementById('modal-dth-idp-password')?.value;
+  if (idpPass) payload.idp_password = idpPass;
+
+  const sshPass = document.getElementById('modal-dth-ssh-password')?.value;
+  if (sshPass) payload.ssh_password = sshPass;
+
+  try {
+    const url = isEdit ? `/api/dth/sites/${siteId}` : '/api/dth/sites';
+    const method = isEdit ? 'PUT' : 'POST';
+    const res = await fetch(url, {
+      method: method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      alert(`Error saving DTH site: ${data.detail || 'Failed'}`);
+      return;
+    }
+
+    closeDthSiteModal();
+    loadDthSitesConfig();
+    loadDthDashboard();
+  } catch (e) {
+    alert("Error saving DTH site: " + e.message);
+  }
+}
+
+async function deleteDthSite(siteId, siteName) {
+  if (!confirm(`Are you sure you want to delete DTH site "${siteName}"? This action cannot be undone.`)) {
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/dth/sites/${siteId}`, { method: 'DELETE' });
+    const data = await res.json();
+    if (res.status === 409) {
+      alert("Cannot delete site: it is currently being used by an active DTH run.");
+      return;
+    }
+    if (!res.ok) {
+      alert(`Could not delete site: ${data.detail || 'Error'}`);
+      return;
+    }
+    loadDthSitesConfig();
+    loadDthDashboard();
+  } catch (e) {
+    alert("Error deleting DTH site: " + e.message);
+  }
+}
+
+async function toggleDthSite(siteId) {
+  try {
+    const res = await fetch(`/api/dth/sites/${siteId}/toggle`, { method: 'POST' });
+    if (res.ok) {
+      loadDthSitesConfig();
+      loadDthDashboard();
+    }
+  } catch (e) {
+    console.error("[DTH UI] Error toggling site:", e);
+  }
+}
+
+async function testDthSiteFromTable(siteId, btnEl) {
+  if (btnEl) {
+    btnEl.disabled = true;
+    btnEl.textContent = "...";
+  }
+
+  try {
+    const res = await fetch(`/api/dth/sites/${siteId}/test`, { method: 'POST' });
+    const data = await res.json();
+    const cell = document.getElementById(`dth-site-conn-${siteId}`);
+    if (cell) {
+      if (data.success) {
+        cell.innerHTML = `<span class="status-badge badge-dth-success" title="${escapeHtml(data.message)}">OK</span>`;
+      } else {
+        cell.innerHTML = `<span class="status-badge badge-dth-failed" title="${escapeHtml(data.message || data.detail)}">Failed</span>`;
+      }
+    } else if (btnEl) {
+      btnEl.textContent = data.success ? "OK" : "Failed";
+    }
+  } catch (e) {
+    if (btnEl) btnEl.textContent = "Err";
+  } finally {
+    if (btnEl) btnEl.disabled = false;
+  }
+}
+
+async function importIrdSitesToDth() {
+  if (!confirm("Import existing IRD sites into DTH site configurations as independent copies?")) {
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/dth/sites/import-ird', { method: 'POST' });
+    const data = await res.json();
+    if (res.ok) {
+      alert(data.message || `Imported ${data.imported_count || 0} sites.`);
+      loadDthSitesConfig();
+      loadDthDashboard();
+    } else {
+      alert(`Import failed: ${data.detail || 'Error'}`);
+    }
+  } catch (e) {
+    alert("Error importing IRD sites: " + e.message);
+  }
+}
+
+// 4. RUN DETAILS MODAL INSPECTOR
+async function openDthRunDetails(runId) {
+  const modal = document.getElementById('modal-dth-run-details');
+  if (!modal) return;
+
+  const title = document.getElementById('modal-dth-run-details-title');
+  if (title) title.textContent = `DTH Run #${runId} Details (Loading...)`;
+
+  modal.classList.add('active');
+
+  try {
+    const res = await fetch(`/api/dth/runs/${runId}`);
+    if (!res.ok) throw new Error("Could not fetch run details");
+    const data = await res.json();
+    const run = data.run;
+    const items = data.items || [];
+
+    if (title) title.textContent = `DTH Run #${run.id} Details (${run.run_date || ''} - ${run.status})`;
+
+    const elSite = document.getElementById('modal-dth-run-site');
+    const elMode = document.getElementById('modal-dth-run-mode');
+    const elTot = document.getElementById('modal-dth-run-total');
+    const elSucc = document.getElementById('modal-dth-run-success');
+    const elSkip = document.getElementById('modal-dth-run-skipped');
+    const elFail = document.getElementById('modal-dth-run-failed');
+
+    if (elSite) elSite.textContent = run.site_name || 'FNB';
+    if (elMode) elMode.textContent = run.mode || 'DRY_RUN';
+    if (elTot) elTot.textContent = run.total_channels || 0;
+    if (elSucc) elSucc.textContent = run.successful_channels || 0;
+    if (elSkip) elSkip.textContent = run.skipped_duplicates || 0;
+    if (elFail) elFail.textContent = (run.failed_channels || 0) + (run.invalid_channels || 0);
+
+    const btnCsv = document.getElementById('btn-modal-dth-download-csv');
+    const btnJson = document.getElementById('btn-modal-dth-download-json');
+    if (btnCsv) btnCsv.href = `/api/dth/reports/${run.id}/csv`;
+    if (btnJson) btnJson.href = `/api/dth/reports/${run.id}/json`;
+
+    // Populate row items
+    const tbody = document.getElementById('tbody-modal-dth-channels');
+    if (tbody) {
+      if (items.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 25px;">No channel row records found for this run.</td></tr>`;
+      } else {
+        let html = '';
+        items.forEach((item, idx) => {
+          const statusClass = getDthStatusBadgeClass(item.status);
+          const catBadges = (item.categories || []).map(c => `<span class="dth-cat-tag ${c.toLowerCase() === 'all' ? 'mandatory' : ''}">${escapeHtml(c)}</span>`).join(' ');
+          const dur = item.duration_seconds ? `${item.duration_seconds.toFixed(1)}s` : '-';
+          const verified = item.verified ? '<span style="color: var(--accent-green);">YES</span>' : '<span style="color: var(--text-muted);">NO</span>';
+
+          html += `
+            <tr>
+              <td>${item.row_number || (idx + 1)}</td>
+              <td><strong>${escapeHtml(item.channel_number || '')}</strong></td>
+              <td>${escapeHtml(item.name || '')}</td>
+              <td>${escapeHtml(item.osd || '')}</td>
+              <td>${catBadges}</td>
+              <td><span class="status-badge ${statusClass}">${item.status}</span></td>
+              <td>${verified}</td>
+              <td><small>${dur}</small></td>
+              <td style="font-size: 12px; color: ${item.status === 'FAILED' ? 'var(--accent-red)' : 'var(--text-muted)'};">${escapeHtml(item.details || '-')}</td>
+            </tr>
+          `;
+        });
+        tbody.innerHTML = html;
+      }
+    }
+  } catch (e) {
+    alert("Error opening run details: " + e.message);
+  }
+}
+
+// 5. DTH REPORTS CONTROLLER
+async function loadDthReports() {
+  const tbody = document.getElementById('tbody-dth-reports-table');
+  if (!tbody) return;
+
+  try {
+    const res = await fetch('/api/dth/history?limit=100');
+    if (!res.ok) throw new Error("Could not load reports");
+    const data = await res.json();
+    const runs = data.runs || [];
+
+    // Compute KPI cards
+    const totalReports = runs.length;
+    let totalCreated = 0;
+    let totalSkipped = 0;
+    let totalFailed = 0;
+
+    runs.forEach(r => {
+      totalCreated += (r.successful_channels || 0);
+      totalSkipped += (r.skipped_duplicates || 0);
+      totalFailed += ((r.failed_channels || 0) + (r.invalid_channels || 0));
+    });
+
+    const totalHandled = totalCreated + totalFailed;
+    const rate = totalHandled > 0 ? ((totalCreated / totalHandled) * 100).toFixed(1) + '%' : '100%';
+
+    const elTotal = document.getElementById('dth-reports-stat-total');
+    const elCreated = document.getElementById('dth-reports-stat-created');
+    const elSkipped = document.getElementById('dth-reports-stat-skipped');
+    const elRate = document.getElementById('dth-reports-stat-rate');
+
+    if (elTotal) elTotal.textContent = totalReports;
+    if (elCreated) elCreated.textContent = totalCreated;
+    if (elSkipped) elSkipped.textContent = totalSkipped;
+    if (elRate) elRate.textContent = rate;
+
+    if (runs.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 30px;">No DTH execution reports archived yet.</td></tr>`;
+      return;
+    }
+
+    let html = '';
+    runs.forEach(r => {
+      const modeBadge = r.mode === 'LIVE' ? 'badge-dth-failed' : 'badge-dth-ready';
+      const outcomeBadge = r.status === 'COMPLETED' ? 'badge-dth-success' : 'badge-dth-failed';
+
+      html += `
+        <tr>
+          <td><strong>#${r.id}</strong></td>
+          <td>${escapeHtml(r.run_date || '')} ${escapeHtml(r.start_time || '')}</td>
+          <td>${escapeHtml(r.site_name || 'FNB')}</td>
+          <td><span class="status-badge ${modeBadge}">${r.mode}</span></td>
+          <td>${r.total_channels || 0}</td>
+          <td style="color: var(--accent-green); font-weight: 600;">${r.successful_channels || 0}</td>
+          <td style="color: var(--accent-amber);">${r.skipped_duplicates || 0}</td>
+          <td><span class="status-badge ${outcomeBadge}">${r.status}</span></td>
+          <td>
+            <div style="display: flex; gap: 6px;">
+              <button class="btn btn-secondary btn-sm" onclick="openDthRunDetails(${r.id})">Details</button>
+              <a href="/api/dth/reports/${r.id}/csv" target="_blank" class="btn btn-secondary btn-sm" title="Download CSV">CSV</a>
+              <a href="/api/dth/reports/${r.id}/json" target="_blank" class="btn btn-secondary btn-sm" title="Download JSON">JSON</a>
+            </div>
+          </td>
+        </tr>
+      `;
+    });
+    tbody.innerHTML = html;
+  } catch (e) {
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--accent-red); padding: 25px;">Error loading reports: ${escapeHtml(e.message)}</td></tr>`;
+  }
+}
+
+// 6. DTH SETTINGS CONTROLLER
+async function loadDthSettings() {
+  try {
+    const res = await fetch('/api/dth/settings');
+    if (!res.ok) return;
+    const settings = await res.json();
+
+    const setVal = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.value = val !== undefined && val !== null ? val : "";
+    };
+    const setChk = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.checked = !!val;
+    };
+
+    if (settings.default_mode) setVal('dth-set-default-mode', settings.default_mode);
+    if (settings.channel_delay_seconds !== undefined) setVal('dth-set-delay', settings.channel_delay_seconds);
+    if (settings.max_rows !== undefined) setVal('dth-set-max-rows', settings.max_rows);
+    if (settings.max_file_size_mb !== undefined) setVal('dth-set-max-file-mb', settings.max_file_size_mb);
+    if (settings.portal_page_timeout !== undefined) setVal('dth-set-page-timeout', settings.portal_page_timeout);
+    if (settings.channel_save_timeout !== undefined) setVal('dth-set-save-timeout', settings.channel_save_timeout);
+    if (settings.allowed_image_extensions) setVal('dth-set-img-exts', settings.allowed_image_extensions);
+    if (settings.max_image_size_kb !== undefined) setVal('dth-set-img-max-kb', settings.max_image_size_kb);
+    if (settings.log_level) setVal('dth-set-log-level', settings.log_level);
+    if (settings.capture_error_screenshots !== undefined) setChk('dth-set-debug-screenshots', settings.capture_error_screenshots);
+  } catch (e) {
+    console.error("[DTH UI] Error loading DTH settings:", e);
+  }
+}
+
+async function saveDthSettings() {
+  const payload = {
+    default_mode: document.getElementById('dth-set-default-mode')?.value || "DRY_RUN",
+    channel_delay_seconds: parseFloat(document.getElementById('dth-set-delay')?.value) || 1.0,
+    max_rows: parseInt(document.getElementById('dth-set-max-rows')?.value) || 5000,
+    max_file_size_mb: parseInt(document.getElementById('dth-set-max-file-mb')?.value) || 10,
+    portal_page_timeout: parseInt(document.getElementById('dth-set-page-timeout')?.value) || 60,
+    channel_save_timeout: parseInt(document.getElementById('dth-set-save-timeout')?.value) || 30,
+    allowed_image_extensions: document.getElementById('dth-set-img-exts')?.value || ".png, .jpg, .jpeg, .bmp, .webp",
+    max_image_size_kb: parseInt(document.getElementById('dth-set-img-max-kb')?.value) || 2048,
+    log_level: document.getElementById('dth-set-log-level')?.value || "INFO",
+    capture_error_screenshots: document.getElementById('dth-set-debug-screenshots')?.checked ?? true
+  };
+
+  try {
+    const res = await fetch('/api/dth/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (res.ok) {
+      const msg = document.getElementById('dth-settings-status-msg');
+      if (msg) {
+        msg.style.display = 'block';
+        msg.textContent = 'Settings saved successfully.';
+        setTimeout(() => { msg.style.display = 'none'; }, 3500);
+      }
+    } else {
+      alert("Error saving DTH settings.");
+    }
+  } catch (e) {
+    alert("Error saving settings: " + e.message);
+  }
+}
+
+async function resetDthSettings() {
+  if (!confirm("Restore default DTH settings?")) return;
+
+  const defaults = {
+    default_mode: "DRY_RUN",
+    channel_delay_seconds: 1.0,
+    max_rows: 5000,
+    max_file_size_mb: 10,
+    portal_page_timeout: 60,
+    channel_save_timeout: 30,
+    allowed_image_extensions: ".png, .jpg, .jpeg, .bmp, .webp",
+    max_image_size_kb: 2048,
+    log_level: "INFO",
+    capture_error_screenshots: true
+  };
+
+  try {
+    const res = await fetch('/api/dth/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(defaults)
+    });
+    if (res.ok) {
+      loadDthSettings();
+      alert("DTH settings restored to defaults.");
+    }
+  } catch (e) {
+    alert("Error resetting settings: " + e.message);
+  }
+}
+
+// 7. CENTRAL DTH MODULE INITIALIZER & EVENT BINDINGS
+function initDthModule() {
+  console.log("[DTH UI] Initializing DTH Automation Module...");
+  bindDthGlobalEvents();
+  initDthTab();
+  loadDthDashboard();
+}
+
+function bindDthGlobalEvents() {
+  // Dashboard Quick Action Buttons
+  bindClick('btn-dth-dash-config-sites', () => navigateToTab('dth-sites'));
+  bindClick('btn-dth-dash-import', () => navigateToTab('dth-channels'));
+  bindClick('btn-dth-dash-reports', () => navigateToTab('dth-reports'));
+  bindClick('btn-dth-dash-refresh', () => loadDthDashboard());
+  bindClick('btn-dth-dash-view-all-runs', () => navigateToTab('dth-history'));
+  bindClick('btn-dth-dash-manage-sites', () => navigateToTab('dth-sites'));
+  bindClick('btn-dth-dash-stop', async () => {
+    try {
+      const res = await fetch('/api/dth/stop', { method: 'POST' });
+      const data = await res.json();
+      alert(data.message || 'Stop requested.');
+    } catch (e) {
+      alert("Error: " + e.message);
+    }
+  });
+
+  // Sites Tab Buttons
+  bindClick('btn-dth-add-site', openAddDthSiteModal);
+  bindClick('btn-dth-import-ird-sites', importIrdSitesToDth);
+  bindClick('btn-dth-refresh-sites', loadDthSitesConfig);
+  bindClick('btn-close-modal-dth-site', closeDthSiteModal);
+  bindClick('btn-cancel-modal-dth-site', closeDthSiteModal);
+  bindClick('btn-save-dth-site', saveDthSite);
+
+  // Toggle Advanced SSH Tunnel Collapsible in Site Modal
+  const btnToggleTunnel = document.getElementById('btn-toggle-dth-tunnel-opts');
+  if (btnToggleTunnel) {
+    btnToggleTunnel.onclick = () => {
+      const body = document.getElementById('dth-tunnel-opts-body');
+      const chevron = document.getElementById('dth-tunnel-chevron');
+      if (body) {
+        body.classList.toggle('active');
+        if (chevron) {
+          chevron.innerHTML = body.classList.contains('active') ? '&#9652;' : '&#9662;';
+        }
+      }
+    };
+  }
+
+  // Run Details Inspection Modal
+  bindClick('btn-close-dth-run-details', () => {
+    const modal = document.getElementById('modal-dth-run-details');
+    if (modal) modal.classList.remove('active');
+  });
+  bindClick('btn-dismiss-dth-run-details', () => {
+    const modal = document.getElementById('modal-dth-run-details');
+    if (modal) modal.classList.remove('active');
+  });
+
+  // Reports Tab
+  bindClick('btn-dth-refresh-reports', loadDthReports);
+
+  // Settings Tab
+  bindClick('btn-dth-save-settings', saveDthSettings);
+  bindClick('btn-dth-reset-settings', resetDthSettings);
+}
+
+// Window Global Exports for inline HTML onclick handlers
+window.navigateToTab = navigateToTab;
+window.openDthRunDetails = openDthRunDetails;
+window.testDthSiteFromTable = testDthSiteFromTable;
+window.openAddDthSiteModal = openAddDthSiteModal;
+window.openEditDthSiteModal = openEditDthSiteModal;
+window.deleteDthSite = deleteDthSite;
+window.toggleDthSite = toggleDthSite;
+window.importIrdSitesToDth = importIrdSitesToDth;
+

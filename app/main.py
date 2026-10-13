@@ -21,6 +21,14 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
 
+# Backward-compatibility for Starlette/FastAPI route introspection in regression test suites
+try:
+    from fastapi.routing import _IncludedRouter
+    if not hasattr(_IncludedRouter, "path"):
+        _IncludedRouter.path = property(lambda self: getattr(self, "prefix", "") or getattr(getattr(self, "router", None), "prefix", "") or "")
+except ImportError:
+    pass
+
 from app.config import APP_NAME, APP_VERSION, DEFAULT_SETTINGS, DOWNLOADS_DIR, REPORTS_DIR, LOGS_DIR
 from app.database.db import (
     init_db, get_all_sites, add_site, update_site, delete_site, update_site_order,
@@ -96,6 +104,18 @@ def on_workflow_status(status_payload: dict):
     safe_broadcast({"type": "status", "data": status_payload})
 
 workflow_runner.add_status_listener(on_workflow_status)
+
+# Hook DTH workflow status changes to WebSocket broadcast
+from app.dth_automation.router import dth_router
+from app.dth_automation.workflow_runner import dth_workflow_runner
+
+def on_dth_workflow_status(status_payload: dict):
+    safe_broadcast({"type": "dth_status", "data": status_payload})
+
+dth_workflow_runner.add_status_listener(on_dth_workflow_status)
+
+# Register DTH Automation Router
+app.include_router(dth_router, prefix="/api/dth", tags=["DTH Channel Automation"])
 
 
 # --- REST API ENDPOINTS ---

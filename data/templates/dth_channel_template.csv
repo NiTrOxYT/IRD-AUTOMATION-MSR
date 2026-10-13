@@ -1,0 +1,6 @@
+channel_number,name,osd,image,categories
+101,DD National,DD National,dd_national.png,"all, News, General"
+102,Star Sports 1,Star Sports 1,star_sports_1.png,"Sports, Entertainment"
+103,Zee Cinema,Zee Cinema,zee_cinema.png,"Movies, Entertainment"
+104,Cartoon Network,Cartoon Network,cartoon_network.png,"Kids"
+105,Discovery Channel,Discovery,discovery.png,"Infotainment"

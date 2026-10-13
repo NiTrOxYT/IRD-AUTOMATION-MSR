@@ -1,37 +1,37 @@
 {
   "run": {
-    "id": 58,
-    "run_date": "2026-09-30",
-    "start_time": "05:06:18",
-    "end_time": "05:06:20",
+    "id": 54,
+    "run_date": "2026-10-13",
+    "start_time": "20:25:54",
+    "end_time": "20:25:55",
     "status": "COMPLETED",
     "total_sites": 1,
-    "completed_sites": 0,
+    "completed_sites": 1,
     "action_points_count": 0,
-    "no_action_points_count": 0,
-    "failed_sites_count": 1,
-    "log_path": "C:\\IRD AUTO\\reports\\2026-09-30.log"
+    "no_action_points_count": 1,
+    "failed_sites_count": 0,
+    "log_path": "C:\\IRD AUTO\\reports\\2026-10-13.log"
   },
   "results": [
     {
-      "id": 198,
-      "run_id": 58,
-      "site_id": 85,
-      "site_name": "Mementos by ITC Hotels, Ekaaya Udaipur",
-      "status": "FAILED",
-      "action_point_status": "FAILED",
+      "id": 108,
+      "run_id": 54,
+      "site_id": 22,
+      "site_name": "ITC Grand Chola",
+      "status": "COMPLETED",
+      "action_point_status": "NO ACTION POINT",
       "csv_path": "",
-      "third_line_text": "",
-      "start_time": "05:06:18",
-      "end_time": "05:06:20",
-      "duration_seconds": 2.3292860984802246,
+      "third_line_text": "[DRY RUN PASSED]",
+      "start_time": "20:25:54",
+      "end_time": "20:25:55",
+      "duration_seconds": 1.0034961700439453,
       "retry_count": 0,
-      "error_message": "Site automation failed: TUNNEL_PROCESS_DIED",
+      "error_message": "",
       "log_snippet": "",
-      "fetch_menu_status": "FAILED",
-      "process_latest_menu_status": "FAILED",
-      "download_status": "FAILED",
-      "failure_code": "TUNNEL_PROCESS_DIED"
+      "fetch_menu_status": "UNKNOWN",
+      "process_latest_menu_status": "UNKNOWN",
+      "download_status": "UNKNOWN",
+      "failure_code": "NONE"
     }
   ]
 }
