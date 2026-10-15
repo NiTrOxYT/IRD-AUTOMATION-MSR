@@ -1,3 +1,2 @@
 ﻿Date,Site,Status,Action Point Status,CSV File,Third Line,Start Time,End Time,Duration (s),Retries,Error
-2026-10-15,WH Bhubaneswar,COMPLETED,NO ACTION POINT,logs\downloads\2026-10-15\WH_Bhubaneswar\17-02-35_action_points.csv,No Action Point,17:01:45,17:02:40,54.41,0,
-2026-10-15,ITC Maurya,COMPLETED,NO ACTION POINT,logs\downloads\2026-10-15\ITC_Maurya\17-03-28_action_points.csv,No Action Point,17:02:40,17:03:37,57.07,0,
+2026-10-15,ITC Grand Chola,COMPLETED,NO ACTION POINT,,[DRY RUN PASSED],18:36:37,18:36:38,1.01,0,

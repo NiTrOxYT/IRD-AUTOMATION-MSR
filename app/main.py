@@ -117,6 +117,18 @@ dth_workflow_runner.add_status_listener(on_dth_workflow_status)
 # Register DTH Automation Router
 app.include_router(dth_router, prefix="/api/dth", tags=["DTH Channel Automation"])
 
+# Hook Controller workflow status changes to WebSocket broadcast
+from app.controller_automation.router import controller_router
+from app.controller_automation.workflow_runner import controller_workflow_runner
+
+def on_controller_workflow_status(status_payload: dict):
+    safe_broadcast({"type": "controller_status", "data": status_payload})
+
+controller_workflow_runner.add_status_listener(on_controller_workflow_status)
+
+# Register Controller Automation Router
+app.include_router(controller_router, prefix="/api/controller", tags=["Controller Configuration"])
+
 
 # --- REST API ENDPOINTS ---
 

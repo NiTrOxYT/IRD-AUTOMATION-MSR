@@ -25,8 +25,22 @@ DEFAULT_DTH_SETTINGS = {
     "max_image_size_kb": "2048"
 }
 
+DEFAULT_CONTROLLER_SETTINGS = {
+    "jump_host": "111.93.205.187",
+    "jump_port": "22",
+    "jump_username": "sourik",
+    "jump_password": "s0urik@@",
+    "site_username": "support",
+    "site_password": "SuPp0rt@MVM@202602",
+    "site_default_port": "2222",
+    "candidate_passwords": "msr123,msr@123",
+    "default_new_controller_ip": "10.172.100.100",
+    "ssh_timeout_seconds": "20",
+    "scp_timeout_seconds": "60"
+}
+
 def get_db_connection() -> sqlite3.Connection:
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=30.0)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -202,6 +216,44 @@ def init_db():
     );
     """)
 
+    # Controller Runs Table
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS controller_runs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        run_uuid TEXT UNIQUE NOT NULL,
+        site_id INTEGER,
+        site_name TEXT DEFAULT '',
+        site_ip TEXT DEFAULT '',
+        site_port INTEGER DEFAULT 22,
+        current_room_no TEXT NOT NULL,
+        current_room_ip TEXT NOT NULL,
+        similar_room_no TEXT NOT NULL,
+        similar_room_ip TEXT NOT NULL,
+        is_new_controller INTEGER DEFAULT 0,
+        target_ip TEXT NOT NULL,
+        discovered_password TEXT DEFAULT '',
+        status TEXT DEFAULT 'PENDING',
+        current_step TEXT DEFAULT '',
+        backup_folder TEXT DEFAULT '',
+        started_at TEXT,
+        completed_at TEXT,
+        duration_seconds REAL DEFAULT 0.0,
+        error_message TEXT DEFAULT '',
+        steps_json TEXT DEFAULT '[]',
+        logs_json TEXT DEFAULT '[]',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    """)
+
+    # Controller Settings Table
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS controller_settings (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    """)
+
 
     # Non-destructive Migration for Sites Table Tunnel Fields
     cursor.execute("PRAGMA table_info(sites)")
@@ -273,6 +325,13 @@ def init_db():
     for key, val in DEFAULT_DTH_SETTINGS.items():
         if get_dth_setting(key) is None:
             set_dth_setting(key, str(val))
+
+    # Ensure default Controller settings exist
+    for key, val in DEFAULT_CONTROLLER_SETTINGS.items():
+        if get_controller_setting(key) is None:
+            set_controller_setting(key, str(val))
+    if get_controller_setting("site_default_port") == "22":
+        set_controller_setting("site_default_port", "2222")
 
     # Populate default selectors if empty
     _init_default_selectors()
@@ -1342,5 +1401,211 @@ def get_dth_dashboard_metrics() -> Dict[str, Any]:
         "failed_channels": failed_channels,
         "skipped_duplicates": skipped_duplicates,
         "recent_runs": recent_runs
+    }
+
+
+# =====================================================================
+# CONTROLLER CONFIGURATION HELPERS
+# =====================================================================
+
+def get_controller_setting(key: str) -> Optional[str]:
+    """Retrieves a controller configuration setting value."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT value FROM controller_settings WHERE key = ?", (key,))
+    row = cursor.fetchone()
+    conn.close()
+    return row["value"] if row else None
+
+
+def set_controller_setting(key: str, value: str):
+    """Sets or updates a controller configuration setting value."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+    INSERT INTO controller_settings (key, value, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)
+    ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=CURRENT_TIMESTAMP
+    """, (key, str(value)))
+    conn.commit()
+    conn.close()
+
+
+def get_all_controller_settings() -> Dict[str, str]:
+    """Returns all controller settings merged with defaults."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT key, value FROM controller_settings")
+    rows = cursor.fetchall()
+    conn.close()
+
+    settings = dict(DEFAULT_CONTROLLER_SETTINGS)
+    for r in rows:
+        settings[r["key"]] = r["value"]
+    return settings
+
+
+def save_controller_settings(settings: Dict[str, Any]):
+    """Saves multiple controller settings in a batch."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    for k, v in settings.items():
+        cursor.execute("""
+        INSERT INTO controller_settings (key, value, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)
+        ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=CURRENT_TIMESTAMP
+        """, (k, str(v)))
+    conn.commit()
+    conn.close()
+
+
+def create_controller_run(run_data: Dict[str, Any]) -> int:
+    """Inserts a new controller provisioning/clone run record."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+    INSERT INTO controller_runs (
+        run_uuid, site_id, site_name, site_ip, site_port,
+        current_room_no, current_room_ip, similar_room_no, similar_room_ip,
+        is_new_controller, target_ip, discovered_password, status,
+        current_step, backup_folder, started_at, completed_at,
+        duration_seconds, error_message, steps_json, logs_json
+    ) VALUES (
+        :run_uuid, :site_id, :site_name, :site_ip, :site_port,
+        :current_room_no, :current_room_ip, :similar_room_no, :similar_room_ip,
+        :is_new_controller, :target_ip, :discovered_password, :status,
+        :current_step, :backup_folder, :started_at, :completed_at,
+        :duration_seconds, :error_message, :steps_json, :logs_json
+    )
+    """, {
+        "run_uuid": run_data.get("run_uuid", ""),
+        "site_id": run_data.get("site_id"),
+        "site_name": run_data.get("site_name", ""),
+        "site_ip": run_data.get("site_ip", ""),
+        "site_port": run_data.get("site_port", 22),
+        "current_room_no": run_data.get("current_room_no", ""),
+        "current_room_ip": run_data.get("current_room_ip", ""),
+        "similar_room_no": run_data.get("similar_room_no", ""),
+        "similar_room_ip": run_data.get("similar_room_ip", ""),
+        "is_new_controller": 1 if run_data.get("is_new_controller") else 0,
+        "target_ip": run_data.get("target_ip", ""),
+        "discovered_password": run_data.get("discovered_password", ""),
+        "status": run_data.get("status", "PENDING"),
+        "current_step": run_data.get("current_step", ""),
+        "backup_folder": run_data.get("backup_folder", ""),
+        "started_at": run_data.get("started_at"),
+        "completed_at": run_data.get("completed_at"),
+        "duration_seconds": run_data.get("duration_seconds", 0.0),
+        "error_message": run_data.get("error_message", ""),
+        "steps_json": json.dumps(run_data.get("steps", [])),
+        "logs_json": json.dumps(run_data.get("logs", []))
+    })
+    run_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+    return run_id
+
+
+def update_controller_run(run_uuid: str, updates: Dict[str, Any]):
+    """Updates fields on an existing controller run by run_uuid."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    set_clauses = []
+    values = []
+
+    for k, v in updates.items():
+        if k in ("steps", "steps_json"):
+            set_clauses.append("steps_json = ?")
+            values.append(json.dumps(v) if not isinstance(v, str) else v)
+        elif k in ("logs", "logs_json"):
+            set_clauses.append("logs_json = ?")
+            values.append(json.dumps(v) if not isinstance(v, str) else v)
+        elif k == "is_new_controller":
+            set_clauses.append("is_new_controller = ?")
+            values.append(1 if v else 0)
+        else:
+            set_clauses.append(f"{k} = ?")
+            values.append(v)
+
+    if set_clauses:
+        values.append(run_uuid)
+        query = f"UPDATE controller_runs SET {', '.join(set_clauses)} WHERE run_uuid = ?"
+        cursor.execute(query, values)
+        conn.commit()
+
+    conn.close()
+
+
+def get_controller_run_by_uuid(run_uuid: str) -> Optional[Dict[str, Any]]:
+    """Fetches a controller run record by its UUID."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM controller_runs WHERE run_uuid = ?", (run_uuid,))
+    row = cursor.fetchone()
+    conn.close()
+
+    if not row:
+        return None
+
+    d = dict(row)
+    try:
+        d["steps"] = json.loads(d.get("steps_json") or "[]")
+    except Exception:
+        d["steps"] = []
+    try:
+        d["logs"] = json.loads(d.get("logs_json") or "[]")
+    except Exception:
+        d["logs"] = []
+    return d
+
+
+def get_controller_runs_history(limit: int = 50) -> List[Dict[str, Any]]:
+    """Returns list of recent controller provisioning runs."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM controller_runs ORDER BY id DESC LIMIT ?", (limit,))
+    rows = cursor.fetchall()
+    conn.close()
+
+    results = []
+    for r in rows:
+        d = dict(r)
+        try:
+            d["steps"] = json.loads(d.get("steps_json") or "[]")
+        except Exception:
+            d["steps"] = []
+        try:
+            d["logs"] = json.loads(d.get("logs_json") or "[]")
+        except Exception:
+            d["logs"] = []
+        results.append(d)
+    return results
+
+
+def get_controller_dashboard_metrics() -> Dict[str, Any]:
+    """Calculates summary statistics for Controller runs."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT COUNT(*) FROM controller_runs")
+    total_runs = cursor.fetchone()[0] or 0
+
+    cursor.execute("SELECT COUNT(*) FROM controller_runs WHERE status = 'SUCCESS'")
+    success_runs = cursor.fetchone()[0] or 0
+
+    cursor.execute("SELECT COUNT(*) FROM controller_runs WHERE status = 'FAILED'")
+    failed_runs = cursor.fetchone()[0] or 0
+
+    cursor.execute("SELECT * FROM controller_runs ORDER BY id DESC LIMIT 5")
+    recent = []
+    for r in cursor.fetchall():
+        d = dict(r)
+        recent.append(d)
+
+    conn.close()
+    return {
+        "total_runs": total_runs,
+        "successful_runs": success_runs,
+        "failed_runs": failed_runs,
+        "recent_runs": recent
     }
 

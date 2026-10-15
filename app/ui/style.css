@@ -51,13 +51,13 @@ body {
 
 /* SIDEBAR */
 .sidebar {
-  width: 240px;
-  background: rgba(15, 23, 42, 0.8);
+  width: 256px;
+  background: rgba(15, 23, 42, 0.85);
   backdrop-filter: blur(16px);
   border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
-  padding: 20px 16px;
+  padding: 20px 14px;
 }
 
 .brand {
@@ -730,9 +730,10 @@ input:checked + .slider:before {
 
 /* MODULE SWITCHER */
 .app-module-selector {
-  display: flex;
-  background: rgba(15, 23, 42, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-md);
   padding: 4px;
   gap: 4px;
@@ -740,42 +741,74 @@ input:checked + .slider:before {
 }
 
 .module-tab-btn {
-  flex: 1;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 7px;
-  padding: 9px 6px;
-  border: none;
+  gap: 5px;
+  padding: 8px 2px 7px 2px;
+  border: 1px solid transparent;
   background: transparent;
   color: var(--text-muted);
   border-radius: var(--radius-sm);
-  font-size: 11.5px;
-  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   user-select: none;
+  text-align: center;
+  min-width: 0;
 }
 
 .module-tab-btn svg {
+  width: 17px;
+  height: 17px;
   flex-shrink: 0;
   stroke: currentColor;
+  transition: transform 0.2s ease;
+}
+
+.module-tab-btn span {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: -0.1px;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .module-tab-btn:hover {
   color: var(--text-main);
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+.module-tab-btn:hover svg {
+  transform: translateY(-1px);
+}
+
+.module-tab-btn:active {
+  transform: scale(0.97);
 }
 
 .module-tab-btn.active {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.85), rgba(6, 182, 212, 0.85));
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.9), rgba(6, 182, 212, 0.9));
   color: #ffffff;
-  box-shadow: 0 2px 10px rgba(99, 102, 241, 0.4);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
 .module-tab-btn.dth-active.active {
-  background: linear-gradient(135deg, rgba(14, 165, 233, 0.85), rgba(16, 185, 129, 0.85));
-  box-shadow: 0 2px 10px rgba(14, 165, 233, 0.4);
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.9), rgba(16, 185, 129, 0.9));
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 14px rgba(14, 165, 233, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.module-tab-btn.controller-active.active {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.95), rgba(236, 72, 153, 0.95));
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
 .nav-module-menu {
@@ -847,5 +880,80 @@ input:checked + .slider:before {
 }
 .collapsible-content.expanded {
   display: block;
+}
+
+/* CONTROLLER CONFIGURATION STYLES */
+.ctrl-steps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.ctrl-step-chip {
+  background: rgba(15, 23, 42, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: all 0.25s ease;
+}
+
+.ctrl-step-chip.pending {
+  opacity: 0.6;
+}
+
+.ctrl-step-chip.running {
+  border-color: #a855f7;
+  background: rgba(168, 85, 247, 0.12);
+  box-shadow: 0 0 14px rgba(168, 85, 247, 0.3);
+  animation: ctrlPulse 1.8s infinite;
+}
+
+.ctrl-step-chip.success {
+  border-color: rgba(16, 185, 129, 0.5);
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.ctrl-step-chip.failed {
+  border-color: rgba(239, 68, 68, 0.5);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.ctrl-step-chip.skipped {
+  opacity: 0.4;
+  border-style: dashed;
+}
+
+.ctrl-step-chip-title {
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ctrl-step-chip-msg {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@keyframes ctrlPulse {
+  0% { box-shadow: 0 0 6px rgba(168, 85, 247, 0.2); }
+  50% { box-shadow: 0 0 16px rgba(168, 85, 247, 0.45); }
+  100% { box-shadow: 0 0 6px rgba(168, 85, 247, 0.2); }
+}
+
+.controller-topology-card {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+}
+
+.topology-badge {
+  font-family: var(--font-mono, monospace);
+  letter-spacing: 0.5px;
 }
 

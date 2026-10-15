@@ -108,7 +108,7 @@ function bindEvent(id, eventType, handler) {
 }
 
 
-// --- DUAL-MODULE NAVIGATION SYSTEM (IRD Automation & DTH Automation) ---
+// --- TRIPLE-MODULE NAVIGATION SYSTEM (IRD Automation, DTH Automation, Controller Configuration) ---
 let currentAppModule = 'ird';
 
 function switchAppModule(moduleName, targetTab = null) {
@@ -117,21 +117,35 @@ function switchAppModule(moduleName, targetTab = null) {
 
   const btnIrd = document.getElementById('btn-module-ird');
   const btnDth = document.getElementById('btn-module-dth');
+  const btnCtrl = document.getElementById('btn-module-controller');
   const menuIrd = document.getElementById('menu-ird');
   const menuDth = document.getElementById('menu-dth');
+  const menuCtrl = document.getElementById('menu-controller');
 
-  if (moduleName === 'dth') {
-    if (btnIrd) { btnIrd.classList.remove('active'); btnIrd.setAttribute('aria-selected', 'false'); }
+  [btnIrd, btnDth, btnCtrl].forEach(b => {
+    if (b) {
+      b.classList.remove('active');
+      b.setAttribute('aria-selected', 'false');
+    }
+  });
+  [menuIrd, menuDth, menuCtrl].forEach(m => {
+    if (m) m.classList.remove('active');
+  });
+
+  if (moduleName === 'controller') {
+    if (btnCtrl) { btnCtrl.classList.add('active'); btnCtrl.setAttribute('aria-selected', 'true'); }
+    if (menuCtrl) menuCtrl.classList.add('active');
+
+    const nextTab = targetTab || localStorage.getItem('active_controller_tab') || 'controller-provision';
+    navigateToTab(nextTab);
+  } else if (moduleName === 'dth') {
     if (btnDth) { btnDth.classList.add('active'); btnDth.setAttribute('aria-selected', 'true'); }
-    if (menuIrd) menuIrd.classList.remove('active');
     if (menuDth) menuDth.classList.add('active');
 
     const nextTab = targetTab || localStorage.getItem('active_dth_tab') || 'dth-dashboard';
     navigateToTab(nextTab);
   } else {
-    if (btnDth) { btnDth.classList.remove('active'); btnDth.setAttribute('aria-selected', 'false'); }
     if (btnIrd) { btnIrd.classList.add('active'); btnIrd.setAttribute('aria-selected', 'true'); }
-    if (menuDth) menuDth.classList.remove('active');
     if (menuIrd) menuIrd.classList.add('active');
 
     const nextTab = targetTab || localStorage.getItem('active_ird_tab') || 'dashboard';
@@ -142,16 +156,40 @@ function switchAppModule(moduleName, targetTab = null) {
 function navigateToTab(tabId) {
   // Alias backward-compatible tab IDs
   if (tabId === 'dth') tabId = 'dth-channels';
+  if (tabId === 'controller') tabId = 'controller-provision';
 
+  const isCtrlTab = tabId.startsWith('controller-');
   const isDthTab = tabId.startsWith('dth-');
 
   // Sync module switcher buttons & menus
   const btnIrd = document.getElementById('btn-module-ird');
   const btnDth = document.getElementById('btn-module-dth');
+  const btnCtrl = document.getElementById('btn-module-controller');
   const menuIrd = document.getElementById('menu-ird');
   const menuDth = document.getElementById('menu-dth');
+  const menuCtrl = document.getElementById('menu-controller');
 
-  if (isDthTab) {
+  [btnIrd, btnDth, btnCtrl].forEach(b => {
+    if (b) {
+      b.classList.remove('active');
+      b.setAttribute('aria-selected', 'false');
+    }
+  });
+  [menuIrd, menuDth, menuCtrl].forEach(m => {
+    if (m) m.classList.remove('active');
+  });
+
+  if (isCtrlTab) {
+    currentAppModule = 'controller';
+    try {
+      localStorage.setItem('active_module', 'controller');
+      localStorage.setItem('active_controller_tab', tabId);
+      window.location.hash = `#controller/${tabId.replace('controller-', '')}`;
+    } catch(e) {}
+
+    if (btnCtrl) { btnCtrl.classList.add('active'); btnCtrl.setAttribute('aria-selected', 'true'); }
+    if (menuCtrl) menuCtrl.classList.add('active');
+  } else if (isDthTab) {
     currentAppModule = 'dth';
     try {
       localStorage.setItem('active_module', 'dth');
@@ -159,9 +197,7 @@ function navigateToTab(tabId) {
       window.location.hash = `#dth/${tabId.replace('dth-', '')}`;
     } catch(e) {}
 
-    if (btnIrd) { btnIrd.classList.remove('active'); btnIrd.setAttribute('aria-selected', 'false'); }
     if (btnDth) { btnDth.classList.add('active'); btnDth.setAttribute('aria-selected', 'true'); }
-    if (menuIrd) menuIrd.classList.remove('active');
     if (menuDth) menuDth.classList.add('active');
   } else {
     currentAppModule = 'ird';
@@ -171,9 +207,7 @@ function navigateToTab(tabId) {
       window.location.hash = `#ird/${tabId}`;
     } catch(e) {}
 
-    if (btnDth) { btnDth.classList.remove('active'); btnDth.setAttribute('aria-selected', 'false'); }
     if (btnIrd) { btnIrd.classList.add('active'); btnIrd.setAttribute('aria-selected', 'true'); }
-    if (menuDth) menuDth.classList.remove('active');
     if (menuIrd) menuIrd.classList.add('active');
   }
 
@@ -204,13 +238,24 @@ function navigateToTab(tabId) {
   if (tabId === 'dth-history') safeInit('loadDthHistory', loadDthHistory);
   if (tabId === 'dth-reports') safeInit('loadDthReports', loadDthReports);
   if (tabId === 'dth-settings') safeInit('loadDthSettings', loadDthSettings);
+
+  // Controller Pages lazy component loaders
+  if (tabId === 'controller-provision') safeInit('initControllerProvisionTab', initControllerProvisionTab);
+  if (tabId === 'controller-history') safeInit('loadControllerHistory', loadControllerHistory);
+  if (tabId === 'controller-settings') safeInit('loadControllerSettings', loadControllerSettings);
 }
 
 function handleHashRouting() {
   const hash = window.location.hash.replace('#', '').trim();
   if (!hash) return;
 
-  if (hash.startsWith('dth/')) {
+  if (hash.startsWith('controller/')) {
+    const sub = hash.replace('controller/', '');
+    const tabId = `controller-${sub}`;
+    switchAppModule('controller', tabId);
+  } else if (hash === 'controller') {
+    switchAppModule('controller', 'controller-provision');
+  } else if (hash.startsWith('dth/')) {
     const sub = hash.replace('dth/', '');
     const tabId = `dth-${sub}`;
     switchAppModule('dth', tabId);
@@ -223,7 +268,9 @@ function handleHashRouting() {
     // Legacy direct tab hash
     const el = document.getElementById(`tab-${hash}`);
     if (el) {
-      if (hash.startsWith('dth-')) {
+      if (hash.startsWith('controller-')) {
+        switchAppModule('controller', hash);
+      } else if (hash.startsWith('dth-')) {
         switchAppModule('dth', hash);
       } else {
         switchAppModule('ird', hash);
@@ -235,6 +282,7 @@ function handleHashRouting() {
 function initNavigation() {
   const btnModuleIrd = document.getElementById('btn-module-ird');
   const btnModuleDth = document.getElementById('btn-module-dth');
+  const btnModuleCtrl = document.getElementById('btn-module-controller');
   if (btnModuleIrd) {
     btnModuleIrd.addEventListener('click', (e) => {
       e.preventDefault();
@@ -245,6 +293,12 @@ function initNavigation() {
     btnModuleDth.addEventListener('click', (e) => {
       e.preventDefault();
       switchAppModule('dth');
+    });
+  }
+  if (btnModuleCtrl) {
+    btnModuleCtrl.addEventListener('click', (e) => {
+      e.preventDefault();
+      switchAppModule('controller');
     });
   }
 
@@ -339,6 +393,8 @@ function initWebSocket() {
           updateAutomationStatusUI(msg.data);
         } else if (msg.type === 'dth_status') {
           updateDthStatusUI(msg.data);
+        } else if (msg.type === 'controller_status') {
+          updateControllerStatusUI(msg.data);
         }
       } catch (e) {
         console.error("Error parsing WS message:", e);
@@ -3174,4 +3230,633 @@ window.importIrdSitesToDth = importIrdSitesToDth;
 window.loadDthSitesConfig = loadDthSitesConfig;
 window.openDthSitePortal = openDthSitePortal;
 window.launchDthSitePutty = launchDthSitePutty;
+
+
+// =====================================================================
+// CONTROLLER CONFIGURATION AUTOMATION FRONTEND MODULE
+// =====================================================================
+
+let controllerSitesCache = [];
+let controllerLogsMemory = [];
+
+async function initControllerProvisionTab() {
+  await loadControllerSites();
+  await pollControllerStatus();
+}
+
+async function loadControllerSites() {
+  try {
+    const res = await fetch('/api/controller/sites');
+    if (!res.ok) return;
+    controllerSitesCache = await res.json();
+
+    const select = document.getElementById('ctrl-site-select');
+    if (!select) return;
+
+    const currentVal = select.value;
+    select.innerHTML = '<option value="">-- Choose Hotel Site --</option>';
+
+    controllerSitesCache.forEach(site => {
+      const opt = document.createElement('option');
+      opt.value = site.id;
+      opt.textContent = `${site.name} (${site.site_ip}:${site.site_port || 22})`;
+      select.appendChild(opt);
+    });
+
+    if (currentVal) select.value = currentVal;
+  } catch (e) {
+    console.error("Failed to load controller sites:", e);
+  }
+}
+
+function onCtrlSiteChanged() {
+  const select = document.getElementById('ctrl-site-select');
+  if (!select) return;
+  const siteId = parseInt(select.value, 10);
+  const site = controllerSitesCache.find(s => s.id === siteId);
+
+  const ipInput = document.getElementById('ctrl-site-ip');
+  const portInput = document.getElementById('ctrl-site-port');
+  const topoSite = document.getElementById('topology-site-name');
+
+  if (site) {
+    if (ipInput) ipInput.value = site.site_ip || '';
+    if (portInput) portInput.value = site.site_port || 2222;
+    if (topoSite) topoSite.textContent = `Site: ${site.name} (${site.site_ip})`;
+  } else {
+    if (topoSite) topoSite.textContent = 'Site Server (support@site_ip)';
+  }
+}
+
+function toggleCtrlNewCheckbox() {
+  const chk = document.getElementById('ctrl-is-new-controller');
+  if (!chk) return;
+  chk.checked = !chk.checked;
+  onCtrlNewCheckboxChanged();
+}
+
+function onCtrlNewCheckboxChanged() {
+  const chk = document.getElementById('ctrl-is-new-controller');
+  const wrapper = document.getElementById('ctrl-new-controller-wrapper');
+  const topoTarget = document.getElementById('topology-target-name');
+  const currIp = (document.getElementById('ctrl-current-room-ip')?.value || '').trim();
+
+  if (chk && chk.checked) {
+    if (wrapper) {
+      wrapper.style.borderColor = '#ec4899';
+      wrapper.style.background = 'rgba(236, 72, 153, 0.18)';
+      wrapper.style.boxShadow = '0 0 10px rgba(236, 72, 153, 0.25)';
+    }
+    if (topoTarget) {
+      topoTarget.textContent = `Target: 10.172.100.100 ➔ ${currIp || 'New IP'}`;
+    }
+  } else {
+    if (wrapper) {
+      wrapper.style.borderColor = 'rgba(236, 72, 153, 0.25)';
+      wrapper.style.background = 'rgba(236, 72, 153, 0.08)';
+      wrapper.style.boxShadow = 'none';
+    }
+    if (topoTarget) {
+      topoTarget.textContent = `Target: ${currIp || 'Room Controller'} (root)`;
+    }
+  }
+}
+
+async function runCtrlTestConnection() {
+  const btn = document.getElementById('btn-ctrl-test-conn');
+  const siteIp = document.getElementById('ctrl-site-ip')?.value.trim();
+  const sitePort = parseInt(document.getElementById('ctrl-site-port')?.value || "2222", 10);
+  const currentRoomIp = document.getElementById('ctrl-current-room-ip')?.value.trim();
+  const similarRoomIp = document.getElementById('ctrl-similar-room-ip')?.value.trim();
+  const isNewController = document.getElementById('ctrl-is-new-controller')?.checked || false;
+
+  if (!siteIp) {
+    alert("Please enter or select a Site Server IP.");
+    return;
+  }
+  if (!currentRoomIp) {
+    alert("Please enter Current Controller IP.");
+    return;
+  }
+  if (!similarRoomIp) {
+    alert("Please enter Similar Controller IP.");
+    return;
+  }
+
+  appendControllerLog("INFO", "Initiating non-destructive 3-hop connectivity test...");
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="status-dot warning" style="animation: ctrlPulse 1s infinite;"></span> Testing Hops...';
+  }
+
+  try {
+    const payload = {
+      site_ip: siteIp,
+      site_port: sitePort,
+      current_room_ip: currentRoomIp,
+      similar_room_ip: similarRoomIp,
+      is_new_controller: isNewController
+    };
+
+    const res = await fetch('/api/controller/test-connection', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    let data;
+    try {
+      data = await res.json();
+    } catch (parseErr) {
+      throw new Error(`Server returned HTTP ${res.status}: Invalid JSON response`);
+    }
+
+    if (!res.ok) {
+      appendControllerLog("ERROR", `Connectivity test failed: ${data.detail || 'Server error'}`);
+      alert(`Test Failed: ${data.detail || 'Connection error'}`);
+      return;
+    }
+
+    appendControllerLog("INFO", `[HOP 1 JUMP] ${data.jump_status.message}`);
+    appendControllerLog(data.site_status.connected ? "INFO" : "ERROR", `[HOP 2 SITE] ${data.site_status.message}`);
+    appendControllerLog(data.target_controller_status.connected ? "INFO" : "ERROR", `[HOP 3 TARGET CTRL] (${data.target_controller_status.ip}): ${data.target_controller_status.message}`);
+    appendControllerLog(data.similar_controller_status.connected ? "INFO" : "ERROR", `[HOP 3 SIMILAR CTRL] (${data.similar_controller_status.ip}): ${data.similar_controller_status.message}`);
+
+    if (data.success) {
+      appendControllerLog("INFO", "✓ ALL CONNECTION HOPS AND CREDENTIALS VERIFIED SUCCESSFULLY!");
+      alert("✓ Connection Test Passed: Jump server, Site server, and Controllers are all accessible.");
+    } else {
+      appendControllerLog("WARNING", `Connection check warning: ${data.message}`);
+      alert(`Connection check completed with warnings:\n${data.message}`);
+    }
+  } catch (e) {
+    appendControllerLog("ERROR", `Exception during connection test: ${e.message}`);
+    alert(`Error: ${e.message}`);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> <span>Test Connection</span>';
+    }
+  }
+}
+
+async function startControllerClone() {
+  const siteSelect = document.getElementById('ctrl-site-select');
+  const siteId = siteSelect?.value ? parseInt(siteSelect.value, 10) : null;
+  const siteName = siteSelect?.options[siteSelect.selectedIndex]?.text?.split('(')[0]?.trim() || '';
+  const siteIp = document.getElementById('ctrl-site-ip')?.value.trim();
+  const sitePort = parseInt(document.getElementById('ctrl-site-port')?.value || "2222", 10);
+
+  const currentRoomNo = document.getElementById('ctrl-current-room-no')?.value.trim();
+  const currentRoomIp = document.getElementById('ctrl-current-room-ip')?.value.trim();
+
+  const similarRoomNo = document.getElementById('ctrl-similar-room-no')?.value.trim();
+  const similarRoomIp = document.getElementById('ctrl-similar-room-ip')?.value.trim();
+
+  const isNewController = document.getElementById('ctrl-is-new-controller')?.checked || false;
+
+  // Validation
+  if (!siteIp) { alert("Please enter Site Server IP."); return; }
+  if (!currentRoomNo || !currentRoomIp) { alert("Please enter Current Room Number and Controller IP."); return; }
+  if (!similarRoomNo || !similarRoomIp) { alert("Please enter Similar Room Number and Controller IP."); return; }
+
+  const targetIpDisplay = isNewController ? `10.172.100.100 (New -> ${currentRoomIp})` : currentRoomIp;
+  const confirmMsg = 
+    `Confirm Room Controller Configuration Clone:\n\n` +
+    `• Site: ${siteName || siteIp}\n` +
+    `• Target Room: ${currentRoomNo} (${targetIpDisplay})\n` +
+    `• Source Room: ${similarRoomNo} (${similarRoomIp})\n` +
+    `• Mode: ${isNewController ? 'NEW CONTROLLER (Network Scripts will be patched)' : 'EXISTING CONTROLLER'}\n\n` +
+    `Proceed with backup, clone, XML patching, and Smartler restart?`;
+
+  if (!confirm(confirmMsg)) return;
+
+  const btnStart = document.getElementById('btn-ctrl-start-clone');
+  const btnStop = document.getElementById('btn-ctrl-stop-clone');
+
+  if (btnStart) btnStart.disabled = true;
+
+  try {
+    const payload = {
+      site_id: siteId,
+      site_name: siteName,
+      site_ip: siteIp,
+      site_port: sitePort,
+      current_room_no: currentRoomNo,
+      current_room_ip: currentRoomIp,
+      similar_room_no: similarRoomNo,
+      similar_room_ip: similarRoomIp,
+      is_new_controller: isNewController
+    };
+
+    const res = await fetch('/api/controller/run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    let data;
+    try {
+      data = await res.json();
+    } catch (parseErr) {
+      throw new Error(`Server returned HTTP ${res.status}: Invalid JSON response`);
+    }
+
+    if (!res.ok) {
+      alert(`Error starting run: ${data.detail || 'Unknown error'}`);
+      if (btnStart) btnStart.disabled = false;
+      return;
+    }
+
+    if (btnStart) btnStart.style.display = 'none';
+    if (btnStop) {
+      btnStop.style.display = 'inline-flex';
+      btnStop.disabled = false;
+    }
+
+    appendControllerLog("INFO", `Run dispatched (${data.run_uuid}). Listening for live progress...`);
+  } catch (e) {
+    alert(`Request failed: ${e.message}`);
+    if (btnStart) btnStart.disabled = false;
+  }
+}
+
+async function stopControllerClone() {
+  const btnStop = document.getElementById('btn-ctrl-stop-clone');
+  if (btnStop) btnStop.disabled = true;
+
+  try {
+    const res = await fetch('/api/controller/stop', { method: 'POST' });
+    const data = await res.json();
+    appendControllerLog("WARNING", `Stop response: ${data.message}`);
+  } catch (e) {
+    appendControllerLog("ERROR", `Stop failed: ${e.message}`);
+  }
+}
+
+async function pollControllerStatus() {
+  try {
+    const res = await fetch('/api/controller/status');
+    if (res.ok) {
+      const data = await res.json();
+      updateControllerStatusUI(data);
+    }
+  } catch (e) {
+    console.warn("Error polling controller status:", e);
+  }
+}
+
+function updateControllerStatusUI(statusData) {
+  if (!statusData) return;
+
+  const badge = document.getElementById('controller-engine-badge');
+  const fill = document.getElementById('ctrl-progress-bar-fill');
+  const pct = document.getElementById('ctrl-progress-pct');
+  const label = document.getElementById('ctrl-current-step-label');
+  const btnStart = document.getElementById('btn-ctrl-start-clone');
+  const btnStop = document.getElementById('btn-ctrl-stop-clone');
+  const pill = document.getElementById('ctrl-summary-pill');
+
+  // Update Badge
+  if (badge) {
+    badge.className = 'status-badge';
+    if (statusData.status === 'RUNNING') {
+      badge.classList.add('badge-action-point');
+      badge.textContent = `RUNNING (${statusData.progress_pct}%)`;
+      badge.style.background = 'rgba(168, 85, 247, 0.2)';
+      badge.style.color = '#c084fc';
+    } else if (statusData.status === 'SUCCESS') {
+      badge.classList.add('badge-no-action');
+      badge.textContent = 'COMPLETED SUCCESS';
+      badge.style.background = '';
+      badge.style.color = '';
+    } else if (statusData.status === 'FAILED') {
+      badge.classList.add('badge-failed');
+      badge.textContent = 'FAILED';
+    } else if (statusData.status === 'STOPPED') {
+      badge.classList.add('badge-warning');
+      badge.textContent = 'STOPPED';
+    } else {
+      badge.classList.add('badge-ready');
+      badge.textContent = 'CONTROLLER ENGINE: IDLE';
+    }
+  }
+
+  // Update Progress
+  if (pct) pct.textContent = `${statusData.progress_pct || 0}%`;
+  if (fill) fill.style.width = `${statusData.progress_pct || 0}%`;
+  if (label) label.textContent = statusData.current_step ? `Step: ${statusData.current_step}` : statusData.status;
+
+  if (pill) {
+    if (statusData.status === 'RUNNING') {
+      pill.textContent = `Configuring Room ${statusData.current_room_no || ''}...`;
+      pill.style.color = '#c084fc';
+    } else if (statusData.status === 'SUCCESS') {
+      pill.textContent = `✓ Room ${statusData.current_room_no || ''} completed in ${statusData.duration_seconds || 0}s`;
+      pill.style.color = 'var(--accent-green)';
+    } else if (statusData.status === 'FAILED') {
+      pill.textContent = `❌ Room ${statusData.current_room_no || ''} failed`;
+      pill.style.color = 'var(--accent-red)';
+    } else {
+      pill.textContent = 'Ready to configure';
+      pill.style.color = 'var(--text-muted)';
+    }
+  }
+
+  // Toggle Action Buttons
+  if (statusData.status === 'RUNNING') {
+    if (btnStart) { btnStart.style.display = 'none'; btnStart.disabled = true; }
+    if (btnStop) { btnStop.style.display = 'inline-flex'; btnStop.disabled = false; }
+  } else {
+    if (btnStart) { btnStart.style.display = 'inline-flex'; btnStart.disabled = false; }
+    if (btnStop) { btnStop.style.display = 'none'; }
+  }
+
+  // Render Steps
+  renderControllerSteps(statusData.steps);
+
+  // Sync Logs
+  if (statusData.logs && Array.isArray(statusData.logs)) {
+    renderControllerLogs(statusData.logs);
+  }
+}
+
+function renderControllerSteps(steps) {
+  const container = document.getElementById('ctrl-steps-container');
+  if (!container || !Array.isArray(steps)) return;
+
+  container.innerHTML = '';
+  steps.forEach(s => {
+    const chip = document.createElement('div');
+    const statusClass = (s.status || 'PENDING').toLowerCase();
+    chip.className = `ctrl-step-chip ${statusClass}`;
+
+    let icon = '⏳';
+    if (s.status === 'RUNNING') icon = '⚡';
+    if (s.status === 'SUCCESS') icon = '✓';
+    if (s.status === 'FAILED') icon = '✗';
+    if (s.status === 'SKIPPED') icon = '—';
+
+    chip.innerHTML = `
+      <div class="ctrl-step-chip-title">
+        <span>${escapeHtml(s.label || s.id)}</span>
+        <span>${icon}</span>
+      </div>
+      <div class="ctrl-step-chip-msg" title="${escapeHtml(s.message || s.status)}">${escapeHtml(s.message || s.status)}</div>
+    `;
+    container.appendChild(chip);
+  });
+}
+
+function appendControllerLog(level, message) {
+  const timeStr = new Date().toTimeString().split(' ')[0];
+  const entry = { timestamp: timeStr, level: level.toUpperCase(), message: message };
+  controllerLogsMemory.push(entry);
+  renderSingleControllerLog(entry);
+}
+
+function renderControllerLogs(logs) {
+  const terminal = document.getElementById('ctrl-live-logs');
+  const counter = document.getElementById('ctrl-terminal-counter');
+  const autoscroll = document.getElementById('ctrl-autoscroll-chk')?.checked;
+  if (!terminal) return;
+
+  terminal.innerHTML = '';
+  controllerLogsMemory = logs;
+
+  logs.forEach(l => {
+    const line = document.createElement('div');
+    line.className = 'terminal-line';
+    const lvl = (l.level || 'INFO').toUpperCase();
+    line.innerHTML = `
+      <span class="terminal-time">${escapeHtml(l.timestamp || '--:--:--')}</span>
+      <span class="terminal-level ${lvl}">[${lvl}]</span>
+      <span class="terminal-msg">${escapeHtml(l.message || '')}</span>
+    `;
+    terminal.appendChild(line);
+  });
+
+  if (counter) counter.textContent = `${logs.length} lines`;
+  if (autoscroll) terminal.scrollTop = terminal.scrollHeight;
+}
+
+function renderSingleControllerLog(l) {
+  const terminal = document.getElementById('ctrl-live-logs');
+  const counter = document.getElementById('ctrl-terminal-counter');
+  const autoscroll = document.getElementById('ctrl-autoscroll-chk')?.checked;
+  if (!terminal) return;
+
+  const line = document.createElement('div');
+  line.className = 'terminal-line';
+  const lvl = (l.level || 'INFO').toUpperCase();
+  line.innerHTML = `
+    <span class="terminal-time">${escapeHtml(l.timestamp || '--:--:--')}</span>
+    <span class="terminal-level ${lvl}">[${lvl}]</span>
+    <span class="terminal-msg">${escapeHtml(l.message || '')}</span>
+  `;
+  terminal.appendChild(line);
+
+  if (counter) counter.textContent = `${terminal.children.length} lines`;
+  if (autoscroll) terminal.scrollTop = terminal.scrollHeight;
+}
+
+function clearControllerLogs() {
+  const terminal = document.getElementById('ctrl-live-logs');
+  const counter = document.getElementById('ctrl-terminal-counter');
+  if (terminal) terminal.innerHTML = '';
+  if (counter) counter.textContent = '0 lines';
+  controllerLogsMemory = [];
+}
+
+function copyControllerLogs() {
+  const text = controllerLogsMemory.map(l => `[${l.timestamp}] [${l.level}] ${l.message}`).join('\n');
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => alert("Console logs copied to clipboard!"));
+  } else {
+    alert("Clipboard access not available.");
+  }
+}
+
+async function loadControllerHistory() {
+  const tbody = document.getElementById('tbody-controller-history');
+  if (!tbody) return;
+
+  tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 30px;">Loading run history...</td></tr>';
+
+  try {
+    const res = await fetch('/api/controller/history?limit=50');
+    if (!res.ok) throw new Error("Failed to load history");
+    const runs = await res.json();
+
+    if (!runs || runs.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 30px;">No controller provisioning runs recorded yet.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = '';
+    runs.forEach(r => {
+      const tr = document.createElement('tr');
+      const isNew = r.is_new_controller ? '<span class="status-badge" style="background: rgba(236, 72, 153, 0.2); color: #f472b6;">YES (10.172.100.100)</span>' : '<span style="color: var(--text-muted);">No</span>';
+      
+      let statusBadge = '<span class="status-badge badge-ready">PENDING</span>';
+      if (r.status === 'RUNNING') statusBadge = '<span class="status-badge badge-action-point">RUNNING</span>';
+      if (r.status === 'SUCCESS') statusBadge = '<span class="status-badge badge-no-action">SUCCESS</span>';
+      if (r.status === 'FAILED') statusBadge = '<span class="status-badge badge-failed">FAILED</span>';
+      if (r.status === 'STOPPED') statusBadge = '<span class="status-badge badge-warning">STOPPED</span>';
+
+      tr.innerHTML = `
+        <td><code style="font-size: 11px;">${escapeHtml(r.run_uuid || '')}</code></td>
+        <td><strong>${escapeHtml(r.site_name || r.site_ip || '-')}</strong></td>
+        <td>Room ${escapeHtml(r.current_room_no || '')} <small style="color: var(--text-muted);">(${escapeHtml(r.current_room_ip || '')})</small></td>
+        <td>Room ${escapeHtml(r.similar_room_no || '')} <small style="color: var(--text-muted);">(${escapeHtml(r.similar_room_ip || '')})</small></td>
+        <td>${isNew}</td>
+        <td>${statusBadge}</td>
+        <td>${r.duration_seconds ? r.duration_seconds + 's' : '-'}</td>
+        <td style="font-size: 12px; color: var(--text-muted);">${escapeHtml(r.started_at || '')}</td>
+        <td>
+          <button class="btn btn-secondary btn-sm" onclick="openControllerRunModal('${escapeHtml(r.run_uuid)}')">View Log</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (e) {
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--accent-red); padding: 20px;">Error loading history: ${escapeHtml(e.message)}</td></tr>`;
+  }
+}
+
+async function openControllerRunModal(runUuid) {
+  const modal = document.getElementById('modal-controller-run-details');
+  const title = document.getElementById('modal-ctrl-run-title');
+  const meta = document.getElementById('modal-ctrl-meta');
+  const logsContainer = document.getElementById('modal-ctrl-logs');
+
+  if (modal) modal.classList.add('active');
+  if (title) title.textContent = `Controller Run: ${runUuid}`;
+  if (meta) meta.innerHTML = 'Loading metadata...';
+  if (logsContainer) logsContainer.innerHTML = 'Loading transcript...';
+
+  try {
+    const res = await fetch(`/api/controller/history/${runUuid}`);
+    if (!res.ok) throw new Error("Could not fetch run details.");
+    const run = await res.json();
+
+    if (meta) {
+      meta.innerHTML = `
+        <div><small style="color: var(--text-muted);">Site:</small> <strong>${escapeHtml(run.site_name || run.site_ip || '-')}</strong></div>
+        <div><small style="color: var(--text-muted);">Current Room:</small> <strong>${escapeHtml(run.current_room_no || '')} (${escapeHtml(run.current_room_ip || '')})</strong></div>
+        <div><small style="color: var(--text-muted);">Similar Room:</small> <strong>${escapeHtml(run.similar_room_no || '')} (${escapeHtml(run.similar_room_ip || '')})</strong></div>
+        <div><small style="color: var(--text-muted);">Target IP:</small> <strong>${escapeHtml(run.target_ip || '')}</strong></div>
+        <div><small style="color: var(--text-muted);">Status:</small> <strong>${escapeHtml(run.status || '')}</strong></div>
+        <div><small style="color: var(--text-muted);">Duration:</small> <strong>${run.duration_seconds || 0}s</strong></div>
+        <div><small style="color: var(--text-muted);">Root Password:</small> <code>${escapeHtml(run.discovered_password || 'N/A')}</code></div>
+        ${run.backup_folder ? `<div><small style="color: var(--text-muted);">Backup:</small> <code>${escapeHtml(run.backup_folder)}</code></div>` : ''}
+      `;
+    }
+
+    if (logsContainer) {
+      logsContainer.innerHTML = '';
+      if (run.logs && Array.isArray(run.logs) && run.logs.length > 0) {
+        run.logs.forEach(l => {
+          const line = document.createElement('div');
+          line.className = 'terminal-line';
+          const lvl = (l.level || 'INFO').toUpperCase();
+          line.innerHTML = `
+            <span class="terminal-time">${escapeHtml(l.timestamp || '--:--:--')}</span>
+            <span class="terminal-level ${lvl}">[${lvl}]</span>
+            <span class="terminal-msg">${escapeHtml(l.message || '')}</span>
+          `;
+          logsContainer.appendChild(line);
+        });
+      } else {
+        logsContainer.innerHTML = '<div style="color: var(--text-muted); padding: 15px;">No logs recorded for this run.</div>';
+      }
+    }
+  } catch (e) {
+    if (meta) meta.innerHTML = `<span style="color: var(--accent-red);">${escapeHtml(e.message)}</span>`;
+  }
+}
+
+function closeControllerRunModal() {
+  const modal = document.getElementById('modal-controller-run-details');
+  if (modal) modal.classList.remove('active');
+}
+
+async function loadControllerSettings() {
+  try {
+    const res = await fetch('/api/controller/settings');
+    if (!res.ok) return;
+    const settings = await res.json();
+
+    const setVal = (id, val) => {
+      const el = document.getElementById(id);
+      if (el && val !== undefined) el.value = val;
+    };
+
+    setVal('ctrl-set-jump-host', settings.jump_host);
+    setVal('ctrl-set-jump-port', settings.jump_port);
+    setVal('ctrl-set-jump-user', settings.jump_username);
+    setVal('ctrl-set-jump-pass', settings.jump_password);
+
+    setVal('ctrl-set-site-user', settings.site_username);
+    setVal('ctrl-set-site-pass', settings.site_password);
+    setVal('ctrl-set-site-port', settings.site_default_port);
+
+    setVal('ctrl-set-candidate-pass', settings.candidate_passwords);
+    setVal('ctrl-set-default-new-ip', settings.default_new_controller_ip);
+  } catch (e) {
+    console.error("Failed to load controller settings:", e);
+  }
+}
+
+async function saveControllerSettingsUI() {
+  const getVal = id => document.getElementById(id)?.value?.trim();
+
+  const payload = {
+    jump_host: getVal('ctrl-set-jump-host'),
+    jump_port: parseInt(getVal('ctrl-set-jump-port') || "22", 10),
+    jump_username: getVal('ctrl-set-jump-user'),
+    jump_password: getVal('ctrl-set-jump-pass'),
+    site_username: getVal('ctrl-set-site-user'),
+    site_password: getVal('ctrl-set-site-pass'),
+    site_default_port: parseInt(getVal('ctrl-set-site-port') || "2222", 10),
+    candidate_passwords: getVal('ctrl-set-candidate-pass'),
+    default_new_controller_ip: getVal('ctrl-set-default-new-ip')
+  };
+
+  try {
+    const res = await fetch('/api/controller/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+      const msg = document.getElementById('ctrl-settings-status-msg');
+      if (msg) {
+        msg.style.display = 'block';
+        setTimeout(() => { msg.style.display = 'none'; }, 3500);
+      }
+    } else {
+      alert("Failed to save controller settings.");
+    }
+  } catch (e) {
+    alert(`Error: ${e.message}`);
+  }
+}
+
+// Window Global Exports for Controller inline handlers
+window.onCtrlSiteChanged = onCtrlSiteChanged;
+window.toggleCtrlNewCheckbox = toggleCtrlNewCheckbox;
+window.onCtrlNewCheckboxChanged = onCtrlNewCheckboxChanged;
+window.runCtrlTestConnection = runCtrlTestConnection;
+window.startControllerClone = startControllerClone;
+window.stopControllerClone = stopControllerClone;
+window.clearControllerLogs = clearControllerLogs;
+window.copyControllerLogs = copyControllerLogs;
+window.loadControllerHistory = loadControllerHistory;
+window.openControllerRunModal = openControllerRunModal;
+window.closeControllerRunModal = closeControllerRunModal;
+window.saveControllerSettingsUI = saveControllerSettingsUI;
+window.initControllerProvisionTab = initControllerProvisionTab;
+window.loadControllerSettings = loadControllerSettings;
 
