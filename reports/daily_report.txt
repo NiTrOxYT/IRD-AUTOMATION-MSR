@@ -1,14 +1,15 @@
 ======================================
           IRD SYNC REPORT             
-Date: 2026-10-13
+Date: 2026-10-15
 ======================================
-Total Sites: 1
-Completed:   1
+Total Sites: 2
+Completed:   2
 --------------------------------------
 
 NO ACTION POINT
 
-• ITC Grand Chola
+• WH Bhubaneswar
+• ITC Maurya
 
 --------------------------------------
 
@@ -24,6 +25,6 @@ None
 
 --------------------------------------
 Action Point Found: 0
-No Action Point:    1
+No Action Point:    2
 Failed:             0
 ======================================

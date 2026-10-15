@@ -955,9 +955,9 @@ NOT TESTED
             <p class="subtitle">Dedicated DTH target portal endpoints and connection parameters</p>
           </div>
           <div class="action-bar">
-            <button id="btn-dth-add-site" class="btn btn-primary btn-glow">+ Add DTH Site</button>
-            <button id="btn-dth-import-ird-sites" class="btn btn-secondary">Copy from IRD Sites</button>
-            <button id="btn-dth-refresh-sites" class="btn btn-secondary">Refresh</button>
+            <button id="btn-dth-add-site" class="btn btn-primary btn-glow" onclick="openAddDthSiteModal()">+ Add DTH Site</button>
+            <button id="btn-dth-import-ird-sites" class="btn btn-secondary" onclick="importIrdSitesToDth()">Copy from IRD Sites</button>
+            <button id="btn-dth-refresh-sites" class="btn btn-secondary" onclick="loadDthSitesConfig()">Refresh</button>
           </div>
         </div>
 
@@ -984,8 +984,8 @@ NOT TESTED
                   <th>Credentials</th>
                   <th>Tunnel Config</th>
                   <th width="90">State</th>
-                  <th width="120">Connectivity</th>
-                  <th width="140">Actions</th>
+                  <th width="200">Portal & PuTTY</th>
+                  <th width="120">Actions</th>
                 </tr>
               </thead>
               <tbody id="tbody-dth-sites-table">
@@ -1042,7 +1042,7 @@ NOT TESTED
             </div>
             <div class="form-group third">
               <label>Local Image Directory Path</label>
-              <input type="text" id="dth-image-dir-input" class="form-control" placeholder="C:\IRD AUTO\data\channel_logos">
+              <input type="text" id="dth-image-dir-input" class="form-control" value="C:\IRD AUTO\data\channel_logo" placeholder="C:\IRD AUTO\data\channel_logo">
               <span style="font-size: 11px; color: var(--text-muted); margin-top: 4px; display: block;">Directory containing channel logo files</span>
             </div>
           </div>
@@ -1295,7 +1295,22 @@ NOT TESTED
 
           <!-- Panel 2: Browser & Portal Timeouts -->
           <div class="glass-panel">
-            <h3 style="margin-bottom: 14px;">2. Browser Timeouts & Validation Rules</h3>
+            <h3 style="margin-bottom: 14px;">2. Browser Engine & Validation Rules</h3>
+            <div class="form-group checkbox-group" style="margin-bottom: 14px; display: flex; align-items: center; gap: 10px;">
+              <label class="switch">
+                <input type="checkbox" id="dth-set-headless">
+                <span class="slider"></span>
+              </label>
+              <span style="font-size: 13px; font-weight: 500;">Headless Mode Browser (OFF opens live browser window)</span>
+            </div>
+            <div class="form-group" style="margin-bottom: 14px;">
+              <label>Browser Engine</label>
+              <select id="dth-set-browser-type" class="form-control">
+                <option value="chromium">Chromium</option>
+                <option value="msedge">Microsoft Edge</option>
+                <option value="chrome">Google Chrome</option>
+              </select>
+            </div>
             <div class="form-group" style="margin-bottom: 14px;">
               <label>Portal Navigation Timeout (seconds)</label>
               <input type="number" id="dth-set-page-timeout" class="form-control" min="10" max="300" value="60">
@@ -1422,6 +1437,8 @@ NOT TESTED
       <div class="modal-body" id="modal-history-body">
         <!-- Rendered dynamically -->
       </div>
+    </div>
+  </div>
   <!-- REAL RUN CONFIRMATION MODAL -->
   <div class="modal-overlay" id="modal-confirm-real-run">
     <div class="modal-card">
@@ -1481,7 +1498,7 @@ NOT TESTED
     <div class="modal-card modal-lg">
       <div class="modal-header">
         <h3 id="modal-dth-site-title">Add New DTH Site Configuration</h3>
-        <button class="btn-icon" id="btn-close-modal-dth-site">&times;</button>
+        <button class="btn-icon" id="btn-close-modal-dth-site" onclick="closeDthSiteModal()">&times;</button>
       </div>
       <div class="modal-body">
         <input type="hidden" id="modal-dth-site-id">
@@ -1507,8 +1524,8 @@ NOT TESTED
             <input type="text" id="modal-dth-site-ip" class="form-control" placeholder="e.g. 14.142.185.130">
           </div>
           <div class="form-group third">
-            <label>Target Site Port</label>
-            <input type="number" id="modal-dth-site-port" class="form-control" min="1" max="65535" value="80">
+            <label>Target Site Port <small style="color: #94a3b8;">(8080/8082)</small></label>
+            <input type="number" id="modal-dth-site-port" class="form-control" min="1" max="65535" value="8080">
           </div>
         </div>
 
@@ -1570,8 +1587,8 @@ NOT TESTED
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" id="btn-cancel-modal-dth-site">Cancel</button>
-        <button class="btn btn-primary btn-glow" id="btn-save-dth-site">Save DTH Site</button>
+        <button class="btn btn-secondary" id="btn-cancel-modal-dth-site" onclick="closeDthSiteModal()">Cancel</button>
+        <button class="btn btn-primary btn-glow" id="btn-save-dth-site" onclick="saveDthSite()">Save DTH Site</button>
       </div>
     </div>
   </div>
@@ -1581,7 +1598,7 @@ NOT TESTED
     <div class="modal-card modal-xl">
       <div class="modal-header">
         <h3 id="modal-dth-run-details-title">DTH Run Results</h3>
-        <button class="btn-icon" id="btn-close-dth-run-details">&times;</button>
+        <button class="btn-icon" id="btn-close-dth-run-details" onclick="closeDthRunDetailsModal()">&times;</button>
       </div>
       <div class="modal-body">
         <!-- Summary KPI row in modal -->
@@ -1644,12 +1661,12 @@ NOT TESTED
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" id="btn-dismiss-dth-run-details">Close</button>
+        <button class="btn btn-secondary" id="btn-dismiss-dth-run-details" onclick="closeDthRunDetailsModal()">Close</button>
       </div>
     </div>
   </div>
 
-  <script src="/static/app.js?v=phase17"></script>
+  <script src="/static/app.js?v=dth_module_v3"></script>
 
 
 </body>

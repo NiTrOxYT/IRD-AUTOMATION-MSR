@@ -25,6 +25,8 @@ from app.dth_automation.router import (
     delete_dth_site_endpoint,
     toggle_dth_site_endpoint,
     test_dth_site_connectivity_endpoint as _test_connectivity_endpoint,
+    open_dth_site_portal_endpoint,
+    launch_dth_site_putty_endpoint,
     get_dth_settings_endpoint,
     update_dth_settings_endpoint,
     get_dth_dashboard
@@ -188,6 +190,8 @@ class TestDthSitesAndNavigation(unittest.IsolatedAsyncioTestCase):
             "save_timeout": "45",
             "image_allowed_extensions": ".png, .jpg",
             "max_image_size_kb": "1024",
+            "headless": "true",
+            "browser_type": "msedge",
             "log_level": "DEBUG",
             "debug_screenshots": "false"
         }
@@ -201,12 +205,16 @@ class TestDthSitesAndNavigation(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(updated["channel_delay_seconds"], "2.5")
         self.assertEqual(updated["max_row_count"], "3000")
         self.assertEqual(updated["page_load_timeout"], "75")
+        self.assertEqual(updated["headless"], "true")
+        self.assertEqual(updated["browser_type"], "msedge")
         self.assertEqual(updated["log_level"], "DEBUG")
         self.assertEqual(updated["debug_screenshots"], "false")
 
         # Restore defaults
         set_dth_setting("channel_delay_seconds", "1.0")
         set_dth_setting("max_row_count", "5000")
+        set_dth_setting("headless", "false")
+        set_dth_setting("browser_type", "chromium")
         set_dth_setting("log_level", "INFO")
         set_dth_setting("debug_screenshots", "true")
 
@@ -226,3 +234,29 @@ class TestDthSitesAndNavigation(unittest.IsolatedAsyncioTestCase):
         self.assertIn("skipped_duplicates", metrics)
         self.assertIn("failed_channels", metrics)
         self.assertIn("total_runs", metrics)
+
+    async def test_dth_open_portal_and_launch_putty(self):
+        """Test open-portal and launch-putty endpoints for DTH sites."""
+        site_id = add_dth_site({
+            "name": "PuTTY & Portal Test Site",
+            "site_ip": "127.0.0.1",
+            "site_port": 8080,
+            "local_port": 18123,
+            "portal_url": "http://localhost:18123/zmp/main-menu.do",
+            "enabled": True
+        })
+
+        try:
+            with patch("webbrowser.open") as mock_browser:
+                res = await open_dth_site_portal_endpoint(site_id)
+                self.assertTrue(res["success"])
+                self.assertIn("18123", res["portal_url"])
+                mock_browser.assert_called_once()
+
+            with patch("app.tunneling.putty_manager.putty_manager.launch_putty_gui", return_value=(True, "PuTTY GUI launched successfully")) as mock_putty:
+                putty_res = await launch_dth_site_putty_endpoint(site_id)
+                self.assertTrue(putty_res["success"])
+                mock_putty.assert_called_once()
+        finally:
+            delete_dth_site(site_id)
+

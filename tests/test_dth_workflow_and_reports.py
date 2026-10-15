@@ -3,7 +3,7 @@ import json
 import unittest
 import tempfile
 from pathlib import Path
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from app.database.db import init_db, get_all_sites, get_dth_run_details
 from app.dth_automation.models import DthExecutionMode, DthRunState, DthItemState
@@ -112,6 +112,55 @@ class TestDthWorkflowAndReports(unittest.IsolatedAsyncioTestCase):
             data = json.load(jf)
             self.assertEqual(data["summary"]["id"], 999)
             self.assertEqual(len(data["channels"]), 1)
+
+    async def test_workflow_runner_honors_headless_setting(self):
+        from app.database.db import set_dth_setting
+        set_dth_setting("headless", "true")
+        set_dth_setting("browser_type", "chromium")
+
+        with patch("app.dth_automation.workflow_runner.DthPortalController") as MockPC:
+            mock_inst = MagicMock()
+            mock_inst.initialize = unittest.mock.AsyncMock()
+            mock_inst.navigate_to_url = unittest.mock.AsyncMock(return_value=True)
+            mock_inst.login_if_required = unittest.mock.AsyncMock()
+            mock_inst.open_dth_configuration = unittest.mock.AsyncMock()
+            mock_inst.read_available_categories = unittest.mock.AsyncMock(return_value=["all"])
+            mock_inst.get_existing_channels_from_portal = unittest.mock.AsyncMock(return_value=(set(), set()))
+            mock_inst.existing_channels_map = {}
+            mock_inst.close = unittest.mock.AsyncMock()
+            MockPC.return_value = mock_inst
+
+            await self.runner.execute_batch(
+                file_path=str(self.test_csv),
+                image_dir=str(self.test_dir),
+                site_id=self.site_id,
+                mode=DthExecutionMode.DRY_RUN,
+                authorized=False
+            )
+            mock_inst.initialize.assert_awaited_once_with(headless=True, browser_type_str="chromium")
+
+        # Verify headless=False
+        set_dth_setting("headless", "false")
+        with patch("app.dth_automation.workflow_runner.DthPortalController") as MockPC:
+            mock_inst = MagicMock()
+            mock_inst.initialize = unittest.mock.AsyncMock()
+            mock_inst.navigate_to_url = unittest.mock.AsyncMock(return_value=True)
+            mock_inst.login_if_required = unittest.mock.AsyncMock()
+            mock_inst.open_dth_configuration = unittest.mock.AsyncMock()
+            mock_inst.read_available_categories = unittest.mock.AsyncMock(return_value=["all"])
+            mock_inst.get_existing_channels_from_portal = unittest.mock.AsyncMock(return_value=(set(), set()))
+            mock_inst.existing_channels_map = {}
+            mock_inst.close = unittest.mock.AsyncMock()
+            MockPC.return_value = mock_inst
+
+            await self.runner.execute_batch(
+                file_path=str(self.test_csv),
+                image_dir=str(self.test_dir),
+                site_id=self.site_id,
+                mode=DthExecutionMode.DRY_RUN,
+                authorized=False
+            )
+            mock_inst.initialize.assert_awaited_once_with(headless=False, browser_type_str="chromium")
 
 
 if __name__ == "__main__":

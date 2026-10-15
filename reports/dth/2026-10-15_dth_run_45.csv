@@ -1,0 +1,12 @@
+﻿# DTH CHANNEL CONFIGURATION REPORT
+# Run ID,45
+# Mode,LIVE
+# Status,COMPLETED
+# Total Channels,1
+# Successful,1
+# Skipped Duplicates,0
+# Failed,0
+# Unknown,0
+
+Row Number,Channel Number,Channel Name,OSD Text,Categories,Status,Verified in Portal,Duration (s),Reason / Error
+2,101,DD National,DD National,"all, news",SUCCESS,YES,92.45,Verified present in portal channel table after submission

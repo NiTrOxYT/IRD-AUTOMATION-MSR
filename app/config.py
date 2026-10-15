@@ -10,8 +10,10 @@ REPORTS_DIR = BASE_DIR / "reports"
 LOGS_DIR = BASE_DIR / "logs"
 SCREENSHOTS_DIR = LOGS_DIR / "screenshots"
 
+CHANNEL_LOGOS_DIR = DATA_DIR / "channel_logo"
+
 # Ensure required directories exist
-for folder in [DATA_DIR, DOWNLOADS_DIR, REPORTS_DIR, LOGS_DIR, SCREENSHOTS_DIR]:
+for folder in [DATA_DIR, DOWNLOADS_DIR, REPORTS_DIR, LOGS_DIR, SCREENSHOTS_DIR, CHANNEL_LOGOS_DIR]:
     folder.mkdir(parents=True, exist_ok=True)
 
 # Database Path
@@ -37,6 +39,7 @@ DEFAULT_SETTINGS = {
     "retry_interval": 10,        # seconds
     "downloads_dir": str(DOWNLOADS_DIR),
     "reports_dir": str(REPORTS_DIR),
+    "channel_logo_dir": str(CHANNEL_LOGOS_DIR),
     "debug_mode": True,          # Capture screenshots on errors/steps
     "port": 18492,               # Internal API bridge port
     "putty_path": r"C:\Program Files\PuTTY\plink.exe",

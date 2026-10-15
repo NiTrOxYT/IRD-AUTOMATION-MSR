@@ -1,0 +1,41 @@
+{
+  "summary": {
+    "id": 21,
+    "run_date": "2026-10-14",
+    "start_time": "00:09:21",
+    "end_time": "00:12:06",
+    "mode": "LIVE",
+    "status": "COMPLETED",
+    "filename": "dth_channel_template - dth_channel_template.csv.csv",
+    "total_channels": 1,
+    "processed_channels": 1,
+    "successful_channels": 0,
+    "failed_channels": 1,
+    "skipped_duplicates": 0,
+    "invalid_channels": 0,
+    "unknown_channels": 0,
+    "site_id": 24,
+    "site_name": "TAJ Puri Resort & Spa, Odisha"
+  },
+  "channels": [
+    {
+      "run_id": 21,
+      "row_number": 2,
+      "channel_number": "101",
+      "name": "DD National",
+      "osd": "DD National",
+      "image": "dd_national.png",
+      "categories": [
+        "all",
+        "News"
+      ],
+      "status": "FAILED",
+      "attempt_count": 1,
+      "duration_seconds": 0.05,
+      "error_reason": "Channel number input field not found on portal",
+      "verified_in_portal": false,
+      "started_at": "00:12:05",
+      "completed_at": "00:12:05"
+    }
+  ]
+}

@@ -97,15 +97,47 @@ class TestDthValidator(unittest.TestCase):
         self.assertEqual(results[1].status, DthItemState.INVALID)
         self.assertTrue(any("Duplicate channel number '101'" in e for e in results[1].errors))
 
-    def test_validate_channel_batch_portal_duplicate_skip(self):
+    def test_validate_channel_batch_auto_selects_image_when_header_omitted(self):
+        # Create a test logo in test directory
+        test_logo = self.test_dir / "Sony MAX.png"
+        test_logo.write_bytes(b"\x89PNG\r\n\x1a\n")
+
         records = [
-            {"row_number": 2, "channel_number": "500", "name": "Old Channel", "osd": "Old", "image": "dd.png", "raw_categories": "News"}
+            {
+                "row_number": 2,
+                "channel_number": "301",
+                "name": "Sony MAX",
+                "osd": "Sony MAX",
+                "image": "",  # Empty, as parsed when image header is omitted
+                "raw_categories": "Movies"
+            }
         ]
-        portal_nums = {"500"}
-        items, results = validate_channel_batch(records, image_dir=str(self.test_dir), portal_existing_channel_numbers=portal_nums)
-        self.assertEqual(results[0].status, DthItemState.SKIPPED_DUPLICATE)
-        self.assertTrue(any("already exists in portal" in w for w in results[0].warnings))
+        items, results = validate_channel_batch(records, image_dir=str(self.test_dir))
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0].status, DthItemState.READY)
+        self.assertEqual(items[0].image, "Sony MAX.png")
+        self.assertIsNotNone(items[0].resolved_image_path)
+        self.assertTrue(str(items[0].resolved_image_path).endswith("Sony MAX.png"))
+
+
+    def test_normalize_categories_single_category_only_with_multi_input(self):
+        # Enforce rule: only 'all' and exactly one other relevant category
+        cats, errors = normalize_categories("all, News, Regional, Hindi", allowed_categories=["all", "News", "Regional", "Sports"], single_category_only=True)
+        self.assertEqual(len(errors), 0)
+        self.assertEqual(cats, ["all", "News"])
+
+    def test_infer_category_from_name_when_empty_categories(self):
+        # Infers relevant category from channel name when raw category is only 'all' or empty
+        cats_sports, errs = normalize_categories("all", allowed_categories=["all", "Sports", "News"], single_category_only=True, channel_name="Star Sports 1 HD")
+        self.assertEqual(cats_sports, ["all", "Sports"])
+
+        cats_movies, errs = normalize_categories("", allowed_categories=["all", "Movies", "News"], single_category_only=True, channel_name="Sony MAX HD")
+        self.assertEqual(cats_movies, ["all", "Movies"])
+
+        cats_news, errs = normalize_categories("", allowed_categories=["all", "News", "Entertainment"], single_category_only=True, channel_name="Aaj Tak")
+        self.assertEqual(cats_news, ["all", "News"])
 
 
 if __name__ == "__main__":
     unittest.main()
+

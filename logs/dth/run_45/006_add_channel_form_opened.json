@@ -1,0 +1,235 @@
+{
+  "step_number": 6,
+  "action_name": "add_channel_form_opened",
+  "url": "http://localhost:18001/zmp/manage-stb-channels.do#",
+  "title": "Smartler Management Portal Login",
+  "detected_state": "CHANNEL_FORM_VERIFIED",
+  "main_frame_url": "http://localhost:18001/zmp/manage-stb-channels.do#",
+  "child_frame_urls": [],
+  "visible_headings": [],
+  "visible_text_summary": "Dashboard | Configuration Setup | Service Setup | Guest Management | User Management | Reports | Support | LOGOUT | DTH Channel Configuration | ADD NEW CHANNEL DOWNLOAD DTHCHANNEL XML | DTH Channel Number | DTH Channel Name",
+  "visible_buttons": [
+    "LOGOUT",
+    "ADD NEW CHANNEL",
+    "SAVE",
+    "EDIT"
+  ],
+  "visible_inputs": [
+    {
+      "tag": "input",
+      "type": "text",
+      "name": "channelNumber",
+      "id": "channelNumber",
+      "value": ""
+    },
+    {
+      "tag": "input",
+      "type": "text",
+      "name": "name",
+      "id": "name",
+      "value": ""
+    },
+    {
+      "tag": "input",
+      "type": "text",
+      "name": "osd",
+      "id": "osd",
+      "value": ""
+    },
+    {
+      "tag": "input",
+      "type": "file",
+      "name": "cmsImage",
+      "id": "addnewcmsimage",
+      "value": ""
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "name": "stbChannelCategories",
+      "id": "stbChannelCategories",
+      "value": "1536"
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "name": "stbChannelCategories",
+      "id": "stbChannelCategories",
+      "value": "1537"
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "name": "stbChannelCategories",
+      "id": "stbChannelCategories",
+      "value": "1510"
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "name": "stbChannelCategories",
+      "id": "stbChannelCategories",
+      "value": "1511"
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "name": "stbChannelCategories",
+      "id": "stbChannelCategories",
+      "value": "1514"
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "name": "stbChannelCategories",
+      "id": "stbChannelCategories",
+      "value": "1533"
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "name": "stbChannelCategories",
+      "id": "stbChannelCategories",
+      "value": "1538"
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "name": "stbChannelCategories",
+      "id": "stbChannelCategories",
+      "value": "1517"
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "name": "stbChannelCategories",
+      "id": "stbChannelCategories",
+      "value": "1539"
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "name": "stbChannelCategories",
+      "id": "stbChannelCategories",
+      "value": "1516"
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "name": "stbChannelCategories",
+      "id": "stbChannelCategories",
+      "value": "1540"
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "name": "stbChannelCategories",
+      "id": "stbChannelCategories",
+      "value": "1530"
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "name": "stbChannelCategories",
+      "id": "stbChannelCategories",
+      "value": "1508"
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "name": "stbChannelCategories",
+      "id": "stbChannelCategories",
+      "value": "1515"
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "name": "stbChannelCategories",
+      "id": "stbChannelCategories",
+      "value": "1512"
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "name": "stbChannelCategories",
+      "id": "stbChannelCategories",
+      "value": "1513"
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "name": "stbChannelCategories",
+      "id": "stbChannelCategories",
+      "value": "1529"
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "name": "stbChannelCategories",
+      "id": "stbChannelCategories",
+      "value": "1518"
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "name": "stbChannelCategories",
+      "id": "stbChannelCategories",
+      "value": "1519"
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "name": "stbChannelCategories",
+      "id": "stbChannelCategories",
+      "value": "1520"
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "name": "stbChannelCategories",
+      "id": "stbChannelCategories",
+      "value": "1521"
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "name": "stbChannelCategories",
+      "id": "stbChannelCategories",
+      "value": "1522"
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "name": "stbChannelCategories",
+      "id": "stbChannelCategories",
+      "value": "1523"
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "name": "stbChannelCategories",
+      "id": "stbChannelCategories",
+      "value": "1524"
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "name": "stbChannelCategories",
+      "id": "stbChannelCategories",
+      "value": "1525"
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "name": "stbChannelCategories",
+      "id": "stbChannelCategories",
+      "value": "1526"
+    }
+  ],
+  "detected_auth_state": "AUTHENTICATED",
+  "verification_passed": true,
+  "verification_notes": "Observed state: CHANNEL_FORM_VERIFIED",
+  "screenshot_path": "C:\\IRD AUTO\\logs\\dth\\run_45\\006_add_channel_form_opened.png",
+  "snapshot_path": "C:\\IRD AUTO\\logs\\dth\\run_45\\006_add_channel_form_opened.json",
+  "timestamp": "2026-10-15 16:16:56"
+}

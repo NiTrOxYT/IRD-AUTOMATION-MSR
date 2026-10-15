@@ -15,6 +15,10 @@ class TestDthPortalMocked(unittest.IsolatedAsyncioTestCase):
         self.mock_page.goto = AsyncMock(return_value=None)
         self.mock_page.wait_for_load_state = AsyncMock(return_value=None)
         self.mock_page.close = AsyncMock(return_value=None)
+        self.mock_page.evaluate = AsyncMock(return_value=None)
+        self.mock_page.screenshot = AsyncMock(return_value=None)
+        self.mock_page.title = AsyncMock(return_value="Smartler Management Portal")
+        self.mock_page.frames = []
         self.mock_page.url = "http://localhost:18001/zmp/channels.do"
 
         self.controller.page = self.mock_page
@@ -43,6 +47,8 @@ class TestDthPortalMocked(unittest.IsolatedAsyncioTestCase):
         el.inner_text = AsyncMock(return_value="")
         el.get_attribute = AsyncMock(return_value="")
         el.evaluate = AsyncMock(return_value="")
+        el.wait_for = AsyncMock(return_value=None)
+        el.set_input_files = AsyncMock(return_value=None)
         return el
 
     async def test_read_available_categories_defaults(self):
@@ -133,6 +139,22 @@ class TestDthPortalMocked(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(self.controller.stop_requested)
         self.assertFalse(self.controller.is_connected)
 
+    async def test_assign_categories_on_form_strictly_selects_all_and_one_relevant(self):
+        # Verifies that evaluate is called with { rowSel, otherCat: "News" }
+        self.mock_page.evaluate = AsyncMock(return_value={"allChecked": True, "otherChecked": True, "targetOther": "news"})
+
+        await self.controller._assign_categories_on_form(
+            target_categories=["all", "News", "Regional", "Hindi"],
+            row_selector="#row_newentry",
+            channel_name="News 24"
+        )
+        self.mock_page.evaluate.assert_called_once()
+        args, kwargs = self.mock_page.evaluate.call_args
+        eval_payload = args[1]
+        self.assertEqual(eval_payload["rowSel"], "#row_newentry")
+        self.assertEqual(eval_payload["otherCat"], "News")
+
 
 if __name__ == "__main__":
     unittest.main()
+

@@ -24,6 +24,9 @@ COLUMN_ALIASES = {
     "categories": ["categories", "category", "genre", "genres"]
 }
 
+REQUIRED_COLUMNS = ["channel_number", "name", "categories"]
+OPTIONAL_COLUMNS = ["osd", "image"]
+
 
 def _normalize_header(header: str) -> str:
     cleaned = str(header or "").strip().lower().replace(" ", "_").replace("-", "_")
@@ -103,7 +106,7 @@ def _parse_csv(path: Path) -> Tuple[List[Dict[str, Any]], List[str]]:
         if canonical in COLUMN_ALIASES:
             header_map[canonical] = idx
 
-    missing_headers = [col for col in COLUMN_ALIASES if col not in header_map]
+    missing_headers = [col for col in REQUIRED_COLUMNS if col not in header_map]
     if missing_headers:
         return [], [f"Missing required columns in CSV header: {', '.join(missing_headers)}. Found headers: {raw_headers}"]
 
@@ -124,11 +127,14 @@ def _parse_csv(path: Path) -> Tuple[List[Dict[str, Any]], List[str]]:
                 return _clean_cell(row[col_idx])
             return ""
 
+        name_val = get_col("name")
+        osd_val = get_col("osd") or name_val
+
         records.append({
             "row_number": row_idx,
             "channel_number": get_col("channel_number"),
-            "name": get_col("name"),
-            "osd": get_col("osd"),
+            "name": name_val,
+            "osd": osd_val,
             "image": get_col("image"),
             "raw_categories": get_col("categories")
         })
@@ -159,7 +165,7 @@ def _parse_xlsx(path: Path) -> Tuple[List[Dict[str, Any]], List[str]]:
             if canonical in COLUMN_ALIASES:
                 header_map[canonical] = idx
 
-    missing_headers = [col for col in COLUMN_ALIASES if col not in header_map]
+    missing_headers = [col for col in REQUIRED_COLUMNS if col not in header_map]
     if missing_headers:
         return [], [f"Missing required columns in XLSX header: {', '.join(missing_headers)}. Found: {raw_headers}"]
 
@@ -182,11 +188,14 @@ def _parse_xlsx(path: Path) -> Tuple[List[Dict[str, Any]], List[str]]:
                 return _clean_cell(row[col_idx])
             return ""
 
+        name_val = get_col("name")
+        osd_val = get_col("osd") or name_val
+
         records.append({
             "row_number": row_idx,
             "channel_number": get_col("channel_number"),
-            "name": get_col("name"),
-            "osd": get_col("osd"),
+            "name": name_val,
+            "osd": osd_val,
             "image": get_col("image"),
             "raw_categories": get_col("categories")
         })

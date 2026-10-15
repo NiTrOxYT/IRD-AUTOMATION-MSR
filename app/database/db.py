@@ -17,6 +17,8 @@ DEFAULT_DTH_SETTINGS = {
     "max_file_size_mb": "10",
     "page_load_timeout": "60",
     "save_timeout": "30",
+    "headless": "false",
+    "browser_type": "chromium",
     "debug_screenshots": "true",
     "log_level": "INFO",
     "image_allowed_extensions": ".png,.jpg,.jpeg,.bmp,.webp",
@@ -1076,8 +1078,36 @@ def add_dth_site(site_data: Dict[str, Any]) -> int:
     now = datetime.now().isoformat()
 
     portal_url = str(site_data.get("portal_url", "")).strip()
+    if portal_url == "None":
+        portal_url = ""
     local_port = int(site_data.get("local_port") or 18001)
-    web_url = str(site_data.get("web_url", "")).strip() or (portal_url or f"http://localhost:{local_port}/zmp/main-menu.do")
+    web_url = str(site_data.get("web_url", "")).strip()
+    if web_url == "None":
+        web_url = ""
+    if not web_url:
+        web_url = portal_url or f"http://localhost:{local_port}/zmp/manage-stb-channels.do"
+
+    raw_ip = str(site_data.get("site_ip", "")).strip()
+    if not raw_ip or raw_ip == "None":
+        raw_ip = str(site_data.get("remote_host", "")).strip()
+    if raw_ip == "None":
+        raw_ip = ""
+
+    raw_port = site_data.get("site_port") or site_data.get("remote_port") or 80
+    try:
+        clean_port = int(raw_port)
+    except Exception:
+        clean_port = 80
+
+    ssh_host = str(site_data.get("ssh_host", "")).strip()
+    if ssh_host == "None":
+        ssh_host = ""
+    ssh_username = str(site_data.get("ssh_username", "")).strip()
+    if ssh_username == "None":
+        ssh_username = ""
+    putty_session = str(site_data.get("putty_session", "")).strip()
+    if putty_session == "None":
+        putty_session = ""
 
     cursor.execute("""
     INSERT INTO dth_sites (
@@ -1090,17 +1120,17 @@ def add_dth_site(site_data: Dict[str, Any]) -> int:
         str(site_data.get("name", "")).strip(),
         portal_url,
         local_port,
-        str(site_data.get("site_ip", "")).strip(),
-        int(site_data.get("site_port") or 80),
-        str(site_data.get("remote_host", "127.0.0.1")).strip(),
-        int(site_data.get("remote_port") or 80),
-        str(site_data.get("ssh_host", "")).strip(),
+        raw_ip,
+        clean_port,
+        raw_ip or "127.0.0.1",
+        clean_port,
+        ssh_host,
         int(site_data.get("ssh_port") or 22),
-        str(site_data.get("ssh_username", "")).strip(),
+        ssh_username,
         enc_ssh_pwd,
         str(site_data.get("ssh_key_path", "")).strip(),
         str(site_data.get("auth_type", "key")).strip(),
-        str(site_data.get("putty_session", "")).strip(),
+        putty_session,
         str(site_data.get("tunnel_type", "reverse")).strip(),
         web_url,
         str(site_data.get("idp_username", "")).strip(),
@@ -1121,7 +1151,7 @@ def update_dth_site(site_id: int, site_data: Dict[str, Any]) -> bool:
     """Updates an existing DTH site record."""
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT idp_password_encrypted, ssh_password_encrypted FROM dth_sites WHERE id = ?", (site_id,))
+    cursor.execute("SELECT * FROM dth_sites WHERE id = ?", (site_id,))
     row = cursor.fetchone()
     if not row:
         conn.close()
@@ -1136,9 +1166,36 @@ def update_dth_site(site_id: int, site_data: Dict[str, Any]) -> bool:
         enc_ssh = encrypt_password(site_data["ssh_password"])
 
     now = datetime.now().isoformat()
-    portal_url = str(site_data.get("portal_url", "")).strip()
-    local_port = int(site_data.get("local_port") or 18001)
-    web_url = str(site_data.get("web_url", "")).strip() or (portal_url or f"http://localhost:{local_port}/zmp/main-menu.do")
+    site_name = str(site_data.get("name") or row["name"] or "").strip()
+    portal_url = str(site_data.get("portal_url") or row["portal_url"] or "").strip()
+    if portal_url == "None":
+        portal_url = ""
+    local_port = int(site_data.get("local_port") or row["local_port"] or 18001)
+    web_url = str(site_data.get("web_url") or row["web_url"] or "").strip()
+    if web_url == "None":
+        web_url = ""
+    if not web_url:
+        web_url = portal_url or f"http://localhost:{local_port}/zmp/manage-stb-channels.do"
+
+    raw_ip = str(site_data.get("site_ip") or site_data.get("remote_host") or row["site_ip"] or row["remote_host"] or "").strip()
+    if raw_ip == "None":
+        raw_ip = ""
+
+    raw_port = site_data.get("site_port") or site_data.get("remote_port") or row["site_port"] or row["remote_port"] or 8080
+    try:
+        clean_port = int(raw_port)
+    except Exception:
+        clean_port = 8080
+
+    ssh_host = str(site_data.get("ssh_host") or row["ssh_host"] or "").strip()
+    if ssh_host == "None":
+        ssh_host = ""
+    ssh_username = str(site_data.get("ssh_username") or row["ssh_username"] or "").strip()
+    if ssh_username == "None":
+        ssh_username = ""
+    putty_session = str(site_data.get("putty_session") or row["putty_session"] or "").strip()
+    if putty_session == "None":
+        putty_session = ""
 
     cursor.execute("""
     UPDATE dth_sites SET
@@ -1149,27 +1206,27 @@ def update_dth_site(site_id: int, site_data: Dict[str, Any]) -> bool:
         enabled = ?, sort_order = ?, notes = ?, updated_at = ?
     WHERE id = ?
     """, (
-        str(site_data.get("name", "")).strip(),
+        site_name,
         portal_url,
         local_port,
-        str(site_data.get("site_ip", "")).strip(),
-        int(site_data.get("site_port") or 80),
-        str(site_data.get("remote_host", "127.0.0.1")).strip(),
-        int(site_data.get("remote_port") or 80),
-        str(site_data.get("ssh_host", "")).strip(),
-        int(site_data.get("ssh_port") or 22),
-        str(site_data.get("ssh_username", "")).strip(),
+        raw_ip,
+        clean_port,
+        raw_ip or "127.0.0.1",
+        clean_port,
+        ssh_host,
+        int(site_data.get("ssh_port") or row["ssh_port"] or 22),
+        ssh_username,
         enc_ssh,
-        str(site_data.get("ssh_key_path", "")).strip(),
-        str(site_data.get("auth_type", "key")).strip(),
-        str(site_data.get("putty_session", "")).strip(),
-        str(site_data.get("tunnel_type", "reverse")).strip(),
+        str(site_data.get("ssh_key_path", row["ssh_key_path"] or "")).strip(),
+        str(site_data.get("auth_type", row["auth_type"] or "key")).strip(),
+        putty_session,
+        str(site_data.get("tunnel_type", row["tunnel_type"] or "reverse")).strip(),
         web_url,
-        str(site_data.get("idp_username", "")).strip(),
+        str(site_data.get("idp_username", row["idp_username"] or "")).strip(),
         enc_idp,
-        1 if site_data.get("enabled", True) else 0,
-        int(site_data.get("sort_order") or 0),
-        str(site_data.get("notes", "")).strip(),
+        1 if site_data.get("enabled", row["enabled"] if row["enabled"] is not None else True) else 0,
+        int(site_data.get("sort_order") if site_data.get("sort_order") is not None else (row["sort_order"] or 0)),
+        str(site_data.get("notes", row["notes"] or "")).strip(),
         now,
         site_id
     ))

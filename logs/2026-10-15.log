@@ -1,0 +1,763 @@
+15:03:01 | INFO  | IRD_Seed | Database already contains 18 sites. Checking port assignments...
+15:03:03 | INFO  | IRD_Main | IRD Sync Automation server started at http://127.0.0.1:18492
+15:03:04 | INFO  | IRD_Main | [PYWEBVIEW] Creating desktop window
+15:03:04 | INFO  | IRD_Main | [PYWEBVIEW] UI HTML path: C:\IRD AUTO\app\ui\index.html
+15:03:04 | INFO  | IRD_Main | [PYWEBVIEW] UI HTML exists: True
+15:03:04 | INFO  | IRD_Main | [PYWEBVIEW] UI JavaScript path: C:\IRD AUTO\app\ui\app.js
+15:03:04 | INFO  | IRD_Main | [PYWEBVIEW] UI JavaScript exists: True
+15:03:04 | INFO  | IRD_Main | Opening PyWebView desktop window...
+15:03:37 | INFO  | DTH_Audit | [AUDIT] RUN_STARTED | Run #40 | Ch: N/A | {"site": "TAJ Puri Resort & Spa, Odisha", "filename": "dth_channel_template - dth_channel_template.csv.csv", "mode": "LIVE", "image_dir": "C:\\IRD AUTO\\data\\channel_logo"}
+15:03:37 | INFO  | IRD_TunnelManager | 15:03:37 | [TAJ Puri Resort & Spa, Odisha] Starting tunnel verification for TAJ Puri Resort & Spa, Odisha: Local Port 18001 -> 128.185.59.82:8080
+15:03:38 | INFO  | IRD_TunnelManager | 15:03:38 | [TAJ Puri Resort & Spa, Odisha] Launching Plink: C:\IRD AUTO\tools\putty\plink.exe -batch -N -ssh -P 22 -l sourik -pw ******** -L 18001:128.185.59.82:8080 111.93.205.187
+15:03:38 | INFO  | IRD_TunnelManager | 15:03:38 | [TAJ Puri Resort & Spa, Odisha] Plink process started (PID: 20832)
+15:03:39 | INFO  | IRD_TunnelManager | 15:03:39 | [TAJ Puri Resort & Spa, Odisha] ✓ Reverse tunnel verified! TCP socket connected on 127.0.0.1:18001
+15:03:39 | INFO  | DTH_WorkflowRunner | [DTH] Initializing Playwright browser (type: chromium, headless: False)...
+15:03:39 | INFO  | DTH_BrowserObserver | [OBSERVER] Initialized for run #40 at C:\IRD AUTO\logs\dth\run_40
+15:03:46 | INFO  | DTH_PortalController | [DTH] Browser initialized successfully.
+15:03:46 | INFO  | DTH_PortalController | [DTH] Navigating to entry URL: http://localhost:18001/zmp/main-menu.do...
+15:03:46 | INFO  | DTH_PortalController | [DTH] Navigating to URL: http://localhost:18001/zmp/main-menu.do
+15:03:47 | INFO  | DTH_BrowserObserver | [SNAPSHOT 001] PORTAL_ENTRY_OPENED | State: AUTHENTICATION_REQUIRED | Verify: PASS | URL: http://localhost:18001/zmp/login.do?logout=
+15:03:47 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #40] Step 001: portal_entry_opened | State: AUTHENTICATION_REQUIRED | Passed: True
+15:03:47 | INFO  | DTH_PortalController | [DTH] Step 1 Observed: state=AUTHENTICATION_REQUIRED at http://localhost:18001/zmp/login.do?logout=
+15:03:47 | INFO  | DTH_PortalController | [DTH] Entering IDP credentials for user 'admin'...
+15:03:48 | INFO  | DTH_BrowserObserver | [SNAPSHOT 002] CREDENTIALS_ENTERED | State: AUTHENTICATION_REQUIRED | Verify: PASS | URL: http://localhost:18001/zmp/login.do?logout=
+15:03:48 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #40] Step 002: credentials_entered | State: AUTHENTICATION_REQUIRED | Passed: True
+15:03:48 | INFO  | DTH_PortalController | [DTH] Submitting IDP login form...
+15:03:51 | INFO  | DTH_BrowserObserver | [SNAPSHOT 003] LOGIN_SUBMITTED | State: AUTHENTICATED | Verify: PASS | URL: http://localhost:18001/zmp/main-menu.do
+15:03:51 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #40] Step 003: login_submitted | State: AUTHENTICATED | Passed: True
+15:03:51 | INFO  | DTH_PortalController | [DTH] Post-login observed state=AUTHENTICATED at http://localhost:18001/zmp/main-menu.do
+15:03:51 | INFO  | DTH_PortalController | [DTH] Navigating directly to http://localhost:18001/zmp/manage-stb-channels.do...
+15:03:51 | INFO  | DTH_PortalController | [DTH] Navigating to URL: http://localhost:18001/zmp/manage-stb-channels.do
+15:04:10 | INFO  | DTH_BrowserObserver | [SNAPSHOT 004] CHANNELS_PAGE_OPENED | State: CHANNEL_PAGE_OPENED | Verify: PASS | URL: http://localhost:18001/zmp/manage-stb-channels.do
+15:04:10 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #40] Step 004: channels_page_opened | State: CHANNEL_PAGE_OPENED | Passed: True
+15:25:20 | INFO  | DTH_BrowserObserver | [SNAPSHOT 005] CHANNELS_TABLE_SCRAPED | State: CHANNEL_PAGE_OPENED | Verify: PASS | URL: http://localhost:18001/zmp/manage-stb-channels.do
+15:25:20 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #40] Step 005: channels_table_scraped | State: CHANNEL_PAGE_OPENED | Passed: True
+15:25:20 | INFO  | DTH_PortalController | [DTH] Starting creation for Channel 101: 'DD National'...
+15:25:21 | INFO  | DTH_PortalController | [DTH] Uploading channel logo: C:\IRD AUTO\data\channel_logo\dd_national.png
+15:32:46 | WARNING | DTH_WorkflowRunner | [DTH] Cancellation requested by user. Terminating execution...
+15:32:46 | WARNING | DTH_PortalController | [DTH] Emergency stop triggered. Aborting browser session...
+15:32:47 | INFO  | DTH_PortalController | [DTH] Browser closed.
+15:32:48 | ERROR | DTH_PortalController | [DTH] Channel creation exception for 101: Browser page not available
+15:32:48 | INFO  | DTH_Audit | [AUDIT] CHANNEL_PROCESSED | Run #40 | Ch: 101 | {"status": "FAILED", "duration": 447.8, "reason": "Exception during submission: Browser page not available"}
+15:32:48 | INFO  | DTH_ReportGenerator | [DTH] Reports exported successfully: C:\IRD AUTO\reports\dth\2026-10-15_dth_run_40.csv and C:\IRD AUTO\reports\dth\2026-10-15_dth_run_40.json
+15:32:48 | INFO  | DTH_Audit | [AUDIT] RUN_COMPLETED | Run #40 | Ch: N/A | {"status": "STOPPED", "total": 1, "successful": 0, "failed": 1, "skipped": 0}
+15:32:48 | INFO  | DTH_PortalController | [DTH] Browser closed.
+15:47:40 | INFO  | IRD_Seed | Database already contains 18 sites. Checking port assignments...
+15:47:41 | INFO  | IRD_Main | IRD Sync Automation server started at http://127.0.0.1:18492
+15:47:41 | INFO  | IRD_Main | [PYWEBVIEW] Creating desktop window
+15:47:41 | INFO  | IRD_Main | [PYWEBVIEW] UI HTML path: C:\IRD AUTO\app\ui\index.html
+15:47:41 | INFO  | IRD_Main | [PYWEBVIEW] UI HTML exists: True
+15:47:41 | INFO  | IRD_Main | [PYWEBVIEW] UI JavaScript path: C:\IRD AUTO\app\ui\app.js
+15:47:41 | INFO  | IRD_Main | [PYWEBVIEW] UI JavaScript exists: True
+15:47:41 | INFO  | IRD_Main | Opening PyWebView desktop window...
+15:48:32 | INFO  | DTH_Audit | [AUDIT] RUN_STARTED | Run #44 | Ch: N/A | {"site": "TAJ Puri Resort & Spa, Odisha", "filename": "dth_channel_template - dth_channel_template.csv.csv", "mode": "LIVE", "image_dir": "C:\\IRD AUTO\\data\\channel_logo"}
+15:48:32 | INFO  | IRD_TunnelManager | 15:48:32 | [TAJ Puri Resort & Spa, Odisha] Starting tunnel verification for TAJ Puri Resort & Spa, Odisha: Local Port 18001 -> 128.185.59.82:8080
+15:48:33 | INFO  | IRD_TunnelManager | 15:48:33 | [TAJ Puri Resort & Spa, Odisha] Launching Plink: C:\IRD AUTO\tools\putty\plink.exe -batch -N -ssh -P 22 -l sourik -pw ******** -L 18001:128.185.59.82:8080 111.93.205.187
+15:48:33 | INFO  | IRD_TunnelManager | 15:48:33 | [TAJ Puri Resort & Spa, Odisha] Plink process started (PID: 19028)
+15:48:34 | INFO  | IRD_TunnelManager | 15:48:34 | [TAJ Puri Resort & Spa, Odisha] ✓ Reverse tunnel verified! TCP socket connected on 127.0.0.1:18001
+15:48:34 | INFO  | DTH_WorkflowRunner | [DTH] Initializing Playwright browser (type: chromium, headless: False)...
+15:48:34 | INFO  | DTH_BrowserObserver | [OBSERVER] Initialized for run #44 at C:\IRD AUTO\logs\dth\run_44
+15:48:37 | INFO  | DTH_PortalController | [DTH] Browser initialized successfully.
+15:48:37 | INFO  | DTH_PortalController | [DTH] Navigating to entry URL: http://localhost:18001/zmp/main-menu.do...
+15:48:37 | INFO  | DTH_PortalController | [DTH] Navigating to URL: http://localhost:18001/zmp/main-menu.do
+15:48:38 | INFO  | DTH_BrowserObserver | [SNAPSHOT 001] PORTAL_ENTRY_OPENED | State: AUTHENTICATION_REQUIRED | Verify: PASS | URL: http://localhost:18001/zmp/login.do?logout=
+15:48:38 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #44] Step 001: portal_entry_opened | State: AUTHENTICATION_REQUIRED | Passed: True
+15:48:38 | INFO  | DTH_PortalController | [DTH] Step 1 Observed: state=AUTHENTICATION_REQUIRED at http://localhost:18001/zmp/login.do?logout=
+15:48:38 | INFO  | DTH_PortalController | [DTH] Entering IDP credentials for user 'admin'...
+15:48:38 | INFO  | DTH_BrowserObserver | [SNAPSHOT 002] CREDENTIALS_ENTERED | State: AUTHENTICATION_REQUIRED | Verify: PASS | URL: http://localhost:18001/zmp/login.do?logout=
+15:48:38 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #44] Step 002: credentials_entered | State: AUTHENTICATION_REQUIRED | Passed: True
+15:48:38 | INFO  | DTH_PortalController | [DTH] Submitting IDP login form...
+15:48:41 | INFO  | DTH_BrowserObserver | [SNAPSHOT 003] LOGIN_SUBMITTED | State: AUTHENTICATED | Verify: PASS | URL: http://localhost:18001/zmp/main-menu.do
+15:48:41 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #44] Step 003: login_submitted | State: AUTHENTICATED | Passed: True
+15:48:41 | INFO  | DTH_PortalController | [DTH] Post-login observed state=AUTHENTICATED at http://localhost:18001/zmp/main-menu.do
+15:48:41 | INFO  | DTH_PortalController | [DTH] Navigating directly to http://localhost:18001/zmp/manage-stb-channels.do...
+15:48:41 | INFO  | DTH_PortalController | [DTH] Navigating to URL: http://localhost:18001/zmp/manage-stb-channels.do
+15:49:02 | INFO  | DTH_BrowserObserver | [SNAPSHOT 004] CHANNELS_PAGE_OPENED | State: CHANNEL_PAGE_OPENED | Verify: PASS | URL: http://localhost:18001/zmp/manage-stb-channels.do
+15:49:02 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #44] Step 004: channels_page_opened | State: CHANNEL_PAGE_OPENED | Passed: True
+15:49:16 | INFO  | DTH_BrowserObserver | [SNAPSHOT 005] CHANNELS_TABLE_SCRAPED | State: CHANNEL_PAGE_OPENED | Verify: PASS | URL: http://localhost:18001/zmp/manage-stb-channels.do
+15:49:16 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #44] Step 005: channels_table_scraped | State: CHANNEL_PAGE_OPENED | Passed: True
+15:49:16 | INFO  | DTH_PortalController | [DTH] Starting creation for Channel 101: 'DD National'...
+15:49:43 | INFO  | DTH_BrowserObserver | [SNAPSHOT 006] ADD_CHANNEL_FORM_OPENED | State: CHANNEL_FORM_VERIFIED | Verify: PASS | URL: http://localhost:18001/zmp/manage-stb-channels.do#
+15:49:43 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #44] Step 006: add_channel_form_opened | State: CHANNEL_FORM_VERIFIED | Passed: True
+15:49:43 | INFO  | DTH_PortalController | [DTH] Uploading channel logo: C:\IRD AUTO\data\channel_logo\dd_national.png
+16:14:46 | INFO  | IRD_Seed | Database already contains 18 sites. Checking port assignments...
+16:14:48 | INFO  | IRD_Main | IRD Sync Automation server started at http://127.0.0.1:18492
+16:14:49 | INFO  | IRD_Main | [PYWEBVIEW] Creating desktop window
+16:14:49 | INFO  | IRD_Main | [PYWEBVIEW] UI HTML path: C:\IRD AUTO\app\ui\index.html
+16:14:49 | INFO  | IRD_Main | [PYWEBVIEW] UI HTML exists: True
+16:14:49 | INFO  | IRD_Main | [PYWEBVIEW] UI JavaScript path: C:\IRD AUTO\app\ui\app.js
+16:14:49 | INFO  | IRD_Main | [PYWEBVIEW] UI JavaScript exists: True
+16:14:49 | INFO  | IRD_Main | Opening PyWebView desktop window...
+16:16:17 | INFO  | DTH_Audit | [AUDIT] RUN_STARTED | Run #45 | Ch: N/A | {"site": "TAJ Puri Resort & Spa, Odisha", "filename": "dth_channel_template - dth_channel_template.csv.csv", "mode": "LIVE", "image_dir": "C:\\IRD AUTO\\data\\channel_logo"}
+16:16:17 | INFO  | IRD_TunnelManager | 16:16:17 | [TAJ Puri Resort & Spa, Odisha] Starting tunnel verification for TAJ Puri Resort & Spa, Odisha: Local Port 18001 -> 128.185.59.82:8080
+16:16:18 | INFO  | IRD_TunnelManager | 16:16:18 | [TAJ Puri Resort & Spa, Odisha] Launching Plink: C:\IRD AUTO\tools\putty\plink.exe -batch -N -ssh -P 22 -l sourik -pw ******** -L 18001:128.185.59.82:8080 111.93.205.187
+16:16:18 | INFO  | IRD_TunnelManager | 16:16:18 | [TAJ Puri Resort & Spa, Odisha] Plink process started (PID: 5364)
+16:16:19 | INFO  | IRD_TunnelManager | 16:16:19 | [TAJ Puri Resort & Spa, Odisha] ✓ Reverse tunnel verified! TCP socket connected on 127.0.0.1:18001
+16:16:19 | INFO  | DTH_WorkflowRunner | [DTH] Initializing Playwright browser (type: chromium, headless: False)...
+16:16:19 | INFO  | DTH_BrowserObserver | [OBSERVER] Initialized for run #45 at C:\IRD AUTO\logs\dth\run_45
+16:16:23 | INFO  | DTH_PortalController | [DTH] Browser initialized successfully.
+16:16:23 | INFO  | DTH_PortalController | [DTH] Navigating to entry URL: http://localhost:18001/zmp/main-menu.do...
+16:16:23 | INFO  | DTH_PortalController | [DTH] Navigating to URL: http://localhost:18001/zmp/main-menu.do
+16:16:24 | INFO  | DTH_BrowserObserver | [SNAPSHOT 001] PORTAL_ENTRY_OPENED | State: AUTHENTICATION_REQUIRED | Verify: PASS | URL: http://localhost:18001/zmp/login.do?logout=
+16:16:24 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #45] Step 001: portal_entry_opened | State: AUTHENTICATION_REQUIRED | Passed: True
+16:16:24 | INFO  | DTH_PortalController | [DTH] Step 1 Observed: state=AUTHENTICATION_REQUIRED at http://localhost:18001/zmp/login.do?logout=
+16:16:24 | INFO  | DTH_PortalController | [DTH] Entering IDP credentials for user 'admin'...
+16:16:24 | INFO  | DTH_BrowserObserver | [SNAPSHOT 002] CREDENTIALS_ENTERED | State: AUTHENTICATION_REQUIRED | Verify: PASS | URL: http://localhost:18001/zmp/login.do?logout=
+16:16:24 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #45] Step 002: credentials_entered | State: AUTHENTICATION_REQUIRED | Passed: True
+16:16:24 | INFO  | DTH_PortalController | [DTH] Submitting IDP login form...
+16:16:27 | INFO  | DTH_BrowserObserver | [SNAPSHOT 003] LOGIN_SUBMITTED | State: AUTHENTICATED | Verify: PASS | URL: http://localhost:18001/zmp/main-menu.do
+16:16:27 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #45] Step 003: login_submitted | State: AUTHENTICATED | Passed: True
+16:16:27 | INFO  | DTH_PortalController | [DTH] Post-login observed state=AUTHENTICATED at http://localhost:18001/zmp/main-menu.do
+16:16:27 | INFO  | DTH_PortalController | [DTH] Navigating directly to http://localhost:18001/zmp/manage-stb-channels.do...
+16:16:27 | INFO  | DTH_PortalController | [DTH] Navigating to URL: http://localhost:18001/zmp/manage-stb-channels.do
+16:16:44 | INFO  | DTH_BrowserObserver | [SNAPSHOT 004] CHANNELS_PAGE_OPENED | State: CHANNEL_PAGE_OPENED | Verify: PASS | URL: http://localhost:18001/zmp/manage-stb-channels.do
+16:16:44 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #45] Step 004: channels_page_opened | State: CHANNEL_PAGE_OPENED | Passed: True
+16:16:55 | INFO  | DTH_BrowserObserver | [SNAPSHOT 005] CHANNELS_TABLE_SCRAPED | State: CHANNEL_PAGE_OPENED | Verify: PASS | URL: http://localhost:18001/zmp/manage-stb-channels.do
+16:16:55 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #45] Step 005: channels_table_scraped | State: CHANNEL_PAGE_OPENED | Passed: True
+16:16:55 | INFO  | DTH_PortalController | [DTH] Starting creation for Channel 101: 'DD National'...
+16:17:20 | INFO  | DTH_BrowserObserver | [SNAPSHOT 006] ADD_CHANNEL_FORM_OPENED | State: CHANNEL_FORM_VERIFIED | Verify: PASS | URL: http://localhost:18001/zmp/manage-stb-channels.do#
+16:17:20 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #45] Step 006: add_channel_form_opened | State: CHANNEL_FORM_VERIFIED | Passed: True
+16:17:21 | INFO  | DTH_PortalController | [DTH] Uploading channel logo: C:\IRD AUTO\data\channel_logo\dd_national.png
+16:17:51 | INFO  | DTH_BrowserObserver | [SNAPSHOT 007] CH_101_FORM_FILLED | State: CHANNEL_FORM_VERIFIED | Verify: PASS | URL: http://localhost:18001/zmp/manage-stb-channels.do#
+16:17:51 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #45] Step 007: ch_101_form_filled | State: CHANNEL_FORM_VERIFIED | Passed: True
+16:17:51 | INFO  | DTH_PortalController | [DTH] Submitting channel form for Channel 101...
+16:18:11 | INFO  | DTH_BrowserObserver | [SNAPSHOT 008] CH_101_SUBMITTED | State: CHANNEL_PAGE_OPENED | Verify: PASS | URL: http://localhost:18001/zmp/manage-stb-channels.do
+16:18:11 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #45] Step 008: ch_101_submitted | State: CHANNEL_PAGE_OPENED | Passed: True
+16:18:28 | INFO  | DTH_BrowserObserver | [SNAPSHOT 009] CHANNELS_TABLE_SCRAPED | State: CHANNEL_PAGE_OPENED | Verify: PASS | URL: http://localhost:18001/zmp/manage-stb-channels.do
+16:18:28 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #45] Step 009: channels_table_scraped | State: CHANNEL_PAGE_OPENED | Passed: True
+16:18:28 | INFO  | DTH_PortalController | [DTH] Reconciliation confirmed channel 101 was created successfully.
+16:18:28 | INFO  | DTH_Audit | [AUDIT] CHANNEL_PROCESSED | Run #45 | Ch: 101 | {"status": "SUCCESS", "duration": 92.45, "reason": "Verified present in portal channel table after submission"}
+16:18:29 | INFO  | DTH_ReportGenerator | [DTH] Reports exported successfully: C:\IRD AUTO\reports\dth\2026-10-15_dth_run_45.csv and C:\IRD AUTO\reports\dth\2026-10-15_dth_run_45.json
+16:18:29 | INFO  | DTH_Audit | [AUDIT] RUN_COMPLETED | Run #45 | Ch: N/A | {"status": "COMPLETED", "total": 1, "successful": 1, "failed": 0, "skipped": 0}
+16:18:30 | INFO  | DTH_PortalController | [DTH] Browser closed.
+16:32:34 | INFO  | IRD_Seed | Database already contains 18 sites. Checking port assignments...
+16:32:39 | INFO  | DTH_PortalController | [DTH] Starting creation for Channel 101: 'News 24'...
+16:32:39 | ERROR | DTH_PortalController | [DTH] Channel creation exception for 101: object MagicMock can't be used in 'await' expression
+16:32:39 | INFO  | DTH_PortalController | [DTH] Browser closed.
+16:32:39 | INFO  | DTH_PortalController | [DTH] Starting creation for Channel 101: 'News 24'...
+16:32:39 | ERROR | DTH_PortalController | [DTH] Channel creation exception for 101: object MagicMock can't be used in 'await' expression
+16:32:39 | INFO  | DTH_PortalController | [DTH] Browser closed.
+16:32:40 | INFO  | DTH_PortalController | [DTH] Starting creation for Channel 101: 'News 24'...
+16:32:40 | ERROR | DTH_PortalController | [DTH] Channel creation exception for 101: object MagicMock can't be used in 'await' expression
+16:32:40 | INFO  | DTH_PortalController | [DTH] Browser closed.
+16:32:40 | INFO  | DTH_PortalController | [DTH] Starting creation for Channel 101: 'News 24'...
+16:32:40 | ERROR | DTH_PortalController | [DTH] Channel creation exception for 101: object MagicMock can't be used in 'await' expression
+16:32:40 | INFO  | DTH_PortalController | [DTH] Browser closed.
+16:32:40 | WARNING | DTH_PortalController | [DTH] Emergency stop triggered. Aborting browser session...
+16:32:40 | INFO  | DTH_PortalController | [DTH] Browser closed.
+16:32:40 | INFO  | DTH_PortalController | [DTH] Browser closed.
+16:32:40 | INFO  | DTH_PortalController | [DTH] Browser closed.
+16:32:41 | WARNING | asyncio | Executing <Task finished name='Task-120' coro=<TestDthWorkflowAndReports.asyncSetUp() done, defined at C:\IRD AUTO\tests\test_dth_workflow_and_reports.py:16> result=None created at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\runners.py:100> took 0.156 seconds
+16:32:41 | WARNING | asyncio | Executing <Task finished name='Task-125' coro=<TestDthWorkflowAndReports.asyncSetUp() done, defined at C:\IRD AUTO\tests\test_dth_workflow_and_reports.py:16> result=None created at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\runners.py:100> took 0.172 seconds
+16:32:41 | INFO  | DTH_Audit | [AUDIT] RUN_STARTED | Run #46 | Ch: N/A | {"site": "WH Bhubaneswar", "filename": "channels.csv", "mode": "DRY_RUN", "image_dir": "C:\\Users\\souri\\AppData\\Local\\Temp\\tmpfj597y7i"}
+16:32:41 | INFO  | IRD_TunnelManager | 16:32:41 | [WH Bhubaneswar] Starting tunnel verification for WH Bhubaneswar: Local Port 18002 -> 103.243.40.46:8082
+16:32:41 | INFO  | IRD_TunnelManager | 16:32:41 | [WH Bhubaneswar] Launching Plink: C:\IRD AUTO\tools\putty\plink.exe -batch -N -ssh -P 22 -l sourik -pw ******** -L 18002:103.243.40.46:8082 111.93.205.187
+16:32:41 | INFO  | IRD_TunnelManager | 16:32:41 | [WH Bhubaneswar] Plink process started (PID: 15196)
+16:32:42 | WARNING | asyncio | Executing <Task pending name='Task-127' coro=<TestDthWorkflowAndReports.test_dry_run_execution() running at C:\IRD AUTO\tests\test_dth_workflow_and_reports.py:61> wait_for=<Future pending cb=[Task.task_wakeup()] created at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py:427> cb=[_run_until_complete_cb() at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py:180] created at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\runners.py:100> took 1.157 seconds
+16:32:43 | INFO  | IRD_TunnelManager | 16:32:43 | [WH Bhubaneswar] ✓ Reverse tunnel verified! TCP socket connected on 127.0.0.1:18002
+16:32:43 | INFO  | DTH_WorkflowRunner | [DTH] Initializing Playwright browser (type: chromium, headless: False)...
+16:32:43 | INFO  | DTH_BrowserObserver | [OBSERVER] Initialized for run #46 at C:\IRD AUTO\logs\dth\run_46
+16:32:43 | INFO  | asyncio | execute program 'C:\\Users\\souri\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages\\playwright\\driver\\node.exe': <_WindowsSubprocessTransport pid=9112 running stdin=<_ProactorWritePipeTransport fd=1812 read=<_OverlappedFuture pending cb=[_ProactorWritePipeTransport._pipe_closed()] created at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\windows_events.py:479>> stdout=<_ProactorReadPipeTransport fd=1516 read=<_OverlappedFuture pending cb=[_ProactorReadPipeTransport._loop_reading()] created at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\windows_events.py:502>>>
+16:32:45 | INFO  | DTH_PortalController | [DTH] Browser initialized successfully.
+16:32:45 | INFO  | DTH_PortalController | [DTH] Navigating to entry URL: http://localhost:18002/zmp/main-menu.do...
+16:32:45 | INFO  | DTH_PortalController | [DTH] Navigating to URL: http://localhost:18002/zmp/main-menu.do
+16:32:50 | INFO  | DTH_BrowserObserver | [SNAPSHOT 001] PORTAL_ENTRY_OPENED | State: AUTHENTICATION_REQUIRED | Verify: PASS | URL: http://localhost:18002/login
+16:32:50 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #46] Step 001: portal_entry_opened | State: AUTHENTICATION_REQUIRED | Passed: True
+16:32:50 | INFO  | DTH_PortalController | [DTH] Step 1 Observed: state=AUTHENTICATION_REQUIRED at http://localhost:18002/login
+16:32:50 | INFO  | DTH_PortalController | [DTH] Entering IDP credentials for user 'admin'...
+16:32:51 | INFO  | DTH_BrowserObserver | [SNAPSHOT 002] CREDENTIALS_ENTERED | State: AUTHENTICATION_REQUIRED | Verify: PASS | URL: http://localhost:18002/login
+16:32:51 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #46] Step 002: credentials_entered | State: AUTHENTICATION_REQUIRED | Passed: True
+16:32:51 | INFO  | DTH_PortalController | [DTH] Submitting IDP login form...
+16:32:53 | INFO  | DTH_BrowserObserver | [SNAPSHOT 003] LOGIN_SUBMITTED | State: FAILED | Verify: PASS | URL: http://localhost:18002/zmp/main-menu.do
+16:32:53 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #46] Step 003: login_submitted | State: FAILED | Passed: True
+16:32:53 | INFO  | DTH_PortalController | [DTH] Post-login observed state=FAILED at http://localhost:18002/zmp/main-menu.do
+16:32:53 | ERROR | DTH_WorkflowRunner | [DTH] Portal IDP authentication failed: Could not verify authenticated session (state: FAILED)
+16:32:53 | INFO  | DTH_PortalController | [DTH] Navigating directly to http://localhost:18002/zmp/manage-stb-channels.do...
+16:32:53 | INFO  | DTH_PortalController | [DTH] Navigating to URL: http://localhost:18002/zmp/manage-stb-channels.do
+16:32:55 | INFO  | DTH_BrowserObserver | [SNAPSHOT 004] CHANNELS_PAGE_OPENED | State: FAILED | Verify: PASS | URL: http://localhost:18002/zmp/manage-stb-channels.do
+16:32:55 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #46] Step 004: channels_page_opened | State: FAILED | Passed: True
+16:32:55 | INFO  | DTH_BrowserObserver | [SNAPSHOT 005] CHANNELS_TABLE_SCRAPED | State: FAILED | Verify: PASS | URL: http://localhost:18002/zmp/manage-stb-channels.do
+16:32:55 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #46] Step 005: channels_table_scraped | State: FAILED | Passed: True
+16:32:55 | INFO  | DTH_ReportGenerator | [DTH] Reports exported successfully: C:\IRD AUTO\reports\dth\2026-10-15_dth_run_46.csv and C:\IRD AUTO\reports\dth\2026-10-15_dth_run_46.json
+16:32:55 | INFO  | DTH_Audit | [AUDIT] RUN_COMPLETED | Run #46 | Ch: N/A | {"status": "COMPLETED", "total": 2, "successful": 2, "failed": 0, "skipped": 0}
+16:32:56 | INFO  | asyncio | <_WindowsSubprocessTransport pid=9112 running stdin=<_ProactorWritePipeTransport closed> stdout=<_ProactorReadPipeTransport closed>> exited with return code 0
+16:32:56 | INFO  | DTH_PortalController | [DTH] Browser closed.
+16:32:56 | WARNING | asyncio | Executing <Task finished name='Task-176' coro=<TestDthWorkflowAndReports.asyncSetUp() done, defined at C:\IRD AUTO\tests\test_dth_workflow_and_reports.py:16> result=None created at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\runners.py:100> took 0.109 seconds
+16:32:56 | INFO  | DTH_ReportGenerator | [DTH] Reports exported successfully: C:\IRD AUTO\reports\dth\2026-10-13_dth_run_999.csv and C:\IRD AUTO\reports\dth\2026-10-13_dth_run_999.json
+16:32:56 | INFO  | DTH_Audit | [AUDIT] RUN_STARTED | Run #47 | Ch: N/A | {"site": "WH Bhubaneswar", "filename": "channels.csv", "mode": "DRY_RUN", "image_dir": "C:\\Users\\souri\\AppData\\Local\\Temp\\tmpk89_vj4v"}
+16:32:56 | INFO  | IRD_TunnelManager | 16:32:56 | [WH Bhubaneswar] Starting tunnel verification for WH Bhubaneswar: Local Port 18002 -> 103.243.40.46:8082
+16:32:56 | INFO  | IRD_TunnelManager | 16:32:56 | [WH Bhubaneswar] Local port 127.0.0.1:18002 is already active and listening.
+16:32:56 | INFO  | DTH_WorkflowRunner | [DTH] Initializing Playwright browser (type: chromium, headless: True)...
+16:32:56 | WARNING | DTH_WorkflowRunner | [DTH] Could not query live portal state: not enough values to unpack (expected 2, got 0). Proceeding with offline validation.
+16:32:56 | INFO  | DTH_ReportGenerator | [DTH] Reports exported successfully: C:\IRD AUTO\reports\dth\2026-10-15_dth_run_47.csv and C:\IRD AUTO\reports\dth\2026-10-15_dth_run_47.json
+16:32:56 | INFO  | DTH_Audit | [AUDIT] RUN_COMPLETED | Run #47 | Ch: N/A | {"status": "COMPLETED", "total": 2, "successful": 2, "failed": 0, "skipped": 0}
+16:32:56 | INFO  | DTH_Audit | [AUDIT] RUN_STARTED | Run #48 | Ch: N/A | {"site": "WH Bhubaneswar", "filename": "channels.csv", "mode": "DRY_RUN", "image_dir": "C:\\Users\\souri\\AppData\\Local\\Temp\\tmpk89_vj4v"}
+16:32:56 | INFO  | IRD_TunnelManager | 16:32:56 | [WH Bhubaneswar] Starting tunnel verification for WH Bhubaneswar: Local Port 18002 -> 103.243.40.46:8082
+16:32:56 | INFO  | IRD_TunnelManager | 16:32:56 | [WH Bhubaneswar] Local port 127.0.0.1:18002 is already active and listening.
+16:32:56 | INFO  | DTH_WorkflowRunner | [DTH] Initializing Playwright browser (type: chromium, headless: False)...
+16:32:56 | WARNING | DTH_WorkflowRunner | [DTH] Could not query live portal state: not enough values to unpack (expected 2, got 0). Proceeding with offline validation.
+16:32:56 | INFO  | DTH_ReportGenerator | [DTH] Reports exported successfully: C:\IRD AUTO\reports\dth\2026-10-15_dth_run_48.csv and C:\IRD AUTO\reports\dth\2026-10-15_dth_run_48.json
+16:32:56 | INFO  | DTH_Audit | [AUDIT] RUN_COMPLETED | Run #48 | Ch: N/A | {"status": "COMPLETED", "total": 2, "successful": 2, "failed": 0, "skipped": 0}
+16:32:56 | WARNING | asyncio | Executing <Task finished name='Task-182' coro=<TestDthWorkflowAndReports.test_workflow_runner_honors_headless_setting() done, defined at C:\IRD AUTO\tests\test_dth_workflow_and_reports.py:116> result=None created at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\runners.py:100> took 0.234 seconds
+16:43:41 | INFO  | IRD_Seed | Database already contains 18 sites. Checking port assignments...
+16:43:47 | INFO  | DTH_PortalController | [DTH] Starting creation for Channel 101: 'News 24'...
+16:43:47 | INFO  | DTH_PortalController | [DTH] Categories assigned: ['all', 'News'] (all others unchecked, status: None)
+16:43:47 | INFO  | DTH_PortalController | [DTH] Submitting channel form for Channel 101...
+16:43:47 | WARNING | asyncio | Executing <Task pending name='Task-45' coro=<TestDthPortalMocked.test_create_channel_portal_error() running at C:\IRD AUTO\tests\test_dth_portal_mocked.py:93> wait_for=<Future pending cb=[Task.task_wakeup()] created at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py:427> cb=[_run_until_complete_cb() at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py:180] created at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\runners.py:100> took 0.109 seconds
+16:43:51 | INFO  | DTH_PortalController | [DTH] Browser closed.
+16:43:51 | INFO  | DTH_PortalController | [DTH] Starting creation for Channel 101: 'News 24'...
+16:43:51 | INFO  | DTH_PortalController | [DTH] Categories assigned: ['all', 'News'] (all others unchecked, status: None)
+16:43:51 | INFO  | DTH_PortalController | [DTH] Submitting channel form for Channel 101...
+16:43:55 | INFO  | DTH_PortalController | [DTH] Browser closed.
+16:43:55 | INFO  | DTH_PortalController | [DTH] Starting creation for Channel 101: 'News 24'...
+16:43:55 | INFO  | DTH_PortalController | [DTH] Categories assigned: ['all', 'News'] (all others unchecked, status: None)
+16:43:55 | INFO  | DTH_PortalController | [DTH] Submitting channel form for Channel 101...
+16:43:55 | WARNING | DTH_PortalController | [DTH] Timeout while saving channel 101. Entering reconciliation...
+16:43:55 | INFO  | DTH_PortalController | [DTH] Reconciliation confirmed channel 101 was created successfully.
+16:43:55 | INFO  | DTH_PortalController | [DTH] Browser closed.
+16:43:55 | INFO  | DTH_PortalController | [DTH] Starting creation for Channel 101: 'News 24'...
+16:43:55 | INFO  | DTH_PortalController | [DTH] Categories assigned: ['all', 'News'] (all others unchecked, status: None)
+16:43:55 | INFO  | DTH_PortalController | [DTH] Submitting channel form for Channel 101...
+16:43:55 | WARNING | DTH_PortalController | [DTH] Timeout while saving channel 101. Entering reconciliation...
+16:43:55 | WARNING | DTH_PortalController | [DTH] Reconciliation could not confirm save for channel 101.
+16:43:55 | INFO  | DTH_PortalController | [DTH] Browser closed.
+16:43:55 | WARNING | DTH_PortalController | [DTH] Emergency stop triggered. Aborting browser session...
+16:43:55 | INFO  | DTH_PortalController | [DTH] Browser closed.
+16:43:55 | INFO  | DTH_PortalController | [DTH] Browser closed.
+16:43:55 | INFO  | DTH_PortalController | [DTH] Browser closed.
+16:43:56 | INFO  | DTH_Audit | [AUDIT] RUN_STARTED | Run #52 | Ch: N/A | {"site": "WH Bhubaneswar", "filename": "channels.csv", "mode": "DRY_RUN", "image_dir": "C:\\Users\\souri\\AppData\\Local\\Temp\\tmpfu4e0szm"}
+16:43:56 | INFO  | IRD_TunnelManager | 16:43:56 | [WH Bhubaneswar] Starting tunnel verification for WH Bhubaneswar: Local Port 18002 -> 103.243.40.46:8082
+16:43:56 | INFO  | IRD_TunnelManager | 16:43:56 | [WH Bhubaneswar] Launching Plink: C:\IRD AUTO\tools\putty\plink.exe -batch -N -ssh -P 22 -l sourik -pw ******** -L 18002:103.243.40.46:8082 111.93.205.187
+16:43:56 | INFO  | IRD_TunnelManager | 16:43:56 | [WH Bhubaneswar] Plink process started (PID: 7748)
+16:43:57 | WARNING | asyncio | Executing <Task pending name='Task-134' coro=<TestDthWorkflowAndReports.test_dry_run_execution() running at C:\IRD AUTO\tests\test_dth_workflow_and_reports.py:61> wait_for=<Future pending cb=[Task.task_wakeup()] created at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py:427> cb=[_run_until_complete_cb() at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py:180] created at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\runners.py:100> took 1.094 seconds
+16:43:57 | INFO  | IRD_TunnelManager | 16:43:57 | [WH Bhubaneswar] ✓ Reverse tunnel verified! TCP socket connected on 127.0.0.1:18002
+16:43:57 | INFO  | DTH_WorkflowRunner | [DTH] Initializing Playwright browser (type: chromium, headless: False)...
+16:43:57 | INFO  | DTH_BrowserObserver | [OBSERVER] Initialized for run #52 at C:\IRD AUTO\logs\dth\run_52
+16:43:57 | INFO  | asyncio | execute program 'C:\\Users\\souri\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages\\playwright\\driver\\node.exe': <_WindowsSubprocessTransport pid=13124 running stdin=<_ProactorWritePipeTransport fd=1668 read=<_OverlappedFuture pending cb=[_ProactorWritePipeTransport._pipe_closed()] created at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\windows_events.py:479>> stdout=<_ProactorReadPipeTransport fd=1676 read=<_OverlappedFuture pending cb=[_ProactorReadPipeTransport._loop_reading()] created at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\windows_events.py:502>>>
+16:43:59 | INFO  | DTH_PortalController | [DTH] Browser initialized successfully.
+16:43:59 | INFO  | DTH_PortalController | [DTH] Navigating to entry URL: http://localhost:18002/zmp/main-menu.do...
+16:43:59 | INFO  | DTH_PortalController | [DTH] Navigating to URL: http://localhost:18002/zmp/main-menu.do
+16:44:04 | INFO  | DTH_BrowserObserver | [SNAPSHOT 001] PORTAL_ENTRY_OPENED | State: AUTHENTICATION_REQUIRED | Verify: PASS | URL: http://localhost:18002/login
+16:44:04 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #52] Step 001: portal_entry_opened | State: AUTHENTICATION_REQUIRED | Passed: True
+16:44:04 | INFO  | DTH_PortalController | [DTH] Step 1 Observed: state=AUTHENTICATION_REQUIRED at http://localhost:18002/login
+16:44:04 | INFO  | DTH_PortalController | [DTH] Entering IDP credentials for user 'admin'...
+16:44:05 | INFO  | DTH_BrowserObserver | [SNAPSHOT 002] CREDENTIALS_ENTERED | State: AUTHENTICATION_REQUIRED | Verify: PASS | URL: http://localhost:18002/login
+16:44:05 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #52] Step 002: credentials_entered | State: AUTHENTICATION_REQUIRED | Passed: True
+16:44:05 | INFO  | DTH_PortalController | [DTH] Submitting IDP login form...
+16:44:07 | INFO  | DTH_BrowserObserver | [SNAPSHOT 003] LOGIN_SUBMITTED | State: FAILED | Verify: PASS | URL: http://localhost:18002/zmp/main-menu.do
+16:44:07 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #52] Step 003: login_submitted | State: FAILED | Passed: True
+16:44:07 | INFO  | DTH_PortalController | [DTH] Post-login observed state=FAILED at http://localhost:18002/zmp/main-menu.do
+16:44:07 | ERROR | DTH_WorkflowRunner | [DTH] Portal IDP authentication failed: Could not verify authenticated session (state: FAILED)
+16:44:07 | INFO  | DTH_PortalController | [DTH] Navigating directly to http://localhost:18002/zmp/manage-stb-channels.do...
+16:44:07 | INFO  | DTH_PortalController | [DTH] Navigating to URL: http://localhost:18002/zmp/manage-stb-channels.do
+16:44:08 | INFO  | DTH_BrowserObserver | [SNAPSHOT 004] CHANNELS_PAGE_OPENED | State: FAILED | Verify: PASS | URL: http://localhost:18002/zmp/manage-stb-channels.do
+16:44:08 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #52] Step 004: channels_page_opened | State: FAILED | Passed: True
+16:44:08 | INFO  | DTH_BrowserObserver | [SNAPSHOT 005] CHANNELS_TABLE_SCRAPED | State: FAILED | Verify: PASS | URL: http://localhost:18002/zmp/manage-stb-channels.do
+16:44:08 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #52] Step 005: channels_table_scraped | State: FAILED | Passed: True
+16:44:08 | INFO  | DTH_ReportGenerator | [DTH] Reports exported successfully: C:\IRD AUTO\reports\dth\2026-10-15_dth_run_52.csv and C:\IRD AUTO\reports\dth\2026-10-15_dth_run_52.json
+16:44:08 | INFO  | DTH_Audit | [AUDIT] RUN_COMPLETED | Run #52 | Ch: N/A | {"status": "COMPLETED", "total": 2, "successful": 2, "failed": 0, "skipped": 0}
+16:44:09 | INFO  | asyncio | <_WindowsSubprocessTransport pid=13124 running stdin=<_ProactorWritePipeTransport closed> stdout=<_ProactorReadPipeTransport closed>> exited with return code 0
+16:44:09 | INFO  | DTH_PortalController | [DTH] Browser closed.
+16:44:09 | INFO  | DTH_ReportGenerator | [DTH] Reports exported successfully: C:\IRD AUTO\reports\dth\2026-10-13_dth_run_999.csv and C:\IRD AUTO\reports\dth\2026-10-13_dth_run_999.json
+16:44:09 | INFO  | DTH_Audit | [AUDIT] RUN_STARTED | Run #53 | Ch: N/A | {"site": "WH Bhubaneswar", "filename": "channels.csv", "mode": "DRY_RUN", "image_dir": "C:\\Users\\souri\\AppData\\Local\\Temp\\tmpqih438w4"}
+16:44:09 | INFO  | IRD_TunnelManager | 16:44:09 | [WH Bhubaneswar] Starting tunnel verification for WH Bhubaneswar: Local Port 18002 -> 103.243.40.46:8082
+16:44:09 | INFO  | IRD_TunnelManager | 16:44:09 | [WH Bhubaneswar] Local port 127.0.0.1:18002 is already active and listening.
+16:44:09 | INFO  | DTH_WorkflowRunner | [DTH] Initializing Playwright browser (type: chromium, headless: True)...
+16:44:09 | WARNING | DTH_WorkflowRunner | [DTH] Could not query live portal state: not enough values to unpack (expected 2, got 0). Proceeding with offline validation.
+16:44:09 | INFO  | DTH_ReportGenerator | [DTH] Reports exported successfully: C:\IRD AUTO\reports\dth\2026-10-15_dth_run_53.csv and C:\IRD AUTO\reports\dth\2026-10-15_dth_run_53.json
+16:44:09 | INFO  | DTH_Audit | [AUDIT] RUN_COMPLETED | Run #53 | Ch: N/A | {"status": "COMPLETED", "total": 2, "successful": 2, "failed": 0, "skipped": 0}
+16:44:09 | INFO  | DTH_Audit | [AUDIT] RUN_STARTED | Run #54 | Ch: N/A | {"site": "WH Bhubaneswar", "filename": "channels.csv", "mode": "DRY_RUN", "image_dir": "C:\\Users\\souri\\AppData\\Local\\Temp\\tmpqih438w4"}
+16:44:09 | INFO  | IRD_TunnelManager | 16:44:09 | [WH Bhubaneswar] Starting tunnel verification for WH Bhubaneswar: Local Port 18002 -> 103.243.40.46:8082
+16:44:09 | INFO  | IRD_TunnelManager | 16:44:09 | [WH Bhubaneswar] Local port 127.0.0.1:18002 is already active and listening.
+16:44:09 | INFO  | DTH_WorkflowRunner | [DTH] Initializing Playwright browser (type: chromium, headless: False)...
+16:44:09 | WARNING | DTH_WorkflowRunner | [DTH] Could not query live portal state: not enough values to unpack (expected 2, got 0). Proceeding with offline validation.
+16:44:09 | INFO  | DTH_ReportGenerator | [DTH] Reports exported successfully: C:\IRD AUTO\reports\dth\2026-10-15_dth_run_54.csv and C:\IRD AUTO\reports\dth\2026-10-15_dth_run_54.json
+16:44:09 | INFO  | DTH_Audit | [AUDIT] RUN_COMPLETED | Run #54 | Ch: N/A | {"status": "COMPLETED", "total": 2, "successful": 2, "failed": 0, "skipped": 0}
+16:44:09 | WARNING | asyncio | Executing <Task finished name='Task-188' coro=<TestDthWorkflowAndReports.test_workflow_runner_honors_headless_setting() done, defined at C:\IRD AUTO\tests\test_dth_workflow_and_reports.py:116> result=None created at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\runners.py:100> took 0.172 seconds
+16:45:24 | INFO  | IRD_Seed | Database already contains 18 sites. Checking port assignments...
+16:45:29 | INFO  | DTH_PortalController | [DTH] Categories assigned: ['all', 'News'] (all others unchecked, status: {'allChecked': True, 'otherChecked': True, 'targetOther': 'news'})
+16:45:29 | INFO  | DTH_PortalController | [DTH] Browser closed.
+16:45:29 | INFO  | DTH_PortalController | [DTH] Starting creation for Channel 101: 'News 24'...
+16:45:29 | INFO  | DTH_PortalController | [DTH] Categories assigned: ['all', 'News'] (all others unchecked, status: None)
+16:45:29 | INFO  | DTH_PortalController | [DTH] Submitting channel form for Channel 101...
+16:45:33 | INFO  | DTH_PortalController | [DTH] Browser closed.
+16:45:33 | INFO  | DTH_PortalController | [DTH] Starting creation for Channel 101: 'News 24'...
+16:45:33 | INFO  | DTH_PortalController | [DTH] Categories assigned: ['all', 'News'] (all others unchecked, status: None)
+16:45:33 | INFO  | DTH_PortalController | [DTH] Submitting channel form for Channel 101...
+16:45:37 | INFO  | DTH_PortalController | [DTH] Browser closed.
+16:45:37 | INFO  | DTH_PortalController | [DTH] Starting creation for Channel 101: 'News 24'...
+16:45:37 | INFO  | DTH_PortalController | [DTH] Categories assigned: ['all', 'News'] (all others unchecked, status: None)
+16:45:37 | INFO  | DTH_PortalController | [DTH] Submitting channel form for Channel 101...
+16:45:37 | WARNING | DTH_PortalController | [DTH] Timeout while saving channel 101. Entering reconciliation...
+16:45:37 | INFO  | DTH_PortalController | [DTH] Reconciliation confirmed channel 101 was created successfully.
+16:45:37 | INFO  | DTH_PortalController | [DTH] Browser closed.
+16:45:37 | INFO  | DTH_PortalController | [DTH] Starting creation for Channel 101: 'News 24'...
+16:45:37 | INFO  | DTH_PortalController | [DTH] Categories assigned: ['all', 'News'] (all others unchecked, status: None)
+16:45:38 | INFO  | DTH_PortalController | [DTH] Submitting channel form for Channel 101...
+16:45:38 | WARNING | DTH_PortalController | [DTH] Timeout while saving channel 101. Entering reconciliation...
+16:45:38 | WARNING | DTH_PortalController | [DTH] Reconciliation could not confirm save for channel 101.
+16:45:38 | INFO  | DTH_PortalController | [DTH] Browser closed.
+16:45:38 | WARNING | DTH_PortalController | [DTH] Emergency stop triggered. Aborting browser session...
+16:45:38 | INFO  | DTH_PortalController | [DTH] Browser closed.
+16:45:38 | INFO  | DTH_PortalController | [DTH] Browser closed.
+16:45:38 | INFO  | DTH_PortalController | [DTH] Browser closed.
+16:45:38 | INFO  | DTH_Audit | [AUDIT] RUN_STARTED | Run #55 | Ch: N/A | {"site": "WH Bhubaneswar", "filename": "channels.csv", "mode": "DRY_RUN", "image_dir": "C:\\Users\\souri\\AppData\\Local\\Temp\\tmpl7dqrety"}
+16:45:38 | INFO  | IRD_TunnelManager | 16:45:38 | [WH Bhubaneswar] Starting tunnel verification for WH Bhubaneswar: Local Port 18002 -> 103.243.40.46:8082
+16:45:39 | INFO  | IRD_TunnelManager | 16:45:39 | [WH Bhubaneswar] Launching Plink: C:\IRD AUTO\tools\putty\plink.exe -batch -N -ssh -P 22 -l sourik -pw ******** -L 18002:103.243.40.46:8082 111.93.205.187
+16:45:39 | INFO  | IRD_TunnelManager | 16:45:39 | [WH Bhubaneswar] Plink process started (PID: 15212)
+16:45:40 | WARNING | asyncio | Executing <Task pending name='Task-140' coro=<TestDthWorkflowAndReports.test_dry_run_execution() running at C:\IRD AUTO\tests\test_dth_workflow_and_reports.py:61> wait_for=<Future pending cb=[Task.task_wakeup()] created at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py:427> cb=[_run_until_complete_cb() at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py:180] created at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\runners.py:100> took 1.094 seconds
+16:45:40 | INFO  | IRD_TunnelManager | 16:45:40 | [WH Bhubaneswar] ✓ Reverse tunnel verified! TCP socket connected on 127.0.0.1:18002
+16:45:40 | INFO  | DTH_WorkflowRunner | [DTH] Initializing Playwright browser (type: chromium, headless: False)...
+16:45:40 | INFO  | DTH_BrowserObserver | [OBSERVER] Initialized for run #55 at C:\IRD AUTO\logs\dth\run_55
+16:45:40 | INFO  | asyncio | execute program 'C:\\Users\\souri\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages\\playwright\\driver\\node.exe': <_WindowsSubprocessTransport pid=16280 running stdin=<_ProactorWritePipeTransport fd=1440 read=<_OverlappedFuture pending cb=[_ProactorWritePipeTransport._pipe_closed()] created at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\windows_events.py:479>> stdout=<_ProactorReadPipeTransport fd=1120 read=<_OverlappedFuture pending cb=[_ProactorReadPipeTransport._loop_reading()] created at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\windows_events.py:502>>>
+16:45:42 | INFO  | DTH_PortalController | [DTH] Browser initialized successfully.
+16:45:42 | INFO  | DTH_PortalController | [DTH] Navigating to entry URL: http://localhost:18002/zmp/main-menu.do...
+16:45:42 | INFO  | DTH_PortalController | [DTH] Navigating to URL: http://localhost:18002/zmp/main-menu.do
+16:45:47 | INFO  | DTH_BrowserObserver | [SNAPSHOT 001] PORTAL_ENTRY_OPENED | State: AUTHENTICATION_REQUIRED | Verify: PASS | URL: http://localhost:18002/login
+16:45:47 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #55] Step 001: portal_entry_opened | State: AUTHENTICATION_REQUIRED | Passed: True
+16:45:47 | INFO  | DTH_PortalController | [DTH] Step 1 Observed: state=AUTHENTICATION_REQUIRED at http://localhost:18002/login
+16:45:47 | INFO  | DTH_PortalController | [DTH] Entering IDP credentials for user 'admin'...
+16:45:47 | INFO  | DTH_BrowserObserver | [SNAPSHOT 002] CREDENTIALS_ENTERED | State: AUTHENTICATION_REQUIRED | Verify: PASS | URL: http://localhost:18002/login
+16:45:47 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #55] Step 002: credentials_entered | State: AUTHENTICATION_REQUIRED | Passed: True
+16:45:47 | INFO  | DTH_PortalController | [DTH] Submitting IDP login form...
+16:45:49 | INFO  | DTH_BrowserObserver | [SNAPSHOT 003] LOGIN_SUBMITTED | State: FAILED | Verify: PASS | URL: http://localhost:18002/zmp/main-menu.do
+16:45:49 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #55] Step 003: login_submitted | State: FAILED | Passed: True
+16:45:49 | INFO  | DTH_PortalController | [DTH] Post-login observed state=FAILED at http://localhost:18002/zmp/main-menu.do
+16:45:49 | ERROR | DTH_WorkflowRunner | [DTH] Portal IDP authentication failed: Could not verify authenticated session (state: FAILED)
+16:45:49 | INFO  | DTH_PortalController | [DTH] Navigating directly to http://localhost:18002/zmp/manage-stb-channels.do...
+16:45:49 | INFO  | DTH_PortalController | [DTH] Navigating to URL: http://localhost:18002/zmp/manage-stb-channels.do
+16:45:51 | INFO  | DTH_BrowserObserver | [SNAPSHOT 004] CHANNELS_PAGE_OPENED | State: FAILED | Verify: PASS | URL: http://localhost:18002/zmp/manage-stb-channels.do
+16:45:51 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #55] Step 004: channels_page_opened | State: FAILED | Passed: True
+16:45:51 | INFO  | DTH_BrowserObserver | [SNAPSHOT 005] CHANNELS_TABLE_SCRAPED | State: FAILED | Verify: PASS | URL: http://localhost:18002/zmp/manage-stb-channels.do
+16:45:51 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #55] Step 005: channels_table_scraped | State: FAILED | Passed: True
+16:45:51 | INFO  | DTH_ReportGenerator | [DTH] Reports exported successfully: C:\IRD AUTO\reports\dth\2026-10-15_dth_run_55.csv and C:\IRD AUTO\reports\dth\2026-10-15_dth_run_55.json
+16:45:51 | INFO  | DTH_Audit | [AUDIT] RUN_COMPLETED | Run #55 | Ch: N/A | {"status": "COMPLETED", "total": 2, "successful": 2, "failed": 0, "skipped": 0}
+16:45:52 | INFO  | asyncio | <_WindowsSubprocessTransport pid=16280 running stdin=<_ProactorWritePipeTransport closed> stdout=<_ProactorReadPipeTransport closed>> exited with return code 0
+16:45:52 | INFO  | DTH_PortalController | [DTH] Browser closed.
+16:45:52 | INFO  | DTH_ReportGenerator | [DTH] Reports exported successfully: C:\IRD AUTO\reports\dth\2026-10-13_dth_run_999.csv and C:\IRD AUTO\reports\dth\2026-10-13_dth_run_999.json
+16:45:52 | INFO  | DTH_Audit | [AUDIT] RUN_STARTED | Run #56 | Ch: N/A | {"site": "WH Bhubaneswar", "filename": "channels.csv", "mode": "DRY_RUN", "image_dir": "C:\\Users\\souri\\AppData\\Local\\Temp\\tmp8u8788sx"}
+16:45:52 | INFO  | IRD_TunnelManager | 16:45:52 | [WH Bhubaneswar] Starting tunnel verification for WH Bhubaneswar: Local Port 18002 -> 103.243.40.46:8082
+16:45:52 | INFO  | IRD_TunnelManager | 16:45:52 | [WH Bhubaneswar] Local port 127.0.0.1:18002 is already active and listening.
+16:45:52 | INFO  | DTH_WorkflowRunner | [DTH] Initializing Playwright browser (type: chromium, headless: True)...
+16:45:52 | WARNING | DTH_WorkflowRunner | [DTH] Could not query live portal state: not enough values to unpack (expected 2, got 0). Proceeding with offline validation.
+16:45:52 | INFO  | DTH_ReportGenerator | [DTH] Reports exported successfully: C:\IRD AUTO\reports\dth\2026-10-15_dth_run_56.csv and C:\IRD AUTO\reports\dth\2026-10-15_dth_run_56.json
+16:45:52 | INFO  | DTH_Audit | [AUDIT] RUN_COMPLETED | Run #56 | Ch: N/A | {"status": "COMPLETED", "total": 2, "successful": 2, "failed": 0, "skipped": 0}
+16:45:52 | INFO  | DTH_Audit | [AUDIT] RUN_STARTED | Run #57 | Ch: N/A | {"site": "WH Bhubaneswar", "filename": "channels.csv", "mode": "DRY_RUN", "image_dir": "C:\\Users\\souri\\AppData\\Local\\Temp\\tmp8u8788sx"}
+16:45:52 | INFO  | IRD_TunnelManager | 16:45:52 | [WH Bhubaneswar] Starting tunnel verification for WH Bhubaneswar: Local Port 18002 -> 103.243.40.46:8082
+16:45:52 | INFO  | IRD_TunnelManager | 16:45:52 | [WH Bhubaneswar] Local port 127.0.0.1:18002 is already active and listening.
+16:45:52 | INFO  | DTH_WorkflowRunner | [DTH] Initializing Playwright browser (type: chromium, headless: False)...
+16:45:52 | WARNING | DTH_WorkflowRunner | [DTH] Could not query live portal state: not enough values to unpack (expected 2, got 0). Proceeding with offline validation.
+16:45:52 | INFO  | DTH_ReportGenerator | [DTH] Reports exported successfully: C:\IRD AUTO\reports\dth\2026-10-15_dth_run_57.csv and C:\IRD AUTO\reports\dth\2026-10-15_dth_run_57.json
+16:45:52 | INFO  | DTH_Audit | [AUDIT] RUN_COMPLETED | Run #57 | Ch: N/A | {"status": "COMPLETED", "total": 2, "successful": 2, "failed": 0, "skipped": 0}
+16:45:52 | WARNING | asyncio | Executing <Task finished name='Task-194' coro=<TestDthWorkflowAndReports.test_workflow_runner_honors_headless_setting() done, defined at C:\IRD AUTO\tests\test_dth_workflow_and_reports.py:116> result=None created at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\runners.py:100> took 0.250 seconds
+16:46:19 | INFO  | IRD_Seed | Database already contains 18 sites. Checking port assignments...
+16:46:20 | INFO  | IRD_Main | IRD Sync Automation server started at http://127.0.0.1:18492
+16:46:20 | INFO  | IRD_Main | [PYWEBVIEW] Creating desktop window
+16:46:20 | INFO  | IRD_Main | [PYWEBVIEW] UI HTML path: C:\IRD AUTO\app\ui\index.html
+16:46:20 | INFO  | IRD_Main | [PYWEBVIEW] UI HTML exists: True
+16:46:20 | INFO  | IRD_Main | [PYWEBVIEW] UI JavaScript path: C:\IRD AUTO\app\ui\app.js
+16:46:20 | INFO  | IRD_Main | [PYWEBVIEW] UI JavaScript exists: True
+16:46:20 | INFO  | IRD_Main | Opening PyWebView desktop window...
+16:46:41 | INFO  | DTH_Audit | [AUDIT] RUN_STARTED | Run #58 | Ch: N/A | {"site": "TAJ Puri Resort & Spa, Odisha", "filename": "dth_channel_template - dth_channel_template.csv.csv", "mode": "LIVE", "image_dir": "C:\\IRD AUTO\\data\\channel_logo"}
+16:46:41 | INFO  | IRD_TunnelManager | 16:46:41 | [TAJ Puri Resort & Spa, Odisha] Starting tunnel verification for TAJ Puri Resort & Spa, Odisha: Local Port 18001 -> 128.185.59.82:8080
+16:46:41 | INFO  | IRD_TunnelManager | 16:46:41 | [TAJ Puri Resort & Spa, Odisha] Launching Plink: C:\IRD AUTO\tools\putty\plink.exe -batch -N -ssh -P 22 -l sourik -pw ******** -L 18001:128.185.59.82:8080 111.93.205.187
+16:46:41 | INFO  | IRD_TunnelManager | 16:46:41 | [TAJ Puri Resort & Spa, Odisha] Plink process started (PID: 10656)
+16:46:42 | INFO  | IRD_TunnelManager | 16:46:42 | [TAJ Puri Resort & Spa, Odisha] ✓ Reverse tunnel verified! TCP socket connected on 127.0.0.1:18001
+16:46:42 | INFO  | DTH_WorkflowRunner | [DTH] Initializing Playwright browser (type: chromium, headless: False)...
+16:46:42 | INFO  | DTH_BrowserObserver | [OBSERVER] Initialized for run #58 at C:\IRD AUTO\logs\dth\run_58
+16:46:44 | INFO  | DTH_PortalController | [DTH] Browser initialized successfully.
+16:46:44 | INFO  | DTH_PortalController | [DTH] Navigating to entry URL: http://localhost:18001/zmp/main-menu.do...
+16:46:44 | INFO  | DTH_PortalController | [DTH] Navigating to URL: http://localhost:18001/zmp/main-menu.do
+16:46:45 | INFO  | DTH_BrowserObserver | [SNAPSHOT 001] PORTAL_ENTRY_OPENED | State: AUTHENTICATION_REQUIRED | Verify: PASS | URL: http://localhost:18001/zmp/login.do?logout=
+16:46:45 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #58] Step 001: portal_entry_opened | State: AUTHENTICATION_REQUIRED | Passed: True
+16:46:45 | INFO  | DTH_PortalController | [DTH] Step 1 Observed: state=AUTHENTICATION_REQUIRED at http://localhost:18001/zmp/login.do?logout=
+16:46:45 | INFO  | DTH_PortalController | [DTH] Entering IDP credentials for user 'admin'...
+16:46:45 | INFO  | DTH_BrowserObserver | [SNAPSHOT 002] CREDENTIALS_ENTERED | State: AUTHENTICATION_REQUIRED | Verify: PASS | URL: http://localhost:18001/zmp/login.do?logout=
+16:46:45 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #58] Step 002: credentials_entered | State: AUTHENTICATION_REQUIRED | Passed: True
+16:46:45 | INFO  | DTH_PortalController | [DTH] Submitting IDP login form...
+16:46:48 | INFO  | DTH_BrowserObserver | [SNAPSHOT 003] LOGIN_SUBMITTED | State: AUTHENTICATED | Verify: PASS | URL: http://localhost:18001/zmp/main-menu.do
+16:46:48 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #58] Step 003: login_submitted | State: AUTHENTICATED | Passed: True
+16:46:48 | INFO  | DTH_PortalController | [DTH] Post-login observed state=AUTHENTICATED at http://localhost:18001/zmp/main-menu.do
+16:46:48 | INFO  | DTH_PortalController | [DTH] Navigating directly to http://localhost:18001/zmp/manage-stb-channels.do...
+16:46:48 | INFO  | DTH_PortalController | [DTH] Navigating to URL: http://localhost:18001/zmp/manage-stb-channels.do
+16:46:52 | INFO  | DTH_BrowserObserver | [SNAPSHOT 004] CHANNELS_PAGE_OPENED | State: CHANNEL_PAGE_OPENED | Verify: PASS | URL: http://localhost:18001/zmp/manage-stb-channels.do
+16:46:52 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #58] Step 004: channels_page_opened | State: CHANNEL_PAGE_OPENED | Passed: True
+16:46:52 | INFO  | DTH_BrowserObserver | [SNAPSHOT 005] CHANNELS_TABLE_SCRAPED | State: CHANNEL_PAGE_OPENED | Verify: PASS | URL: http://localhost:18001/zmp/manage-stb-channels.do
+16:46:52 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #58] Step 005: channels_table_scraped | State: CHANNEL_PAGE_OPENED | Passed: True
+16:46:52 | INFO  | DTH_Audit | [AUDIT] CHANNEL_TALLIED_DUPLICATE | Run #58 | Ch: 101 | {"message": "Channel #101 already in portal with matching name 'DD National' (Tallied)"}
+16:46:52 | INFO  | DTH_ReportGenerator | [DTH] Reports exported successfully: C:\IRD AUTO\reports\dth\2026-10-15_dth_run_58.csv and C:\IRD AUTO\reports\dth\2026-10-15_dth_run_58.json
+16:46:52 | INFO  | DTH_Audit | [AUDIT] RUN_COMPLETED | Run #58 | Ch: N/A | {"status": "COMPLETED", "total": 1, "successful": 0, "failed": 0, "skipped": 1}
+16:46:53 | INFO  | DTH_PortalController | [DTH] Browser closed.
+16:47:15 | INFO  | IRD_Seed | Database already contains 18 sites. Checking port assignments...
+16:47:16 | INFO  | IRD_Main | IRD Sync Automation server started at http://127.0.0.1:18492
+16:47:16 | INFO  | IRD_Main | [PYWEBVIEW] Creating desktop window
+16:47:16 | INFO  | IRD_Main | [PYWEBVIEW] UI HTML path: C:\IRD AUTO\app\ui\index.html
+16:47:16 | INFO  | IRD_Main | [PYWEBVIEW] UI HTML exists: True
+16:47:16 | INFO  | IRD_Main | [PYWEBVIEW] UI JavaScript path: C:\IRD AUTO\app\ui\app.js
+16:47:16 | INFO  | IRD_Main | [PYWEBVIEW] UI JavaScript exists: True
+16:47:16 | INFO  | IRD_Main | Opening PyWebView desktop window...
+16:50:11 | INFO  | IRD_Seed | Database already contains 18 sites. Checking port assignments...
+16:50:11 | INFO  | IRD_Main | IRD Sync Automation server started at http://127.0.0.1:18492
+16:50:11 | INFO  | IRD_Main | [PYWEBVIEW] Creating desktop window
+16:50:11 | INFO  | IRD_Main | [PYWEBVIEW] UI HTML path: C:\IRD AUTO\app\ui\index.html
+16:50:11 | INFO  | IRD_Main | [PYWEBVIEW] UI HTML exists: True
+16:50:11 | INFO  | IRD_Main | [PYWEBVIEW] UI JavaScript path: C:\IRD AUTO\app\ui\app.js
+16:50:11 | INFO  | IRD_Main | [PYWEBVIEW] UI JavaScript exists: True
+16:50:11 | INFO  | IRD_Main | Opening PyWebView desktop window...
+16:50:47 | INFO  | DTH_Audit | [AUDIT] RUN_STARTED | Run #59 | Ch: N/A | {"site": "TAJ Puri Resort & Spa, Odisha", "filename": "dth_channel_template - dth_channel_template.csv.csv", "mode": "LIVE", "image_dir": "C:\\IRD AUTO\\data\\channel_logo"}
+16:50:47 | INFO  | IRD_TunnelManager | 16:50:47 | [TAJ Puri Resort & Spa, Odisha] Starting tunnel verification for TAJ Puri Resort & Spa, Odisha: Local Port 18001 -> 128.185.59.82:8080
+16:50:48 | INFO  | IRD_TunnelManager | 16:50:48 | [TAJ Puri Resort & Spa, Odisha] Launching Plink: C:\IRD AUTO\tools\putty\plink.exe -batch -N -ssh -P 22 -l sourik -pw ******** -L 18001:128.185.59.82:8080 111.93.205.187
+16:50:48 | INFO  | IRD_TunnelManager | 16:50:48 | [TAJ Puri Resort & Spa, Odisha] Plink process started (PID: 9632)
+16:50:49 | INFO  | IRD_TunnelManager | 16:50:49 | [TAJ Puri Resort & Spa, Odisha] ✓ Reverse tunnel verified! TCP socket connected on 127.0.0.1:18001
+16:50:49 | INFO  | DTH_WorkflowRunner | [DTH] Initializing Playwright browser (type: chromium, headless: False)...
+16:50:49 | INFO  | DTH_BrowserObserver | [OBSERVER] Initialized for run #59 at C:\IRD AUTO\logs\dth\run_59
+16:50:50 | INFO  | DTH_PortalController | [DTH] Browser initialized successfully.
+16:50:50 | INFO  | DTH_PortalController | [DTH] Navigating to entry URL: http://localhost:18001/zmp/main-menu.do...
+16:50:50 | INFO  | DTH_PortalController | [DTH] Navigating to URL: http://localhost:18001/zmp/main-menu.do
+16:50:52 | INFO  | DTH_BrowserObserver | [SNAPSHOT 001] PORTAL_ENTRY_OPENED | State: AUTHENTICATION_REQUIRED | Verify: PASS | URL: http://localhost:18001/zmp/login.do?logout=
+16:50:52 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #59] Step 001: portal_entry_opened | State: AUTHENTICATION_REQUIRED | Passed: True
+16:50:52 | INFO  | DTH_PortalController | [DTH] Step 1 Observed: state=AUTHENTICATION_REQUIRED at http://localhost:18001/zmp/login.do?logout=
+16:50:52 | INFO  | DTH_PortalController | [DTH] Entering IDP credentials for user 'admin'...
+16:50:52 | INFO  | DTH_BrowserObserver | [SNAPSHOT 002] CREDENTIALS_ENTERED | State: AUTHENTICATION_REQUIRED | Verify: PASS | URL: http://localhost:18001/zmp/login.do?logout=
+16:50:52 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #59] Step 002: credentials_entered | State: AUTHENTICATION_REQUIRED | Passed: True
+16:50:52 | INFO  | DTH_PortalController | [DTH] Submitting IDP login form...
+16:50:54 | INFO  | DTH_BrowserObserver | [SNAPSHOT 003] LOGIN_SUBMITTED | State: AUTHENTICATED | Verify: PASS | URL: http://localhost:18001/zmp/main-menu.do
+16:50:54 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #59] Step 003: login_submitted | State: AUTHENTICATED | Passed: True
+16:50:54 | INFO  | DTH_PortalController | [DTH] Post-login observed state=AUTHENTICATED at http://localhost:18001/zmp/main-menu.do
+16:50:54 | INFO  | DTH_PortalController | [DTH] Navigating directly to http://localhost:18001/zmp/manage-stb-channels.do...
+16:50:54 | INFO  | DTH_PortalController | [DTH] Navigating to URL: http://localhost:18001/zmp/manage-stb-channels.do
+16:50:59 | INFO  | DTH_BrowserObserver | [SNAPSHOT 004] CHANNELS_PAGE_OPENED | State: CHANNEL_PAGE_OPENED | Verify: PASS | URL: http://localhost:18001/zmp/manage-stb-channels.do
+16:50:59 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #59] Step 004: channels_page_opened | State: CHANNEL_PAGE_OPENED | Passed: True
+16:50:59 | INFO  | DTH_BrowserObserver | [SNAPSHOT 005] CHANNELS_TABLE_SCRAPED | State: CHANNEL_PAGE_OPENED | Verify: PASS | URL: http://localhost:18001/zmp/manage-stb-channels.do
+16:50:59 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #59] Step 005: channels_table_scraped | State: CHANNEL_PAGE_OPENED | Passed: True
+16:50:59 | INFO  | DTH_PortalController | [DTH] Starting creation for Channel 101: 'DD National'...
+16:51:00 | INFO  | DTH_BrowserObserver | [SNAPSHOT 006] ADD_CHANNEL_FORM_OPENED | State: CHANNEL_FORM_VERIFIED | Verify: PASS | URL: http://localhost:18001/zmp/manage-stb-channels.do#
+16:51:00 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #59] Step 006: add_channel_form_opened | State: CHANNEL_FORM_VERIFIED | Passed: True
+16:51:00 | INFO  | DTH_PortalController | [DTH] Uploading channel logo: C:\IRD AUTO\data\channel_logo\dd_national.png
+16:51:00 | INFO  | DTH_PortalController | [DTH] Categories assigned: ['all', 'news'] (all others unchecked, status: {'allChecked': True, 'otherChecked': True, 'targetOther': 'news'})
+16:51:00 | INFO  | DTH_BrowserObserver | [SNAPSHOT 007] CH_101_FORM_FILLED | State: CHANNEL_FORM_VERIFIED | Verify: PASS | URL: http://localhost:18001/zmp/manage-stb-channels.do#
+16:51:00 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #59] Step 007: ch_101_form_filled | State: CHANNEL_FORM_VERIFIED | Passed: True
+16:51:00 | INFO  | DTH_PortalController | [DTH] Submitting channel form for Channel 101...
+16:51:01 | INFO  | DTH_BrowserObserver | [SNAPSHOT 008] CH_101_SUBMITTED | State: CHANNEL_PAGE_OPENED | Verify: PASS | URL: http://localhost:18001/zmp/manage-stb-channels.do
+16:51:01 | INFO  | DTH_WorkflowRunner | [OBSERVER RUN #59] Step 008: ch_101_submitted | State: CHANNEL_PAGE_OPENED | Passed: True
+16:51:01 | INFO  | DTH_Audit | [AUDIT] CHANNEL_PROCESSED | Run #59 | Ch: 101 | {"status": "SUCCESS", "duration": 2.15, "reason": "Verified present in portal channel table after submission"}
+16:51:02 | INFO  | DTH_ReportGenerator | [DTH] Reports exported successfully: C:\IRD AUTO\reports\dth\2026-10-15_dth_run_59.csv and C:\IRD AUTO\reports\dth\2026-10-15_dth_run_59.json
+16:51:02 | INFO  | DTH_Audit | [AUDIT] RUN_COMPLETED | Run #59 | Ch: N/A | {"status": "COMPLETED", "total": 1, "successful": 1, "failed": 0, "skipped": 0}
+16:51:03 | INFO  | DTH_PortalController | [DTH] Browser closed.
+17:01:45 | INFO  | IRD_Main | [PHASE17][API] START SYNC request received
+17:01:45 | INFO  | IRD_Main | [PHASE17][API] Trace ID: STARTSYNC-1792063905778
+17:01:45 | INFO  | IRD_Main | [PHASE17][API] Request body: {'site_ids': [67, 68], 'dry_run': False, 'trace_id': 'STARTSYNC-1792063905778'}
+17:01:45 | INFO  | IRD_Main | [API] START SYNC request received
+17:01:45 | INFO  | IRD_Main | [PHASE17][API] Selected site IDs: [67, 68]
+17:01:45 | INFO  | IRD_Main | [PHASE17][API] dry_run: False
+17:01:45 | INFO  | IRD_Main | [PHASE17][API] Calling workflow runner
+17:01:45 | INFO  | IRD_Main | [API] Selected site IDs: [67, 68]
+17:01:45 | INFO  | IRD_Main | [API] Automation start requested
+17:01:45 | INFO  | IRD_Main | [PHASE17][API] BEFORE scheduling runner
+17:01:45 | INFO  | IRD_Main | [PHASE17][API] AFTER scheduling runner
+17:01:45 | INFO  | IRD_Main | [PHASE17][API] Background task created
+17:01:45 | INFO  | IRD_Main | [PHASE17][API] Background task ID: 2249090317760
+17:01:45 | INFO  | IRD_Main | [API] Automation runner started
+17:01:45 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] ENTRY FUNCTION CALLED
+17:01:45 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Workflow entry reached
+17:01:45 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Trace ID: STARTSYNC-1792063905778
+17:01:45 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Selected site IDs: [67, 68]
+17:01:45 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Target sites resolved: ['WH Bhubaneswar', 'ITC Maurya']
+17:01:45 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Number of sites: 2
+17:01:45 | INFO  | IRD_WorkflowRunner | Created new batch run #61 for 2 sites.
+17:01:45 | INFO  | IRD_WorkflowRunner | [RUNNER] Automation workflow starting
+17:01:45 | INFO  | IRD_WorkflowRunner | [RUNNER] Sites queued: 2
+17:01:45 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Starting site: WH Bhubaneswar (#67)
+17:01:45 | INFO  | IRD_WorkflowRunner | [RUNNER] Starting site: WH Bhubaneswar (#67)
+17:01:45 | INFO  | IRD_WorkflowRunner | 
+==========================================
+17:01:45 | INFO  | IRD_WorkflowRunner | [1/2] STARTING SITE: WH Bhubaneswar
+17:01:45 | INFO  | IRD_WorkflowRunner | ==========================================
+17:01:45 | INFO  | IRD_BrowserController | 17:01:45 | INFO | [WH Bhubaneswar] [PHASE17][TUNNEL] Starting tunnel for WH Bhubaneswar
+17:01:45 | INFO  | IRD_BrowserController | 17:01:45 | INFO | [WH Bhubaneswar] [PHASE17][BROWSER] Browser workflow starting for WH Bhubaneswar
+17:01:45 | INFO  | IRD_BrowserController | 17:01:45 | INFO | [WH Bhubaneswar] Starting reverse SSH tunnel verification...
+17:01:45 | INFO  | IRD_TunnelManager | 17:01:45 | INFO | [WH Bhubaneswar] PHASE 5E REAL FNB ENDPOINT VALIDATION STARTED
+17:01:45 | INFO  | IRD_TunnelManager | 17:01:45 | INFO | [WH Bhubaneswar] [TUNNEL] SSH server: 111.93.205.187:22
+17:01:45 | INFO  | IRD_TunnelManager | 17:01:45 | INFO | [WH Bhubaneswar] [TUNNEL] FNB target: 103.243.40.46:8082
+17:01:45 | INFO  | IRD_TunnelManager | 17:01:45 | INFO | [WH Bhubaneswar] [TUNNEL] Forward mode: LOCAL
+17:01:45 | INFO  | IRD_TunnelManager | 17:01:45 | INFO | [WH Bhubaneswar] [TUNNEL] Local endpoint: 127.0.0.1:18002
+17:01:45 | INFO  | IRD_TunnelManager | 17:01:45 | INFO | [WH Bhubaneswar] [TUNNEL] Remote target: 103.243.40.46:8082
+17:01:45 | INFO  | IRD_TunnelManager | 17:01:45 | INFO | [WH Bhubaneswar] [TUNNEL] TCP validation target: 127.0.0.1:18002
+17:01:45 | INFO  | IRD_TunnelManager | 17:01:45 | INFO | [WH Bhubaneswar] [TUNNEL] HTTP validation URL: http://localhost:18002/zmp/main-menu.do
+17:01:45 | INFO  | IRD_TunnelManager | 17:01:45 | INFO | [WH Bhubaneswar] Forward: -L 18002:103.243.40.46:8082
+17:01:45 | INFO  | IRD_TunnelManager | 17:01:45 | INFO | [WH Bhubaneswar] STEP 1: Validating bundled Plink executable...
+17:01:45 | INFO  | IRD_TunnelManager | 17:01:45 | INFO | [WH Bhubaneswar] Bundled Plink detected: tools\putty\plink.exe
+17:01:45 | INFO  | IRD_TunnelManager | 17:01:45 | INFO | [WH Bhubaneswar] STEP 2 & 3 & 4: Launching Plink to 111.93.205.187:22...
+17:01:45 | INFO  | IRD_TunnelManager | 17:01:45 | INFO | [WH Bhubaneswar] [TUNNEL] Plink command: C:\IRD AUTO\tools\putty\plink.exe -batch -N -ssh -P 22 -l sourik -pw ******** -L 18002:103.243.40.46:8082 111.93.205.187
+17:01:45 | INFO  | IRD_TunnelManager | 17:01:45 | INFO | [WH Bhubaneswar] Generated Plink Command: C:\IRD AUTO\tools\putty\plink.exe -batch -N -ssh -P 22 -l sourik -pw ******** -L 18002:103.243.40.46:8082 111.93.205.187
+17:01:45 | INFO  | IRD_TunnelManager | 17:01:45 | INFO | [WH Bhubaneswar] Plink process launched cleanly with PID: 16264
+17:01:45 | INFO  | IRD_TunnelManager | 17:01:45 | INFO | [WH Bhubaneswar] Waiting for SSH authentication & reverse tunnel setup (Timeout: 15s)...
+17:01:47 | INFO  | IRD_TunnelManager | 17:01:47 | INFO | [WH Bhubaneswar] ✓ SSH Connection & Authentication Successful. Reverse Tunnel Established.
+17:01:47 | INFO  | IRD_TunnelManager | 17:01:47 | INFO | [WH Bhubaneswar] STEP 5: Verifying TCP socket connect to 127.0.0.1:18002 (Timeout: 15s)...
+17:01:47 | INFO  | IRD_TunnelManager | 17:01:47 | INFO | [WH Bhubaneswar] ✓ STEP 5 PASS: [REDACTED] Socket Connected on 127.0.0.1:18002
+17:01:47 | INFO  | IRD_TunnelManager | 17:01:47 | INFO | [WH Bhubaneswar] STEP 6: Executing HTTP GET request to http://localhost:18002/zmp/main-menu.do...
+17:01:51 | INFO  | IRD_TunnelManager | 17:01:51 | INFO | [WH Bhubaneswar] ✓ STEP 6 PASS: [REDACTED] Response Received. Status: 200, Latency: 3425ms
+17:01:51 | INFO  | IRD_TunnelManager | 17:01:51 | INFO | [WH Bhubaneswar] STEP 7: Inspecting HTTP body content for FNB Service markers...
+17:01:51 | INFO  | IRD_TunnelManager | 17:01:51 | INFO | [WH Bhubaneswar] ✓ STEP 7 PASS: [REDACTED] Service / Portal Content Verified.
+17:01:51 | INFO  | IRD_TunnelManager | 17:01:51 | INFO | [WH Bhubaneswar] ★ REAL FNB TUNNEL & ENDPOINT VALIDATED SUCCESSFULLY!
+17:01:51 | INFO  | IRD_TunnelManager | 17:01:51 | INFO | [WH Bhubaneswar] Option 'Keep tunnel running' is ENABLED. Tunnel remains RUNNING.
+17:01:51 | INFO  | IRD_BrowserController | 17:01:51 | INFO | [WH Bhubaneswar] [PHASE17][LOGIN] Login workflow starting for WH Bhubaneswar
+17:01:51 | INFO  | IRD_BrowserController | 17:01:51 | INFO | [WH Bhubaneswar] [PHASE17][SYNC] Sync workflow starting for WH Bhubaneswar
+17:01:51 | INFO  | IRD_BrowserController | 17:01:51 | INFO | [WH Bhubaneswar] Executing IDP Login + Sync MyMenu sequence...
+17:01:51 | INFO  | IRD_BrowserController | 17:01:51 | INFO | [WH Bhubaneswar] PLAYWRIGHT TARGET: http://localhost:18002/zmp/main-menu.do
+17:01:51 | INFO  | IRD_BrowserController | 17:01:51 | INFO | [WH Bhubaneswar] [BROWSER] Navigating to http://localhost:18002/zmp/main-menu.do
+17:01:51 | INFO  | IRD_BrowserController | Initializing Playwright Browser (type: chromium, headless: False)...
+17:01:51 | INFO  | IRD_Main | [PHASE17][API] START SYNC request received
+17:01:51 | INFO  | IRD_Main | [PHASE17][API] Trace ID: STARTSYNC-1792063908249
+17:01:51 | INFO  | IRD_Main | [PHASE17][API] Request body: {'site_ids': [67, 68], 'dry_run': False, 'trace_id': 'STARTSYNC-1792063908249'}
+17:01:51 | INFO  | IRD_Main | [API] START SYNC request received
+17:01:51 | WARNING | IRD_Main | [PHASE17][API] Automation request rejected — already running. Trace ID: STARTSYNC-1792063908249
+17:01:51 | WARNING | IRD_Main | [API] Automation request rejected — already running.
+17:01:53 | INFO  | IRD_BrowserController | Browser initialized successfully.
+17:01:53 | INFO  | IRD_BrowserController | Navigating to webpage: http://localhost:18002/zmp/main-menu.do...
+17:01:54 | INFO  | IRD_BrowserController | Webpage reached successfully (HTTP 200).
+17:01:54 | INFO  | IRD_BrowserController | 17:01:54 | INFO | [WH Bhubaneswar] [BROWSER] Initial page loaded
+17:01:54 | INFO  | IRD_BrowserController | 17:01:54 | INFO | [WH Bhubaneswar] [BROWSER] Current URL: http://localhost:18002/login
+17:01:54 | INFO  | IRD_BrowserController | 17:01:54 | INFO | [WH Bhubaneswar] [BROWSER] Checking for Whitelabel Error Page...
+17:01:54 | INFO  | IRD_BrowserController | [WH Bhubaneswar] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-10-15\WH_Bhubaneswar\01_tunnel_ready_1792063914.png
+17:01:54 | INFO  | IRD_BrowserController | [WH Bhubaneswar] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-10-15\WH_Bhubaneswar\02_zmp_page_1792063914.png
+17:01:54 | INFO  | IRD_BrowserController | 17:01:54 | INFO | [WH Bhubaneswar] [LOGIN] Starting login workflow...
+17:01:54 | INFO  | IRD_BrowserController | 17:01:54 | INFO | [WH Bhubaneswar] Page Loaded — Title: 'Login', URL: 'http://localhost:18002/login'
+17:01:54 | INFO  | IRD_BrowserController | 17:01:54 | INFO | [WH Bhubaneswar] ✓ STAGE 3 PASS: [REDACTED] opened and ZMP portal loaded successfully.
+17:01:54 | INFO  | IRD_BrowserController | 17:01:54 | INFO | [WH Bhubaneswar] ✓ STAGE 4 PASS: [REDACTED]
+17:01:54 | INFO  | IRD_BrowserController | 17:01:54 | INFO | [WH Bhubaneswar] [LOGIN] Username field detected
+17:01:54 | INFO  | IRD_BrowserController | 17:01:54 | INFO | [WH Bhubaneswar] [LOGIN] Password field detected
+17:01:54 | INFO  | IRD_BrowserController | 17:01:54 | INFO | [WH Bhubaneswar] STAGE 5 & 6: Filling credentials for IDP user 'admin'...
+17:01:54 | INFO  | IRD_BrowserController | 17:01:54 | INFO | [WH Bhubaneswar] [LOGIN] Entering credentials...
+17:01:54 | INFO  | IRD_BrowserController | [WH Bhubaneswar] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-10-15\WH_Bhubaneswar\04_login_attempt1_credentials_1792063914.png
+17:01:54 | INFO  | IRD_BrowserController | [WH Bhubaneswar] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-10-15\WH_Bhubaneswar\03_login_attempt1_before_submit_1792063914.png
+17:01:54 | INFO  | IRD_BrowserController | 17:01:54 | INFO | [WH Bhubaneswar] [LOGIN] Login submitted
+17:01:54 | INFO  | IRD_BrowserController | 17:01:54 | INFO | [WH Bhubaneswar] [LOGIN] Post-submit verification started
+17:01:55 | INFO  | IRD_BrowserController | [WH Bhubaneswar] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-10-15\WH_Bhubaneswar\05_after_login_attempt1_1792063914.png
+17:01:55 | INFO  | IRD_BrowserController | 17:01:55 | INFO | [WH Bhubaneswar] [LOGIN] Waiting for authentication state...
+17:02:03 | INFO  | IRD_BrowserController | 17:02:03 | INFO | [WH Bhubaneswar] CRITICAL ERROR: Whitelabel Error Page detected after submit attempt 1!
+17:02:03 | INFO  | IRD_BrowserController | 17:02:03 | INFO | [WH Bhubaneswar] [LOGIN] Whitelabel Error Page detected after login attempt 1
+17:02:03 | INFO  | IRD_BrowserController | 17:02:03 | INFO | [WH Bhubaneswar] [RECOVERY] Login recovery triggered
+17:02:03 | INFO  | IRD_BrowserController | 17:02:03 | INFO | [WH Bhubaneswar] [RECOVERY] Navigating directly to http://localhost:18002/login
+17:02:03 | INFO  | IRD_BrowserController | 17:02:03 | INFO | [WH Bhubaneswar] [RECOVERY] Login page reload started
+17:02:04 | INFO  | IRD_BrowserController | [WH Bhubaneswar] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-10-15\WH_Bhubaneswar\05a_whitelabel_after_login_attempt1_1792063923.png
+17:02:08 | INFO  | IRD_BrowserController | 17:02:08 | INFO | [WH Bhubaneswar] [RECOVERY] Login page verified
+17:02:08 | INFO  | IRD_BrowserController | 17:02:08 | INFO | [WH Bhubaneswar] [RECOVERY] Username field detected
+17:02:08 | INFO  | IRD_BrowserController | 17:02:08 | INFO | [WH Bhubaneswar] [RECOVERY] Password field detected
+17:02:08 | INFO  | IRD_BrowserController | 17:02:08 | INFO | [WH Bhubaneswar] STAGE 5 & 6: Re-filling credentials for IDP user 'admin' (attempt 2)...
+17:02:08 | INFO  | IRD_BrowserController | 17:02:08 | INFO | [WH Bhubaneswar] [LOGIN] Entering credentials...
+17:02:08 | INFO  | IRD_BrowserController | [WH Bhubaneswar] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-10-15\WH_Bhubaneswar\04_login_attempt2_credentials_1792063928.png
+17:02:08 | INFO  | IRD_BrowserController | [WH Bhubaneswar] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-10-15\WH_Bhubaneswar\03_login_attempt2_before_submit_1792063928.png
+17:02:08 | INFO  | IRD_BrowserController | 17:02:08 | INFO | [WH Bhubaneswar] [LOGIN] Login attempt 2 submitted
+17:02:08 | INFO  | IRD_BrowserController | 17:02:08 | INFO | [WH Bhubaneswar] [LOGIN] Post-submit verification started for attempt 2
+17:02:09 | INFO  | IRD_BrowserController | [WH Bhubaneswar] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-10-15\WH_Bhubaneswar\05_after_login_attempt2_1792063928.png
+17:02:09 | INFO  | IRD_BrowserController | 17:02:09 | INFO | [WH Bhubaneswar] [LOGIN] Waiting for authentication state...
+17:02:28 | INFO  | IRD_BrowserController | 17:02:28 | INFO | [WH Bhubaneswar] [LOGIN] Authentication verified on attempt 2
+17:02:28 | INFO  | IRD_BrowserController | 17:02:28 | INFO | [WH Bhubaneswar] [LOGIN] Authenticated page detected
+17:02:28 | INFO  | IRD_BrowserController | 17:02:28 | INFO | [WH Bhubaneswar] [LOGIN] Authentication state: SUCCESS
+17:02:28 | INFO  | IRD_BrowserController | 17:02:28 | INFO | [WH Bhubaneswar] ✓ STAGE 8 PASS: [REDACTED] Authentication Verified & Post-Login State Confirmed.
+17:02:28 | INFO  | IRD_BrowserController | 17:02:28 | INFO | [WH Bhubaneswar] [SYNC] Searching for Sync MyMenu...
+17:02:28 | INFO  | IRD_BrowserController | 17:02:28 | INFO | [WH Bhubaneswar] [SYNC] Sync MyMenu element found
+17:02:28 | INFO  | IRD_BrowserController | 17:02:28 | INFO | [WH Bhubaneswar] [SYNC] Sync MyMenu visible: True
+17:02:28 | INFO  | IRD_BrowserController | 17:02:28 | INFO | [WH Bhubaneswar] [SYNC] Sync MyMenu enabled: True
+17:02:28 | INFO  | IRD_BrowserController | [WH Bhubaneswar] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-10-15\WH_Bhubaneswar\06_sync_mymenu_before_click_1792063948.png
+17:02:28 | INFO  | IRD_BrowserController | 17:02:28 | INFO | [WH Bhubaneswar] [SYNC] Clicking Sync MyMenu...
+17:02:31 | INFO  | IRD_BrowserController | 17:02:31 | INFO | [WH Bhubaneswar] [SYNC] Sync MyMenu click completed
+17:02:31 | INFO  | IRD_BrowserController | 17:02:31 | INFO | [WH Bhubaneswar] [SYNC] Verifying Sync MyMenu result...
+17:02:32 | INFO  | IRD_BrowserController | [WH Bhubaneswar] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-10-15\WH_Bhubaneswar\07_sync_mymenu_after_click_1792063952.png
+17:02:32 | INFO  | IRD_BrowserController | 17:02:32 | INFO | [WH Bhubaneswar] [SYNC] Sync result verified
+17:02:32 | INFO  | IRD_BrowserController | 17:02:32 | INFO | [WH Bhubaneswar] ✓ STAGE 9 PASS: [REDACTED] MyMenu click executed and resulting page loaded.
+17:02:32 | INFO  | IRD_BrowserController | 17:02:32 | INFO | [WH Bhubaneswar] STAGE 10: Verifying Sync MyMenu destination page...
+17:02:33 | INFO  | IRD_BrowserController | [WH Bhubaneswar] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-10-15\WH_Bhubaneswar\08_sync_result_1792063952.png
+17:02:33 | INFO  | IRD_BrowserController | 17:02:33 | INFO | [WH Bhubaneswar] ✓ STAGE 10 PASS: [REDACTED] MyMenu page verified and 'Fetch Menu' control is detected!
+17:02:33 | INFO  | IRD_BrowserController | 17:02:33 | INFO | [WH Bhubaneswar] ★ PHASE 9 REAL PLAYWRIGHT IDP LOGIN + SYNCMYMENU COMPLETED SUCCESSFULLY!
+17:02:33 | INFO  | IRD_BrowserController | 17:02:33 | INFO | [WH Bhubaneswar] [SYNC] Sync MyMenu dashboard verified
+17:02:33 | INFO  | IRD_BrowserController | 17:02:33 | INFO | [WH Bhubaneswar] [SYNC] Searching for Fetch Menu...
+17:02:33 | INFO  | IRD_BrowserController | 17:02:33 | INFO | [WH Bhubaneswar] [SYNC] Fetch Menu element found
+17:02:33 | INFO  | IRD_BrowserController | 17:02:33 | INFO | [WH Bhubaneswar] [SYNC] Fetch Menu visible: True
+17:02:33 | INFO  | IRD_BrowserController | 17:02:33 | INFO | [WH Bhubaneswar] [SYNC] Fetch Menu enabled: True
+17:02:33 | INFO  | IRD_BrowserController | [WH Bhubaneswar] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-10-15\WH_Bhubaneswar\06_fetch_menu_attempt1_before_1792063953.png
+17:02:33 | INFO  | IRD_BrowserController | 17:02:33 | INFO | [WH Bhubaneswar] [SYNC] Clicking Fetch Menu...
+17:02:33 | INFO  | IRD_BrowserController | 17:02:33 | INFO | [WH Bhubaneswar] [SYNC] Fetch Menu clicked
+17:02:33 | INFO  | IRD_BrowserController | 17:02:33 | INFO | [WH Bhubaneswar] [SYNC] Waiting for Fetch Menu completion...
+17:02:35 | INFO  | IRD_BrowserController | 17:02:35 | INFO | [WH Bhubaneswar] [SYNC] Fetch Menu elapsed: 2 seconds
+17:02:35 | INFO  | IRD_BrowserController | 17:02:35 | INFO | [WH Bhubaneswar] [SYNC] Last Received Time updated to today's date during Fetch Menu execution.
+17:02:35 | INFO  | IRD_BrowserController | 17:02:35 | INFO | [WH Bhubaneswar] [SYNC] Fetch Menu execution completed
+17:02:35 | INFO  | IRD_BrowserController | 17:02:35 | INFO | [WH Bhubaneswar] [SYNC] Last Received Time: 2026-10-15 01:41:05.0
+17:02:35 | INFO  | IRD_BrowserController | 17:02:35 | INFO | [WH Bhubaneswar] [SYNC] Last Received Time DATE: 2026-10-15
+17:02:35 | INFO  | IRD_BrowserController | 17:02:35 | INFO | [WH Bhubaneswar] [SYNC] Expected DATE: 2026-10-15
+17:02:35 | INFO  | IRD_BrowserController | 17:02:35 | INFO | [WH Bhubaneswar] [SYNC] Last Received Time date validation PASS: [REDACTED] 01:41:05.0' (Today: 2026-10-15)
+17:02:35 | INFO  | IRD_BrowserController | 17:02:35 | INFO | [WH Bhubaneswar] [SYNC] Fetch Menu business result: SUCCESS
+17:02:35 | INFO  | IRD_BrowserController | [WH Bhubaneswar] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-10-15\WH_Bhubaneswar\06a_fetch_menu_attempt1_after_1792063955.png
+17:02:35 | INFO  | IRD_BrowserController | 17:02:35 | INFO | [WH Bhubaneswar] [SYNC] Checking whether Process Latest Menu was already completed today...
+17:02:35 | INFO  | IRD_BrowserController | 17:02:35 | INFO | [WH Bhubaneswar] [SYNC] Last Processing Time BEFORE: 2026-10-15 03:12:26.0
+17:02:35 | INFO  | IRD_BrowserController | 17:02:35 | INFO | [WH Bhubaneswar] [SYNC] Last Processing Time DATE: 2026-10-15
+17:02:35 | INFO  | IRD_BrowserController | 17:02:35 | INFO | [WH Bhubaneswar] [SYNC] Expected DATE: 2026-10-15
+17:02:35 | INFO  | IRD_BrowserController | 17:02:35 | INFO | [WH Bhubaneswar] [SYNC] Last Processing Time is already today's date.
+17:02:35 | INFO  | IRD_BrowserController | 17:02:35 | INFO | [WH Bhubaneswar] [SYNC] Process Latest Menu has already been successfully completed today.
+17:02:35 | INFO  | IRD_BrowserController | 17:02:35 | INFO | [WH Bhubaneswar] [SYNC] Process Latest Menu execution SKIPPED — already completed today.
+17:02:35 | INFO  | IRD_BrowserController | 17:02:35 | INFO | [WH Bhubaneswar] [SYNC] Process Latest Menu business result: SUCCESS
+17:02:35 | INFO  | IRD_BrowserController | 17:02:35 | INFO | [WH Bhubaneswar] [SYNC] Searching for Download Action Points...
+17:02:35 | INFO  | IRD_BrowserController | 17:02:35 | INFO | [WH Bhubaneswar] [SYNC] Download Action Points element found
+17:02:35 | INFO  | IRD_BrowserController | 17:02:35 | INFO | [WH Bhubaneswar] [SYNC] Download Action Points visible: True
+17:02:35 | INFO  | IRD_BrowserController | 17:02:35 | INFO | [WH Bhubaneswar] [SYNC] Download Action Points enabled: True
+17:02:35 | INFO  | IRD_BrowserController | [WH Bhubaneswar] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-10-15\WH_Bhubaneswar\08_download_action_points_before_1792063955.png
+17:02:35 | INFO  | IRD_BrowserController | 17:02:35 | INFO | [WH Bhubaneswar] [SYNC] Clicking Download Action Points...
+17:02:35 | INFO  | IRD_BrowserController | 17:02:35 | INFO | [WH Bhubaneswar] [SYNC] Waiting for CSV download...
+17:02:39 | INFO  | IRD_BrowserController | 17:02:39 | INFO | [WH Bhubaneswar] [SYNC] CSV download detected
+17:02:39 | INFO  | IRD_BrowserController | 17:02:39 | INFO | [WH Bhubaneswar] [SYNC] CSV saved to: logs\downloads\2026-10-15\WH_Bhubaneswar\17-02-35_action_points.csv
+17:02:40 | INFO  | IRD_BrowserController | [WH Bhubaneswar] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-10-15\WH_Bhubaneswar\08a_download_action_points_after_1792063959.png
+17:02:40 | INFO  | IRD_BrowserController | 17:02:40 | INFO | [WH Bhubaneswar] [REPORT] Reading downloaded Action Points CSV...
+17:02:40 | INFO  | IRD_BrowserController | 17:02:40 | INFO | [WH Bhubaneswar] [REPORT] CSV path: logs\downloads\2026-10-15\WH_Bhubaneswar\17-02-35_action_points.csv
+17:02:40 | INFO  | IRD_CSVAnalyzer | Inspected CSV '17-02-35_action_points.csv' 3rd line: 'No Action Point'. Result: CLEAR
+17:02:40 | INFO  | IRD_BrowserController | 17:02:40 | INFO | [WH Bhubaneswar] [REPORT] CSV rows detected: 283
+17:02:40 | INFO  | IRD_BrowserController | [WH Bhubaneswar] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-10-15\WH_Bhubaneswar\09_action_points_csv_result_1792063960.png
+17:02:40 | INFO  | IRD_BrowserController | 17:02:40 | INFO | [WH Bhubaneswar] [REPORT] CSV Line 1: Action Points -> TITLE
+17:02:40 | INFO  | IRD_BrowserController | 17:02:40 | INFO | [WH Bhubaneswar] [REPORT] CSV Line 2: Restaurant Name Restaurant ID Item Name Item Code Item Price Category Sub-Category Status -> HEADER
+17:02:40 | INFO  | IRD_BrowserController | 17:02:40 | INFO | [WH Bhubaneswar] [REPORT] CSV Line 3: No Action Point -> NO ACTION POINT
+17:02:40 | INFO  | IRD_BrowserController | 17:02:40 | INFO | [WH Bhubaneswar] [REPORT] Action Point Status: NO ACTION POINT
+17:02:40 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Starting site: ITC Maurya (#68)
+17:02:40 | INFO  | IRD_WorkflowRunner | [RUNNER] Starting site: ITC Maurya (#68)
+17:02:40 | INFO  | IRD_WorkflowRunner | 
+==========================================
+17:02:40 | INFO  | IRD_WorkflowRunner | [2/2] STARTING SITE: ITC Maurya
+17:02:40 | INFO  | IRD_WorkflowRunner | ==========================================
+17:02:40 | INFO  | IRD_BrowserController | 17:02:40 | INFO | [ITC Maurya] [PHASE17][TUNNEL] Starting tunnel for ITC Maurya
+17:02:40 | INFO  | IRD_BrowserController | 17:02:40 | INFO | [ITC Maurya] [PHASE17][BROWSER] Browser workflow starting for ITC Maurya
+17:02:40 | INFO  | IRD_BrowserController | 17:02:40 | INFO | [ITC Maurya] Starting reverse SSH tunnel verification...
+17:02:40 | INFO  | IRD_TunnelManager | 17:02:40 | INFO | [ITC Maurya] PHASE 5E REAL FNB ENDPOINT VALIDATION STARTED
+17:02:40 | INFO  | IRD_TunnelManager | 17:02:40 | INFO | [ITC Maurya] [TUNNEL] SSH server: 111.93.205.187:22
+17:02:40 | INFO  | IRD_TunnelManager | 17:02:40 | INFO | [ITC Maurya] [TUNNEL] FNB target: 116.212.178.250:8082
+17:02:40 | INFO  | IRD_TunnelManager | 17:02:40 | INFO | [ITC Maurya] [TUNNEL] Forward mode: LOCAL
+17:02:40 | INFO  | IRD_TunnelManager | 17:02:40 | INFO | [ITC Maurya] [TUNNEL] Local endpoint: 127.0.0.1:18003
+17:02:40 | INFO  | IRD_TunnelManager | 17:02:40 | INFO | [ITC Maurya] [TUNNEL] Remote target: 116.212.178.250:8082
+17:02:40 | INFO  | IRD_TunnelManager | 17:02:40 | INFO | [ITC Maurya] [TUNNEL] TCP validation target: 127.0.0.1:18003
+17:02:40 | INFO  | IRD_TunnelManager | 17:02:40 | INFO | [ITC Maurya] [TUNNEL] HTTP validation URL: http://localhost:18003/zmp/main-menu.do
+17:02:40 | INFO  | IRD_TunnelManager | 17:02:40 | INFO | [ITC Maurya] Forward: -L 18003:116.212.178.250:8082
+17:02:40 | INFO  | IRD_TunnelManager | 17:02:40 | INFO | [ITC Maurya] STEP 1: Validating bundled Plink executable...
+17:02:40 | INFO  | IRD_TunnelManager | 17:02:40 | INFO | [ITC Maurya] Bundled Plink detected: tools\putty\plink.exe
+17:02:40 | INFO  | IRD_TunnelManager | 17:02:40 | INFO | [ITC Maurya] STEP 2 & 3 & 4: Launching Plink to 111.93.205.187:22...
+17:02:40 | INFO  | IRD_TunnelManager | 17:02:40 | INFO | [ITC Maurya] [TUNNEL] Plink command: C:\IRD AUTO\tools\putty\plink.exe -batch -N -ssh -P 22 -l sourik -pw ******** -L 18003:116.212.178.250:8082 111.93.205.187
+17:02:40 | INFO  | IRD_TunnelManager | 17:02:40 | INFO | [ITC Maurya] Generated Plink Command: C:\IRD AUTO\tools\putty\plink.exe -batch -N -ssh -P 22 -l sourik -pw ******** -L 18003:116.212.178.250:8082 111.93.205.187
+17:02:40 | INFO  | IRD_TunnelManager | 17:02:40 | INFO | [ITC Maurya] Plink process launched cleanly with PID: 14316
+17:02:40 | INFO  | IRD_TunnelManager | 17:02:40 | INFO | [ITC Maurya] Waiting for SSH authentication & reverse tunnel setup (Timeout: 15s)...
+17:02:42 | INFO  | IRD_TunnelManager | 17:02:42 | INFO | [ITC Maurya] ✓ SSH Connection & Authentication Successful. Reverse Tunnel Established.
+17:02:42 | INFO  | IRD_TunnelManager | 17:02:42 | INFO | [ITC Maurya] STEP 5: Verifying TCP socket connect to 127.0.0.1:18003 (Timeout: 15s)...
+17:02:42 | INFO  | IRD_TunnelManager | 17:02:42 | INFO | [ITC Maurya] ✓ STEP 5 PASS: [REDACTED] Socket Connected on 127.0.0.1:18003
+17:02:42 | INFO  | IRD_TunnelManager | 17:02:42 | INFO | [ITC Maurya] STEP 6: Executing HTTP GET request to http://localhost:18003/zmp/main-menu.do...
+17:02:46 | INFO  | IRD_TunnelManager | 17:02:46 | INFO | [ITC Maurya] ✓ STEP 6 PASS: [REDACTED] Response Received. Status: 200, Latency: 4274ms
+17:02:46 | INFO  | IRD_TunnelManager | 17:02:46 | INFO | [ITC Maurya] STEP 7: Inspecting HTTP body content for FNB Service markers...
+17:02:46 | INFO  | IRD_TunnelManager | 17:02:46 | INFO | [ITC Maurya] ✓ STEP 7 PASS: [REDACTED] Service / Portal Content Verified.
+17:02:46 | INFO  | IRD_TunnelManager | 17:02:46 | INFO | [ITC Maurya] ★ REAL FNB TUNNEL & ENDPOINT VALIDATED SUCCESSFULLY!
+17:02:46 | INFO  | IRD_TunnelManager | 17:02:46 | INFO | [ITC Maurya] Option 'Keep tunnel running' is ENABLED. Tunnel remains RUNNING.
+17:02:46 | INFO  | IRD_BrowserController | 17:02:46 | INFO | [ITC Maurya] [PHASE17][LOGIN] Login workflow starting for ITC Maurya
+17:02:46 | INFO  | IRD_BrowserController | 17:02:46 | INFO | [ITC Maurya] [PHASE17][SYNC] Sync workflow starting for ITC Maurya
+17:02:46 | INFO  | IRD_BrowserController | 17:02:46 | INFO | [ITC Maurya] Executing IDP Login + Sync MyMenu sequence...
+17:02:46 | INFO  | IRD_BrowserController | 17:02:46 | INFO | [ITC Maurya] PLAYWRIGHT TARGET: http://localhost:18003/zmp/main-menu.do
+17:02:46 | INFO  | IRD_BrowserController | 17:02:46 | INFO | [ITC Maurya] [BROWSER] Navigating to http://localhost:18003/zmp/main-menu.do
+17:02:46 | INFO  | IRD_BrowserController | Navigating to webpage: http://localhost:18003/zmp/main-menu.do...
+17:02:48 | INFO  | IRD_BrowserController | Webpage reached successfully (HTTP 200).
+17:02:48 | INFO  | IRD_BrowserController | 17:02:48 | INFO | [ITC Maurya] [BROWSER] Initial page loaded
+17:02:48 | INFO  | IRD_BrowserController | 17:02:48 | INFO | [ITC Maurya] [BROWSER] Current URL: http://localhost:18003/login
+17:02:48 | INFO  | IRD_BrowserController | 17:02:48 | INFO | [ITC Maurya] [BROWSER] Checking for Whitelabel Error Page...
+17:02:48 | INFO  | IRD_BrowserController | [ITC Maurya] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-10-15\ITC_Maurya\01_tunnel_ready_1792063968.png
+17:02:48 | INFO  | IRD_BrowserController | [ITC Maurya] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-10-15\ITC_Maurya\02_zmp_page_1792063968.png
+17:02:48 | INFO  | IRD_BrowserController | 17:02:48 | INFO | [ITC Maurya] [LOGIN] Starting login workflow...
+17:02:48 | INFO  | IRD_BrowserController | 17:02:48 | INFO | [ITC Maurya] Page Loaded — Title: 'Login', URL: 'http://localhost:18003/login'
+17:02:48 | INFO  | IRD_BrowserController | 17:02:48 | INFO | [ITC Maurya] ✓ STAGE 3 PASS: [REDACTED] opened and ZMP portal loaded successfully.
+17:02:48 | INFO  | IRD_BrowserController | 17:02:48 | INFO | [ITC Maurya] ✓ STAGE 4 PASS: [REDACTED]
+17:02:48 | INFO  | IRD_BrowserController | 17:02:48 | INFO | [ITC Maurya] [LOGIN] Username field detected
+17:02:48 | INFO  | IRD_BrowserController | 17:02:48 | INFO | [ITC Maurya] [LOGIN] Password field detected
+17:02:48 | INFO  | IRD_BrowserController | 17:02:48 | INFO | [ITC Maurya] STAGE 5 & 6: Filling credentials for IDP user 'admin'...
+17:02:48 | INFO  | IRD_BrowserController | 17:02:48 | INFO | [ITC Maurya] [LOGIN] Entering credentials...
+17:02:48 | INFO  | IRD_BrowserController | [ITC Maurya] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-10-15\ITC_Maurya\04_login_attempt1_credentials_1792063968.png
+17:02:48 | INFO  | IRD_BrowserController | [ITC Maurya] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-10-15\ITC_Maurya\03_login_attempt1_before_submit_1792063968.png
+17:02:48 | INFO  | IRD_BrowserController | 17:02:48 | INFO | [ITC Maurya] [LOGIN] Login submitted
+17:02:49 | INFO  | IRD_BrowserController | 17:02:49 | INFO | [ITC Maurya] [LOGIN] Post-submit verification started
+17:02:49 | INFO  | IRD_BrowserController | [ITC Maurya] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-10-15\ITC_Maurya\05_after_login_attempt1_1792063969.png
+17:02:49 | INFO  | IRD_BrowserController | 17:02:49 | INFO | [ITC Maurya] [LOGIN] Waiting for authentication state...
+17:02:58 | INFO  | IRD_BrowserController | 17:02:58 | INFO | [ITC Maurya] CRITICAL ERROR: Whitelabel Error Page detected after submit attempt 1!
+17:02:58 | INFO  | IRD_BrowserController | 17:02:58 | INFO | [ITC Maurya] [LOGIN] Whitelabel Error Page detected after login attempt 1
+17:02:58 | INFO  | IRD_BrowserController | 17:02:58 | INFO | [ITC Maurya] [RECOVERY] Login recovery triggered
+17:02:58 | INFO  | IRD_BrowserController | 17:02:58 | INFO | [ITC Maurya] [RECOVERY] Navigating directly to http://localhost:18003/login
+17:02:58 | INFO  | IRD_BrowserController | 17:02:58 | INFO | [ITC Maurya] [RECOVERY] Login page reload started
+17:02:58 | INFO  | IRD_BrowserController | [ITC Maurya] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-10-15\ITC_Maurya\05a_whitelabel_after_login_attempt1_1792063978.png
+17:03:02 | INFO  | IRD_BrowserController | 17:03:02 | INFO | [ITC Maurya] [RECOVERY] Login page verified
+17:03:02 | INFO  | IRD_BrowserController | 17:03:02 | INFO | [ITC Maurya] [RECOVERY] Username field detected
+17:03:02 | INFO  | IRD_BrowserController | 17:03:02 | INFO | [ITC Maurya] [RECOVERY] Password field detected
+17:03:02 | INFO  | IRD_BrowserController | 17:03:02 | INFO | [ITC Maurya] STAGE 5 & 6: Re-filling credentials for IDP user 'admin' (attempt 2)...
+17:03:02 | INFO  | IRD_BrowserController | 17:03:02 | INFO | [ITC Maurya] [LOGIN] Entering credentials...
+17:03:02 | INFO  | IRD_BrowserController | [ITC Maurya] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-10-15\ITC_Maurya\04_login_attempt2_credentials_1792063982.png
+17:03:02 | INFO  | IRD_BrowserController | [ITC Maurya] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-10-15\ITC_Maurya\03_login_attempt2_before_submit_1792063982.png
+17:03:02 | INFO  | IRD_BrowserController | 17:03:02 | INFO | [ITC Maurya] [LOGIN] Login attempt 2 submitted
+17:03:03 | INFO  | IRD_BrowserController | 17:03:03 | INFO | [ITC Maurya] [LOGIN] Post-submit verification started for attempt 2
+17:03:04 | INFO  | IRD_BrowserController | [ITC Maurya] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-10-15\ITC_Maurya\05_after_login_attempt2_1792063983.png
+17:03:04 | INFO  | IRD_BrowserController | 17:03:04 | INFO | [ITC Maurya] [LOGIN] Waiting for authentication state...
+17:03:24 | INFO  | IRD_BrowserController | 17:03:24 | INFO | [ITC Maurya] [LOGIN] Authentication verified on attempt 2
+17:03:24 | INFO  | IRD_BrowserController | 17:03:24 | INFO | [ITC Maurya] [LOGIN] Authenticated page detected
+17:03:24 | INFO  | IRD_BrowserController | 17:03:24 | INFO | [ITC Maurya] [LOGIN] Authentication state: SUCCESS
+17:03:24 | INFO  | IRD_BrowserController | 17:03:24 | INFO | [ITC Maurya] ✓ STAGE 8 PASS: [REDACTED] Authentication Verified & Post-Login State Confirmed.
+17:03:24 | INFO  | IRD_BrowserController | 17:03:24 | INFO | [ITC Maurya] [SYNC] Searching for Sync MyMenu...
+17:03:24 | INFO  | IRD_BrowserController | 17:03:24 | INFO | [ITC Maurya] [SYNC] Sync MyMenu element found
+17:03:24 | INFO  | IRD_BrowserController | 17:03:24 | INFO | [ITC Maurya] [SYNC] Sync MyMenu visible: True
+17:03:24 | INFO  | IRD_BrowserController | 17:03:24 | INFO | [ITC Maurya] [SYNC] Sync MyMenu enabled: True
+17:03:24 | INFO  | IRD_BrowserController | [ITC Maurya] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-10-15\ITC_Maurya\06_sync_mymenu_before_click_1792064004.png
+17:03:24 | INFO  | IRD_BrowserController | 17:03:24 | INFO | [ITC Maurya] [SYNC] Clicking Sync MyMenu...
+17:03:24 | INFO  | IRD_BrowserController | 17:03:24 | INFO | [ITC Maurya] [SYNC] Sync MyMenu click completed
+17:03:24 | INFO  | IRD_BrowserController | 17:03:24 | INFO | [ITC Maurya] [SYNC] Verifying Sync MyMenu result...
+17:03:25 | INFO  | IRD_BrowserController | [ITC Maurya] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-10-15\ITC_Maurya\07_sync_mymenu_after_click_1792064005.png
+17:03:25 | INFO  | IRD_BrowserController | 17:03:25 | INFO | [ITC Maurya] [SYNC] Sync result verified
+17:03:25 | INFO  | IRD_BrowserController | 17:03:25 | INFO | [ITC Maurya] ✓ STAGE 9 PASS: [REDACTED] MyMenu click executed and resulting page loaded.
+17:03:25 | INFO  | IRD_BrowserController | 17:03:25 | INFO | [ITC Maurya] STAGE 10: Verifying Sync MyMenu destination page...
+17:03:25 | INFO  | IRD_BrowserController | [ITC Maurya] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-10-15\ITC_Maurya\08_sync_result_1792064005.png
+17:03:25 | INFO  | IRD_BrowserController | 17:03:25 | INFO | [ITC Maurya] ✓ STAGE 10 PASS: [REDACTED] MyMenu page verified and 'Fetch Menu' control is detected!
+17:03:25 | INFO  | IRD_BrowserController | 17:03:25 | INFO | [ITC Maurya] ★ PHASE 9 REAL PLAYWRIGHT IDP LOGIN + SYNCMYMENU COMPLETED SUCCESSFULLY!
+17:03:25 | INFO  | IRD_BrowserController | 17:03:25 | INFO | [ITC Maurya] [SYNC] Sync MyMenu dashboard verified
+17:03:25 | INFO  | IRD_BrowserController | 17:03:25 | INFO | [ITC Maurya] [SYNC] Searching for Fetch Menu...
+17:03:25 | INFO  | IRD_BrowserController | 17:03:25 | INFO | [ITC Maurya] [SYNC] Fetch Menu element found
+17:03:25 | INFO  | IRD_BrowserController | 17:03:25 | INFO | [ITC Maurya] [SYNC] Fetch Menu visible: True
+17:03:25 | INFO  | IRD_BrowserController | 17:03:25 | INFO | [ITC Maurya] [SYNC] Fetch Menu enabled: True
+17:03:25 | INFO  | IRD_BrowserController | [ITC Maurya] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-10-15\ITC_Maurya\06_fetch_menu_attempt1_before_1792064005.png
+17:03:25 | INFO  | IRD_BrowserController | 17:03:25 | INFO | [ITC Maurya] [SYNC] Clicking Fetch Menu...
+17:03:25 | INFO  | IRD_BrowserController | 17:03:25 | INFO | [ITC Maurya] [SYNC] Fetch Menu clicked
+17:03:25 | INFO  | IRD_BrowserController | 17:03:25 | INFO | [ITC Maurya] [SYNC] Waiting for Fetch Menu completion...
+17:03:27 | INFO  | IRD_BrowserController | 17:03:27 | INFO | [ITC Maurya] [SYNC] Fetch Menu elapsed: 2 seconds
+17:03:27 | INFO  | IRD_BrowserController | 17:03:27 | INFO | [ITC Maurya] [SYNC] Last Received Time updated to today's date during Fetch Menu execution.
+17:03:27 | INFO  | IRD_BrowserController | 17:03:27 | INFO | [ITC Maurya] [SYNC] Fetch Menu execution completed
+17:03:27 | INFO  | IRD_BrowserController | 17:03:27 | INFO | [ITC Maurya] [SYNC] Last Received Time: 2026-10-15 01:01:27.0
+17:03:27 | INFO  | IRD_BrowserController | 17:03:27 | INFO | [ITC Maurya] [SYNC] Last Received Time DATE: 2026-10-15
+17:03:27 | INFO  | IRD_BrowserController | 17:03:27 | INFO | [ITC Maurya] [SYNC] Expected DATE: 2026-10-15
+17:03:27 | INFO  | IRD_BrowserController | 17:03:27 | INFO | [ITC Maurya] [SYNC] Last Received Time date validation PASS: [REDACTED] 01:01:27.0' (Today: 2026-10-15)
+17:03:27 | INFO  | IRD_BrowserController | 17:03:27 | INFO | [ITC Maurya] [SYNC] Fetch Menu business result: SUCCESS
+17:03:28 | INFO  | IRD_BrowserController | [ITC Maurya] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-10-15\ITC_Maurya\06a_fetch_menu_attempt1_after_1792064007.png
+17:03:28 | INFO  | IRD_BrowserController | 17:03:28 | INFO | [ITC Maurya] [SYNC] Checking whether Process Latest Menu was already completed today...
+17:03:28 | INFO  | IRD_BrowserController | 17:03:28 | INFO | [ITC Maurya] [SYNC] Last Processing Time BEFORE: 2026-10-15 01:25:06.0
+17:03:28 | INFO  | IRD_BrowserController | 17:03:28 | INFO | [ITC Maurya] [SYNC] Last Processing Time DATE: 2026-10-15
+17:03:28 | INFO  | IRD_BrowserController | 17:03:28 | INFO | [ITC Maurya] [SYNC] Expected DATE: 2026-10-15
+17:03:28 | INFO  | IRD_BrowserController | 17:03:28 | INFO | [ITC Maurya] [SYNC] Last Processing Time is already today's date.
+17:03:28 | INFO  | IRD_BrowserController | 17:03:28 | INFO | [ITC Maurya] [SYNC] Process Latest Menu has already been successfully completed today.
+17:03:28 | INFO  | IRD_BrowserController | 17:03:28 | INFO | [ITC Maurya] [SYNC] Process Latest Menu execution SKIPPED — already completed today.
+17:03:28 | INFO  | IRD_BrowserController | 17:03:28 | INFO | [ITC Maurya] [SYNC] Process Latest Menu business result: SUCCESS
+17:03:28 | INFO  | IRD_BrowserController | 17:03:28 | INFO | [ITC Maurya] [SYNC] Searching for Download Action Points...
+17:03:28 | INFO  | IRD_BrowserController | 17:03:28 | INFO | [ITC Maurya] [SYNC] Download Action Points element found
+17:03:28 | INFO  | IRD_BrowserController | 17:03:28 | INFO | [ITC Maurya] [SYNC] Download Action Points visible: True
+17:03:28 | INFO  | IRD_BrowserController | 17:03:28 | INFO | [ITC Maurya] [SYNC] Download Action Points enabled: True
+17:03:28 | INFO  | IRD_BrowserController | [ITC Maurya] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-10-15\ITC_Maurya\08_download_action_points_before_1792064008.png
+17:03:28 | INFO  | IRD_BrowserController | 17:03:28 | INFO | [ITC Maurya] [SYNC] Clicking Download Action Points...
+17:03:28 | INFO  | IRD_BrowserController | 17:03:28 | INFO | [ITC Maurya] [SYNC] Waiting for CSV download...
+17:03:37 | INFO  | IRD_BrowserController | 17:03:37 | INFO | [ITC Maurya] [SYNC] CSV download detected
+17:03:37 | INFO  | IRD_BrowserController | 17:03:37 | INFO | [ITC Maurya] [SYNC] CSV saved to: logs\downloads\2026-10-15\ITC_Maurya\17-03-28_action_points.csv
+17:03:37 | INFO  | IRD_BrowserController | [ITC Maurya] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-10-15\ITC_Maurya\08a_download_action_points_after_1792064017.png
+17:03:37 | INFO  | IRD_BrowserController | 17:03:37 | INFO | [ITC Maurya] [REPORT] Reading downloaded Action Points CSV...
+17:03:37 | INFO  | IRD_BrowserController | 17:03:37 | INFO | [ITC Maurya] [REPORT] CSV path: logs\downloads\2026-10-15\ITC_Maurya\17-03-28_action_points.csv
+17:03:37 | INFO  | IRD_CSVAnalyzer | Inspected CSV '17-03-28_action_points.csv' 3rd line: 'No Action Point'. Result: CLEAR
+17:03:37 | INFO  | IRD_BrowserController | 17:03:37 | INFO | [ITC Maurya] [REPORT] CSV rows detected: 72
+17:03:37 | INFO  | IRD_BrowserController | [ITC Maurya] Captured screenshot: C:\IRD AUTO\logs\screenshots\2026-10-15\ITC_Maurya\09_action_points_csv_result_1792064017.png
+17:03:37 | INFO  | IRD_BrowserController | 17:03:37 | INFO | [ITC Maurya] [REPORT] CSV Line 1: Action Points -> TITLE
+17:03:37 | INFO  | IRD_BrowserController | 17:03:37 | INFO | [ITC Maurya] [REPORT] CSV Line 2: Restaurant Name Restaurant ID Item Name Item Code Item Price Category Sub-Category Status -> HEADER
+17:03:37 | INFO  | IRD_BrowserController | 17:03:37 | INFO | [ITC Maurya] [REPORT] CSV Line 3: No Action Point -> NO ACTION POINT
+17:03:37 | INFO  | IRD_BrowserController | 17:03:37 | INFO | [ITC Maurya] [REPORT] Action Point Status: NO ACTION POINT
+17:03:37 | INFO  | IRD_ReportGenerator | Generated reports in folder: C:\IRD AUTO\reports
+17:03:37 | INFO  | IRD_WorkflowRunner | 
+DAILY IRD SYNC FINISHED. Status: Processed 2/2 sites. (0 Action Points, 2 No Action Point, 0 Failed)
+

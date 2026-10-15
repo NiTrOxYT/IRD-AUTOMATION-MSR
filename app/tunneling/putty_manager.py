@@ -120,11 +120,17 @@ class PuTTYManager:
         global_tunnel_cfg = get_global_tunnel_config()
 
         # SSH Server Host, Port, Username
-        ssh_host = getattr(site, "ssh_host", "") or ssh_cfg.get("ssh_host") or "111.93.205.187"
+        raw_ssh_host = getattr(site, "ssh_host", "")
+        ssh_host = raw_ssh_host if (raw_ssh_host and raw_ssh_host != "None") else (ssh_cfg.get("ssh_host") or "111.93.205.187")
         ssh_port = getattr(site, "ssh_port", 0) or ssh_cfg.get("ssh_port") or 22
-        ssh_user = getattr(site, "ssh_username", "") or ssh_cfg.get("ssh_username") or "sourik"
+        raw_ssh_user = getattr(site, "ssh_username", "")
+        ssh_user = raw_ssh_user if (raw_ssh_user and raw_ssh_user != "None") else (ssh_cfg.get("ssh_username") or "sourik")
         auth_type = str(getattr(site, "auth_type", "") or ssh_cfg.get("auth_type") or "password").lower()
+        if auth_type == "none":
+            auth_type = "password"
         session_name = getattr(site, "putty_session", "") or ""
+        if session_name == "None":
+            session_name = ""
 
         # 1. PuTTY Saved Session
         if auth_type == "session" and session_name:
@@ -138,12 +144,12 @@ class PuTTYManager:
 
             # Host Key if configured
             ssh_host_key = (getattr(site, "ssh_host_key", "") or "").strip() or ssh_cfg.get("ssh_host_key", "")
-            if ssh_host_key:
+            if ssh_host_key and ssh_host_key != "None":
                 cmd.extend(["-hostkey", ssh_host_key])
 
             # Private Key
             ssh_key = (getattr(site, "ssh_key_path", "") or "").strip() or ssh_cfg.get("ssh_key_path", "")
-            if auth_type == "key" and ssh_key and os.path.exists(ssh_key):
+            if auth_type == "key" and ssh_key and ssh_key != "None" and os.path.exists(ssh_key):
                 cmd.extend(["-i", ssh_key])
             else:
                 # Password Auth (DPAPI Decrypted in memory)
@@ -153,8 +159,13 @@ class PuTTYManager:
 
         # Forwarding Specification: Local Port, Site IP, Site Port
         local_port = getattr(site, "local_port", 18001) or 18001
-        site_ip = getattr(site, "site_ip", "") or getattr(site, "remote_host", "127.0.0.1") or "127.0.0.1"
-        site_port = getattr(site, "site_port", 0) or getattr(site, "remote_port", 0) or global_tunnel_cfg.get("tunnel_remote_port") or 8082
+        raw_site_ip = getattr(site, "site_ip", "")
+        if not raw_site_ip or raw_site_ip == "None":
+            raw_site_ip = getattr(site, "remote_host", "")
+        site_ip = raw_site_ip if (raw_site_ip and raw_site_ip != "None") else "127.0.0.1"
+
+        raw_site_port = getattr(site, "site_port", 0) or getattr(site, "remote_port", 0)
+        site_port = int(raw_site_port) if raw_site_port else (global_tunnel_cfg.get("tunnel_remote_port") or 80)
         
         # Architecture is LOCAL PORT FORWARDING (-L) for desktop browser access (127.0.0.1:<local_port> -> <site_ip>:<site_port>)
         cmd.extend(["-L", f"{local_port}:{site_ip}:{site_port}"])
@@ -206,6 +217,61 @@ class PuTTYManager:
 
         return cmd
 
+    @classmethod
+    def launch_putty_gui(cls, site: Any) -> Tuple[bool, str]:
+        """
+        Launches interactive graphical PuTTY client configured with reverse SSH tunnel to site.
+        """
+        from app.database.db import get_office_ssh_config, get_office_ssh_password_decrypted, get_global_tunnel_config
+        putty_path = get_bundled_putty_path()
+        if not putty_path or not os.path.exists(putty_path):
+            return False, "Bundled PuTTY executable tools/putty/putty.exe not found."
+
+        ssh_cfg = get_office_ssh_config()
+        global_tunnel_cfg = get_global_tunnel_config()
+
+        raw_ssh_host = getattr(site, "ssh_host", "")
+        ssh_host = raw_ssh_host if (raw_ssh_host and raw_ssh_host != "None") else (ssh_cfg.get("ssh_host") or "111.93.205.187")
+        ssh_port = getattr(site, "ssh_port", 0) or ssh_cfg.get("ssh_port") or 22
+        raw_ssh_user = getattr(site, "ssh_username", "")
+        ssh_user = raw_ssh_user if (raw_ssh_user and raw_ssh_user != "None") else (ssh_cfg.get("ssh_username") or "sourik")
+
+        local_port = getattr(site, "local_port", 18001) or 18001
+        raw_site_ip = getattr(site, "site_ip", "") or getattr(site, "remote_host", "")
+        site_ip = raw_site_ip if (raw_site_ip and raw_site_ip != "None") else "127.0.0.1"
+
+        raw_site_port = getattr(site, "site_port", 0) or getattr(site, "remote_port", 0)
+        site_port = int(raw_site_port) if raw_site_port else (global_tunnel_cfg.get("tunnel_remote_port") or 8080)
+
+        session_name = getattr(site, "putty_session", "") or ""
+        if session_name == "None":
+            session_name = ""
+
+        cmd = [putty_path]
+        if session_name:
+            cmd.extend(["-load", session_name])
+        else:
+            cmd.extend(["-ssh", "-P", str(ssh_port)])
+            if ssh_user:
+                cmd.extend(["-l", ssh_user])
+            ssh_pass = (getattr(site, "ssh_password", "") or "").strip() or get_office_ssh_password_decrypted()
+            if ssh_pass:
+                cmd.extend(["-pw", ssh_pass])
+
+        cmd.extend(["-L", f"{local_port}:{site_ip}:{site_port}"])
+        if not session_name:
+            cmd.append(ssh_host)
+
+        try:
+            subprocess.Popen(cmd, shell=False)
+            scrubbed = cls.scrub_sensitive_info(" ".join(cmd))
+            logger.info(f"Launched graphical PuTTY: {scrubbed}")
+            return True, f"PuTTY GUI launched successfully. Tunnel: localhost:{local_port} -> {site_ip}:{site_port}"
+        except Exception as e:
+            logger.error(f"Failed to launch PuTTY: {e}")
+            return False, f"Failed to launch PuTTY: {str(e)}"
+
 putty_manager = PuTTYManager()
+
 
 

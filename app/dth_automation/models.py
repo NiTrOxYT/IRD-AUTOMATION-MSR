@@ -31,6 +31,43 @@ class DthExecutionMode(str, Enum):
     LIVE = "LIVE"
 
 
+class DthWorkflowState(str, Enum):
+    IDLE = "IDLE"
+    BROWSER_INITIALIZED = "BROWSER_INITIALIZED"
+    PORTAL_ENTRY_OPENED = "PORTAL_ENTRY_OPENED"
+    AUTHENTICATION_REQUIRED = "AUTHENTICATION_REQUIRED"
+    AUTHENTICATING = "AUTHENTICATING"
+    AUTHENTICATED = "AUTHENTICATED"
+    CHANNEL_PAGE_OPENED = "CHANNEL_PAGE_OPENED"
+    CHANNEL_FORM_VERIFIED = "CHANNEL_FORM_VERIFIED"
+    FORM_FILLED = "FORM_FILLED"
+    SAVE_SUBMITTED = "SAVE_SUBMITTED"
+    SAVE_VERIFIED = "SAVE_VERIFIED"
+    FAILED = "FAILED"
+    NEEDS_USER_ACTION = "NEEDS_USER_ACTION"
+    UNKNOWN = "UNKNOWN"
+
+
+class BrowserSnapshot(BaseModel):
+    step_number: int
+    action_name: str
+    url: str
+    title: str
+    detected_state: str
+    main_frame_url: str = ""
+    child_frame_urls: List[str] = Field(default_factory=list)
+    visible_headings: List[str] = Field(default_factory=list)
+    visible_text_summary: str = ""
+    visible_buttons: List[str] = Field(default_factory=list)
+    visible_inputs: List[Dict[str, Any]] = Field(default_factory=list)
+    detected_auth_state: str = "UNKNOWN"
+    verification_passed: bool = True
+    verification_notes: str = ""
+    screenshot_path: Optional[str] = None
+    snapshot_path: Optional[str] = None
+    timestamp: str = ""
+
+
 class ChannelItem(BaseModel):
     row_number: int
     channel_number: str
@@ -190,6 +227,8 @@ class DthSettingsModel(BaseModel):
     max_file_size_mb: int = 10
     page_load_timeout: int = 60
     save_timeout: int = 30
+    headless: bool = False
+    browser_type: str = "chromium"
     debug_screenshots: bool = True
     log_level: str = "INFO"
     image_allowed_extensions: str = ".png,.jpg,.jpeg,.bmp,.webp"

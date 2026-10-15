@@ -2061,11 +2061,11 @@ async function runDthValidation() {
   if (lblStatus) lblStatus.textContent = "Validating records...";
 
   const imgDirInput = document.getElementById('dth-image-dir-input');
-  const imgDir = imgDirInput ? imgDirInput.value.trim() : "";
+  const imgDir = (imgDirInput ? imgDirInput.value.trim() : "") || "C:\\IRD AUTO\\data\\channel_logo";
 
   const formData = new FormData();
   formData.append('filename', dthState.uploadedFilename);
-  if (imgDir) formData.append('image_dir', imgDir);
+  formData.append('image_dir', imgDir);
 
   try {
     const res = await fetch('/api/dth/validate', {
@@ -2131,7 +2131,7 @@ function renderDthPreviewTable(items, results) {
         <td>${escapeHtml(item.name)}</td>
         <td>${escapeHtml(item.osd)}</td>
         <td>${catBadges}</td>
-        <td><small style="color: var(--text-muted);">${escapeHtml(item.image)}</small></td>
+        <td><small style="color: var(--accent-cyan); font-weight: 500;">${escapeHtml(item.image)}</small></td>
         <td><span class="status-badge ${statusClass}">${escapeHtml(status)}</span></td>
         <td>${status === 'SKIPPED_DUPLICATE' ? 'ALREADY IN PORTAL' : '-'}</td>
         <td style="font-size: 12px; color: ${status === 'INVALID' ? 'var(--accent-red)' : 'var(--text-muted)'};">${escapeHtml(details)}</td>
@@ -2162,9 +2162,9 @@ async function executeDthRun(mode, authorized) {
   const siteSel = document.getElementById('dth-select-site');
   const siteId = siteSel ? parseInt(siteSel.value) : 1;
   const imgDirInput = document.getElementById('dth-image-dir-input');
-  const imgDir = imgDirInput ? imgDirInput.value.trim() : "";
+  const imgDir = (imgDirInput ? imgDirInput.value.trim() : "") || "C:\\IRD AUTO\\data\\channel_logo";
   const delayInput = document.getElementById('dth-delay-input');
-  const delay = delayInput ? parseFloat(delayInput.value) || 1.0 : 1.0;
+  const delay = delayInput ? (parseFloat(delayInput.value) >= 0 ? parseFloat(delayInput.value) : 0.2) : 0.2;
 
   const modeBadge = document.getElementById('badge-dth-mode');
   if (modeBadge) {
@@ -2220,7 +2220,14 @@ function updateDthStatusUI(statusData) {
   toggleDthActionButtons(isRunning);
 
   const elOp = document.getElementById('dth-status-operation');
-  if (elOp) elOp.textContent = `Status: ${statusData.operation || statusData.status || 'Idle'}`;
+  if (elOp) {
+    let opText = statusData.operation || statusData.status || 'Idle';
+    if (statusData.latest_snapshot) {
+      const snap = statusData.latest_snapshot;
+      opText = `[Step ${snap.step_number}] ${snap.action_name}: ${snap.detected_state} (${snap.verification_passed ? 'PASS' : 'FAIL'})`;
+    }
+    elOp.textContent = `Status: ${opText}`;
+  }
 
   const elCh = document.getElementById('dth-status-current-channel');
   if (elCh) elCh.textContent = `Current: ${statusData.current_channel || 'None'}`;
@@ -2230,6 +2237,21 @@ function updateDthStatusUI(statusData) {
 
   const dot = document.getElementById('dth-status-dot');
   if (dot) dot.style.background = isRunning ? 'var(--accent-green)' : 'var(--text-muted)';
+
+  if (statusData.latest_snapshot) {
+    const snap = statusData.latest_snapshot;
+    if (dthState.lastSnapshotStep !== snap.step_number) {
+      dthState.lastSnapshotStep = snap.step_number;
+      if (typeof appendLogToTestConsole === 'function') {
+        appendLogToTestConsole({
+          timestamp: snap.timestamp,
+          level: snap.verification_passed ? 'INFO' : 'WARN',
+          logger: 'DTH Observer',
+          message: `[Step ${snap.step_number}] ${snap.action_name} -> ${snap.detected_state} [${snap.verification_passed ? 'VERIFIED' : 'CHECK FAILED'}]`
+        });
+      }
+    }
+  }
 
   if (statusData.run_id) {
     dthState.lastRunId = statusData.run_id;
@@ -2519,7 +2541,11 @@ async function loadDthSitesConfig() {
           <td><small style="color: var(--text-muted);">${escapeHtml(tunnelInfo)}</small></td>
           <td>${stateBadge}</td>
           <td id="dth-site-conn-${s.id}">
-            <button class="btn btn-secondary btn-sm" onclick="testDthSiteFromTable(${s.id}, this)">Test</button>
+            <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+              <button class="btn btn-primary btn-sm" onclick="openDthSitePortal(${s.id}, this)" title="Connect Reverse Tunnel & Open Portal in Browser" style="padding: 3px 7px; font-size: 0.78rem;">🌐 Portal</button>
+              <button class="btn btn-secondary btn-sm" onclick="launchDthSitePutty(${s.id}, this)" title="Launch Interactive PuTTY GUI with Tunnel" style="padding: 3px 7px; font-size: 0.78rem;">💻 PuTTY</button>
+              <button class="btn btn-secondary btn-sm" onclick="testDthSiteFromTable(${s.id}, this)" title="Test reverse SSH tunnel connectivity" style="padding: 3px 7px; font-size: 0.78rem;">⚡ Test</button>
+            </div>
           </td>
           <td>
             <div style="display: flex; gap: 6px;">
@@ -2554,7 +2580,7 @@ function openAddDthSiteModal() {
   setVal('modal-dth-portal-url', "");
   setVal('modal-dth-local-port', "18001");
   setVal('modal-dth-site-ip', "");
-  setVal('modal-dth-site-port', "80");
+  setVal('modal-dth-site-port', "8080");
   setVal('modal-dth-idp-username', "admin");
   setVal('modal-dth-idp-password', "");
   setVal('modal-dth-ssh-host', "");
@@ -2582,21 +2608,22 @@ async function openEditDthSiteModal(siteId) {
     const title = document.getElementById('modal-dth-site-title');
     if (title) title.textContent = `Edit DTH Site: ${s.name}`;
 
+    const cleanStr = (val) => (!val || val === "None" || val === "null" || val === "undefined") ? "" : val;
     const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val !== null && val !== undefined ? val : ""; };
     setVal('modal-dth-site-id', s.id);
-    setVal('modal-dth-site-name', s.name);
-    setVal('modal-dth-portal-url', s.portal_url);
+    setVal('modal-dth-site-name', cleanStr(s.name));
+    setVal('modal-dth-portal-url', cleanStr(s.portal_url || s.web_url));
     setVal('modal-dth-local-port', s.local_port || 18001);
-    setVal('modal-dth-site-ip', s.remote_host);
-    setVal('modal-dth-site-port', s.remote_port || 80);
-    setVal('modal-dth-idp-username', s.idp_username || "admin");
+    setVal('modal-dth-site-ip', cleanStr(s.site_ip || s.remote_host));
+    setVal('modal-dth-site-port', s.site_port || s.remote_port || 80);
+    setVal('modal-dth-idp-username', cleanStr(s.idp_username) || "admin");
     setVal('modal-dth-idp-password', ""); // Do not expose password
-    setVal('modal-dth-ssh-host', s.ssh_host);
+    setVal('modal-dth-ssh-host', cleanStr(s.ssh_host));
     setVal('modal-dth-ssh-port', s.ssh_port || 22);
-    setVal('modal-dth-ssh-username', s.ssh_username);
+    setVal('modal-dth-ssh-username', cleanStr(s.ssh_username));
     setVal('modal-dth-ssh-password', ""); // Do not expose password
-    setVal('modal-dth-putty-session', s.putty_session);
-    setVal('modal-dth-notes', s.notes);
+    setVal('modal-dth-putty-session', cleanStr(s.putty_session));
+    setVal('modal-dth-notes', cleanStr(s.notes));
 
     const chk = document.getElementById('modal-dth-enabled');
     if (chk) chk.checked = !!s.enabled;
@@ -2623,13 +2650,17 @@ async function saveDthSite() {
   const idVal = document.getElementById('modal-dth-site-id')?.value;
   const isEdit = !!idVal;
   const siteId = isEdit ? parseInt(idVal) : null;
+  const siteIpVal = document.getElementById('modal-dth-site-ip')?.value.trim() || null;
+  const sitePortVal = parseInt(document.getElementById('modal-dth-site-port')?.value) || 80;
 
   const payload = {
     name: name,
     portal_url: document.getElementById('modal-dth-portal-url')?.value.trim() || null,
     local_port: parseInt(document.getElementById('modal-dth-local-port')?.value) || 18001,
-    remote_host: document.getElementById('modal-dth-site-ip')?.value.trim() || null,
-    remote_port: parseInt(document.getElementById('modal-dth-site-port')?.value) || 80,
+    site_ip: siteIpVal,
+    remote_host: siteIpVal,
+    site_port: sitePortVal,
+    remote_port: sitePortVal,
     idp_username: document.getElementById('modal-dth-idp-username')?.value.trim() || "admin",
     ssh_host: document.getElementById('modal-dth-ssh-host')?.value.trim() || null,
     ssh_port: parseInt(document.getElementById('modal-dth-ssh-port')?.value) || 22,
@@ -2718,13 +2749,72 @@ async function testDthSiteFromTable(siteId, btnEl) {
       } else {
         cell.innerHTML = `<span class="status-badge badge-dth-failed" title="${escapeHtml(data.message || data.detail)}">Failed</span>`;
       }
-    } else if (btnEl) {
+    }
+    if (btnEl) {
       btnEl.textContent = data.success ? "OK" : "Failed";
+    }
+    if (!data.success) {
+      alert(`Connectivity test failed: ${data.message || data.detail || 'Could not connect'}`);
+    } else {
+      alert(`Connectivity test successful: ${data.message}`);
     }
   } catch (e) {
     if (btnEl) btnEl.textContent = "Err";
+    alert("Connectivity test error: " + e.message);
   } finally {
     if (btnEl) btnEl.disabled = false;
+  }
+}
+
+async function openDthSitePortal(siteId, btnEl) {
+  const origText = btnEl ? btnEl.innerHTML : "";
+  if (btnEl) {
+    btnEl.disabled = true;
+    btnEl.innerHTML = "...";
+  }
+
+  try {
+    const res = await fetch(`/api/dth/sites/${siteId}/open-portal`, { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      alert(`Could not open site portal: ${data.message || data.detail || 'Tunnel setup failed'}`);
+    } else {
+      if (data.portal_url) {
+        window.open(data.portal_url, '_blank');
+      }
+    }
+  } catch (e) {
+    alert("Error opening site portal: " + e.message);
+  } finally {
+    if (btnEl) {
+      btnEl.disabled = false;
+      btnEl.innerHTML = origText || "🌐 Portal";
+    }
+  }
+}
+
+async function launchDthSitePutty(siteId, btnEl) {
+  const origText = btnEl ? btnEl.innerHTML : "";
+  if (btnEl) {
+    btnEl.disabled = true;
+    btnEl.innerHTML = "...";
+  }
+
+  try {
+    const res = await fetch(`/api/dth/sites/${siteId}/launch-putty`, { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      alert(`Could not launch PuTTY: ${data.message || data.detail || 'PuTTY execution failed'}`);
+    } else {
+      alert(data.message || "PuTTY GUI launched successfully.");
+    }
+  } catch (e) {
+    alert("Error launching PuTTY: " + e.message);
+  } finally {
+    if (btnEl) {
+      btnEl.disabled = false;
+      btnEl.innerHTML = origText || "💻 PuTTY";
+    }
   }
 }
 
@@ -2915,6 +3005,11 @@ async function loadDthSettings() {
     if (settings.max_file_size_mb !== undefined) setVal('dth-set-max-file-mb', settings.max_file_size_mb);
     if (settings.portal_page_timeout !== undefined) setVal('dth-set-page-timeout', settings.portal_page_timeout);
     if (settings.channel_save_timeout !== undefined) setVal('dth-set-save-timeout', settings.channel_save_timeout);
+    if (settings.headless !== undefined) {
+      const isHeadless = settings.headless === true || String(settings.headless).toLowerCase() === 'true' || settings.headless === 1 || settings.headless === '1';
+      setChk('dth-set-headless', isHeadless);
+    }
+    if (settings.browser_type) setVal('dth-set-browser-type', settings.browser_type);
     if (settings.allowed_image_extensions) setVal('dth-set-img-exts', settings.allowed_image_extensions);
     if (settings.max_image_size_kb !== undefined) setVal('dth-set-img-max-kb', settings.max_image_size_kb);
     if (settings.log_level) setVal('dth-set-log-level', settings.log_level);
@@ -2930,6 +3025,8 @@ async function saveDthSettings() {
     channel_delay_seconds: parseFloat(document.getElementById('dth-set-delay')?.value) || 1.0,
     max_rows: parseInt(document.getElementById('dth-set-max-rows')?.value) || 5000,
     max_file_size_mb: parseInt(document.getElementById('dth-set-max-file-mb')?.value) || 10,
+    headless: document.getElementById('dth-set-headless')?.checked ?? false,
+    browser_type: document.getElementById('dth-set-browser-type')?.value || "chromium",
     portal_page_timeout: parseInt(document.getElementById('dth-set-page-timeout')?.value) || 60,
     channel_save_timeout: parseInt(document.getElementById('dth-set-save-timeout')?.value) || 30,
     allowed_image_extensions: document.getElementById('dth-set-img-exts')?.value || ".png, .jpg, .jpeg, .bmp, .webp",
@@ -2967,6 +3064,8 @@ async function resetDthSettings() {
     channel_delay_seconds: 1.0,
     max_rows: 5000,
     max_file_size_mb: 10,
+    headless: false,
+    browser_type: "chromium",
     portal_page_timeout: 60,
     channel_save_timeout: 30,
     allowed_image_extensions: ".png, .jpg, .jpeg, .bmp, .webp",
@@ -3060,10 +3159,19 @@ function bindDthGlobalEvents() {
 // Window Global Exports for inline HTML onclick handlers
 window.navigateToTab = navigateToTab;
 window.openDthRunDetails = openDthRunDetails;
+window.closeDthRunDetailsModal = () => {
+  const modal = document.getElementById('modal-dth-run-details');
+  if (modal) modal.classList.remove('active');
+};
 window.testDthSiteFromTable = testDthSiteFromTable;
 window.openAddDthSiteModal = openAddDthSiteModal;
 window.openEditDthSiteModal = openEditDthSiteModal;
+window.closeDthSiteModal = closeDthSiteModal;
+window.saveDthSite = saveDthSite;
 window.deleteDthSite = deleteDthSite;
 window.toggleDthSite = toggleDthSite;
 window.importIrdSitesToDth = importIrdSitesToDth;
+window.loadDthSitesConfig = loadDthSitesConfig;
+window.openDthSitePortal = openDthSitePortal;
+window.launchDthSitePutty = launchDthSitePutty;
 

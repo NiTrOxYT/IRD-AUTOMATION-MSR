@@ -107,6 +107,37 @@ class TestDthModelsAndParser(unittest.TestCase):
         self.assertEqual(records[0]["channel_number"], "050")
         self.assertEqual(records[0]["name"], "Music India")
 
+    def test_parse_csv_without_image_header(self):
+        # User requirement: .csv without 'image' header should parse cleanly
+        csv_file = self.test_dir / "no_image_col.csv"
+        csv_file.write_text(
+            "channel_number,name,osd,categories\n"
+            "201,Zee Cinema,Zee Cinema,Movies\n",
+            encoding="utf-8"
+        )
+        records, errors = parse_dth_file(str(csv_file))
+        self.assertEqual(len(errors), 0)
+        self.assertEqual(len(records), 1)
+        self.assertEqual(records[0]["channel_number"], "201")
+        self.assertEqual(records[0]["name"], "Zee Cinema")
+        self.assertEqual(records[0]["image"], "")
+
+    def test_parse_xlsx_without_image_header(self):
+        # User requirement: .xlsx without 'image' header should parse cleanly
+        xlsx_file = self.test_dir / "no_image_col.xlsx"
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.append(["channel_number", "name", "osd", "categories"])
+        ws.append(["202", "Star Gold", "Star Gold", "Movies"])
+        wb.save(str(xlsx_file))
+
+        records, errors = parse_dth_file(str(xlsx_file))
+        self.assertEqual(len(errors), 0)
+        self.assertEqual(len(records), 1)
+        self.assertEqual(records[0]["channel_number"], "202")
+        self.assertEqual(records[0]["name"], "Star Gold")
+        self.assertEqual(records[0]["image"], "")
+
     def test_reject_unsupported_extension(self):
         bad_file = self.test_dir / "data.txt"
         bad_file.write_text("dummy", encoding="utf-8")

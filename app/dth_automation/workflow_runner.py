@@ -11,7 +11,8 @@ from app.database.db import (
     get_dth_site_by_id,
     create_dth_run,
     update_dth_run,
-    save_dth_channel_result
+    save_dth_channel_result,
+    get_all_dth_settings
 )
 from app.dth_automation.models import (
     ChannelItem,
@@ -20,7 +21,8 @@ from app.dth_automation.models import (
     DthRunState,
     DthExecutionMode,
     DthRunSummary,
-    StartDthRunRequest
+    StartDthRunRequest,
+    BrowserSnapshot
 )
 from app.dth_automation.file_parser import parse_dth_file
 from app.dth_automation.validator import validate_channel_batch
@@ -73,6 +75,15 @@ class DthWorkflowRunner:
             except Exception:
                 pass
 
+    def _on_browser_snapshot(self, snapshot: BrowserSnapshot):
+        """Dispatches real-time browser diagnostic snapshots to listeners."""
+        logger.info(f"[OBSERVER RUN #{self.current_run_id}] Step {snapshot.step_number:03d}: {snapshot.action_name} | State: {snapshot.detected_state} | Passed: {snapshot.verification_passed}")
+        self._broadcast_status({
+            "latest_snapshot": snapshot.model_dump(),
+            "workflow_state": snapshot.detected_state,
+            "operation": f"Step {snapshot.step_number}: {snapshot.action_name} ({snapshot.detected_state})"
+        })
+
     def stop_automation(self):
         """Requests graceful cancellation of active DTH automation."""
         logger.warning("[DTH] Cancellation requested by user. Terminating execution...")
@@ -90,10 +101,10 @@ class DthWorkflowRunner:
     async def execute_batch(
         self,
         file_path: str,
-        image_dir: str,
-        site_id: int,
+        image_dir: Optional[str] = None,
+        site_id: int = 1,
         mode: DthExecutionMode = DthExecutionMode.DRY_RUN,
-        channel_delay_seconds: float = 1.0,
+        channel_delay_seconds: float = 0.2,
         authorized: bool = False
     ) -> Dict[str, Any]:
         """
@@ -143,11 +154,14 @@ class DthWorkflowRunner:
         self.current_run_id = run_id
         self._broadcast_status()
 
+        from app.config import CHANNEL_LOGOS_DIR
+        effective_image_dir = image_dir or str(CHANNEL_LOGOS_DIR)
+
         DthAuditLogger.log_event("RUN_STARTED", run_id, None, {
             "site": site.name,
             "filename": filename,
             "mode": mode.value,
-            "image_dir": image_dir
+            "image_dir": effective_image_dir
         })
 
         # Counters
@@ -180,8 +194,40 @@ class DthWorkflowRunner:
             total_channels = len(raw_records)
             update_dth_run(run_id, {"total_channels": total_channels})
 
-            # Step 2: Establish Browser Session & Fetch Portal Duplicate Baseline
+            # Step 2: Establish Reverse Tunnel (Like IRD Automation)
+            raw_ip = str(getattr(site, "site_ip", "") or getattr(site, "remote_host", "") or "").strip()
+            needs_tunnel = bool(raw_ip and raw_ip != "127.0.0.1" and raw_ip.lower() != "localhost") or bool(getattr(site, "ssh_host", ""))
+
+            if needs_tunnel:
+                self.current_operation = f"Establishing reverse tunnel for {site.name} ({site.site_ip or site.remote_host})"
+                self._broadcast_status()
+                from app.tunneling.tunnel_manager import tunnel_manager
+                t_ok, t_msg, t_logs = await tunnel_manager.start_and_verify_tunnel(site, timeout_seconds=30, keep_running=True)
+                if not t_ok:
+                    if mode == DthExecutionMode.LIVE:
+                        err_msg = f"Reverse tunnel failed for {site.name}: {t_msg}"
+                        logger.error(f"[DTH] {err_msg}")
+                        self.current_status = DthRunState.FAILED
+                        self.current_operation = err_msg
+                        update_dth_run(run_id, {
+                            "status": DthRunState.FAILED.value,
+                            "end_time": datetime.now().strftime("%H:%M:%S"),
+                            "error_message": err_msg
+                        })
+                        self._broadcast_status()
+                        return {"success": False, "run_id": run_id, "error": err_msg}
+                    else:
+                        logger.warning(f"[DTH] Tunnel not established in DRY_RUN ({t_msg}). Proceeding with offline validation.")
+
+            # Step 3: Open ZMP Portal and Navigate to /zmp/manage-stb-channels.do
+            local_port = getattr(site, "local_port", 18001) or 18001
+            base_url = f"http://localhost:{local_port}"
+            entry_url = getattr(site, "portal_url", "") or getattr(site, "web_url", "") or f"{base_url}/zmp/main-menu.do"
+            if "127.0.0.1" in entry_url:
+                entry_url = entry_url.replace("127.0.0.1", "localhost")
+
             self.portal_controller = DthPortalController()
+            self.portal_controller.on_snapshot = self._on_browser_snapshot
             portal_nums: Set[str] = set()
             portal_names: Set[str] = set()
             available_categories = None
@@ -189,32 +235,85 @@ class DthWorkflowRunner:
             try:
                 self.current_operation = "Connecting to target portal"
                 self._broadcast_status()
-                # Use site URL
-                target_url = getattr(site, "web_url", "") or f"http://localhost:{site.local_port}/zmp/main-menu.do"
-                await self.portal_controller.initialize(headless=True)
-                nav_ok = await self.portal_controller.navigate_to_url(target_url, timeout_seconds=45)
-                if nav_ok:
-                    # Authenticate if required
-                    if site.idp_username and site.idp_password:
-                        await self.portal_controller.login_if_required(site.idp_username, site.idp_password)
-                    await self.portal_controller.open_dth_configuration()
-                    available_categories = await self.portal_controller.read_available_categories()
-                    portal_nums, portal_names = await self.portal_controller.get_existing_channels_from_portal()
+                dth_settings = get_all_dth_settings()
+                is_headless = str(dth_settings.get("headless", "false")).strip().lower() in ("true", "1", "yes")
+                b_type = str(dth_settings.get("browser_type", "chromium")).strip().lower() or "chromium"
+                logger.info(f"[DTH] Initializing Playwright browser (type: {b_type}, headless: {is_headless})...")
+                if hasattr(self.portal_controller, "set_run_id"):
+                    self.portal_controller.set_run_id(run_id)
+                await self.portal_controller.initialize(headless=is_headless, browser_type_str=b_type)
+
+                # Step 3A: IDP Authentication with Snapshot Verification
+                idp_user = (getattr(site, "idp_username", "") or "").strip() or "admin"
+                idp_pass = (getattr(site, "idp_password", "") or "").strip()
+
+                self.current_operation = f"Connecting and authenticating IDP for {site.name}"
+                self._broadcast_status()
+
+                if hasattr(self.portal_controller, "observe_and_authenticate"):
+                    auth_coro = self.portal_controller.observe_and_authenticate(
+                        base_url=base_url,
+                        username=idp_user,
+                        password=idp_pass,
+                        timeout_seconds=30
+                    )
+                    if asyncio.iscoroutine(auth_coro):
+                        auth_ok, auth_msg = await auth_coro
+                    else:
+                        auth_ok, auth_msg = True, "Authenticated"
+                else:
+                    auth_ok, auth_msg = await self.portal_controller.login_if_required(idp_user, idp_pass)
+
+                if not auth_ok:
+                    err_msg = f"Portal IDP authentication failed: {auth_msg}"
+                    logger.error(f"[DTH] {err_msg}")
+                    if mode == DthExecutionMode.LIVE:
+                        self.current_status = DthRunState.FAILED
+                        self.current_operation = err_msg
+                        update_dth_run(run_id, {
+                            "status": DthRunState.FAILED.value,
+                            "end_time": datetime.now().strftime("%H:%M:%S"),
+                            "error_message": err_msg
+                        })
+                        self._broadcast_status()
+                        return {"success": False, "run_id": run_id, "error": err_msg}
+
+                # Step 3B: Open /zmp/manage-stb-channels.do with Snapshot Verification
+                self.current_operation = "Opening DTH Channel Configuration"
+                self._broadcast_status()
+                cfg_ok, cfg_msg = await self.portal_controller.open_dth_configuration(base_url=base_url)
+                if not cfg_ok and mode == DthExecutionMode.LIVE:
+                    err_msg = f"Failed to open DTH Channel Configuration: {cfg_msg}"
+                    logger.error(f"[DTH] {err_msg}")
+                    self.current_status = DthRunState.FAILED
+                    self.current_operation = err_msg
+                    update_dth_run(run_id, {
+                        "status": DthRunState.FAILED.value,
+                        "end_time": datetime.now().strftime("%H:%M:%S"),
+                        "error_message": err_msg
+                    })
+                    self._broadcast_status()
+                    return {"success": False, "run_id": run_id, "error": err_msg}
+
+                available_categories = await self.portal_controller.read_available_categories()
+                portal_nums, portal_names = await self.portal_controller.get_existing_channels_from_portal()
             except Exception as ex:
                 logger.warning(f"[DTH] Could not query live portal state: {ex}. Proceeding with offline validation.")
 
-            # Step 3: Preflight Validation Pipeline
+            portal_channels_map = getattr(self.portal_controller, "existing_channels_map", {}) if self.portal_controller else {}
+
+            # Step 4: Preflight Validation Pipeline
             self.current_operation = "Executing preflight validation"
             self._broadcast_status()
             items, validation_results = validate_channel_batch(
                 raw_records,
-                image_dir=image_dir,
+                image_dir=effective_image_dir,
                 portal_categories=available_categories,
-                portal_existing_channel_numbers=portal_nums,
-                portal_existing_channel_names=portal_names
+                portal_existing_channel_numbers=None,
+                portal_existing_channel_names=None
             )
 
-            # Step 4: Process Channels
+            # Step 5: Process Channels and Tally Against Portal
             for idx, (channel_item, val_res) in enumerate(zip(items, validation_results), start=1):
                 if self.stop_requested:
                     logger.warning("[DTH] Stopping execution as requested by user.")
@@ -252,33 +351,111 @@ class DthWorkflowRunner:
                     DthAuditLogger.log_event("CHANNEL_INVALID", run_id, channel_item.channel_number, {"errors": err_msg})
                     continue
 
-                # Handle portal duplicates (CREATE ONLY policy)
-                if val_res.status == DthItemState.SKIPPED_DUPLICATE:
-                    skipped_duplicates_count += 1
-                    processed_count += 1
-                    warn_msg = "; ".join(val_res.warnings) or "Duplicate channel already exists in portal"
-                    rec = {
-                        "run_id": run_id,
-                        "row_number": channel_item.row_number,
-                        "channel_number": channel_item.channel_number,
-                        "name": channel_item.name,
-                        "osd": channel_item.osd,
-                        "image": channel_item.image,
-                        "categories": channel_item.categories,
-                        "status": DthItemState.SKIPPED_DUPLICATE.value,
-                        "attempt_count": 0,
-                        "duration_seconds": 0.0,
-                        "error_reason": warn_msg,
-                        "verified_in_portal": True,
-                        "started_at": ch_start,
-                        "completed_at": time.strftime("%H:%M:%S")
-                    }
-                    save_dth_channel_result(rec)
-                    channel_records.append(rec)
-                    DthAuditLogger.log_event("CHANNEL_SKIPPED_DUPLICATE", run_id, channel_item.channel_number, {"warning": warn_msg})
-                    continue
+                ch_key = str(channel_item.channel_number).strip().lower()
+                is_num_in_portal = ch_key in portal_nums or ch_key in portal_channels_map
+                portal_info = portal_channels_map.get(ch_key)
+                portal_name = (portal_info.get("name") if portal_info else "").strip() if portal_info else ""
+                file_name = channel_item.name.strip()
 
-                # DRY RUN MODE: No browser mutations
+                # For every channel, first check with channel number in ZMP portal:
+                if is_num_in_portal:
+                    # Channel number ALREADY present in portal: check channel name
+                    if portal_name and portal_name.lower() == file_name.lower():
+                        # Portal name matches file name: tallied & duplicate
+                        skipped_duplicates_count += 1
+                        processed_count += 1
+                        tally_msg = f"Channel #{channel_item.channel_number} already in portal with matching name '{portal_name}' (Tallied)"
+                        rec = {
+                            "run_id": run_id,
+                            "row_number": channel_item.row_number,
+                            "channel_number": channel_item.channel_number,
+                            "name": channel_item.name,
+                            "osd": channel_item.osd,
+                            "image": channel_item.image,
+                            "categories": channel_item.categories,
+                            "status": DthItemState.SKIPPED_DUPLICATE.value,
+                            "attempt_count": 0,
+                            "duration_seconds": 0.0,
+                            "error_reason": tally_msg,
+                            "verified_in_portal": True,
+                            "started_at": ch_start,
+                            "completed_at": time.strftime("%H:%M:%S")
+                        }
+                        save_dth_channel_result(rec)
+                        channel_records.append(rec)
+                        DthAuditLogger.log_event("CHANNEL_TALLIED_DUPLICATE", run_id, channel_item.channel_number, {"message": tally_msg})
+                        continue
+                    else:
+                        # Channel number is present, but name differs:
+                        # File is always true: tally with portal and configure to match file!
+                        if mode == DthExecutionMode.DRY_RUN:
+                            successful_count += 1
+                            processed_count += 1
+                            tally_msg = f"Dry Run: Channel #{channel_item.channel_number} in portal as '{portal_name}', file has '{file_name}'. File is true - will configure in LIVE mode."
+                            rec = {
+                                "run_id": run_id,
+                                "row_number": channel_item.row_number,
+                                "channel_number": channel_item.channel_number,
+                                "name": channel_item.name,
+                                "osd": channel_item.osd,
+                                "image": channel_item.image,
+                                "categories": channel_item.categories,
+                                "status": DthItemState.READY.value,
+                                "attempt_count": 0,
+                                "duration_seconds": 0.0,
+                                "error_reason": tally_msg,
+                                "verified_in_portal": False,
+                                "started_at": ch_start,
+                                "completed_at": time.strftime("%H:%M:%S")
+                            }
+                            save_dth_channel_result(rec)
+                            channel_records.append(rec)
+                            continue
+                        else:
+                            # LIVE MODE: Configure/update channel on portal to match file
+                            self.current_operation = f"Updating Channel #{channel_item.channel_number}: '{portal_name}' -> '{file_name}'"
+                            self._broadcast_status()
+
+                            item_state, reason, verified = await self.portal_controller.update_channel(channel_item, portal_info)
+                            duration = round(time.time() - start_ticks, 2)
+                            processed_count += 1
+
+                            if item_state == DthItemState.SUCCESS:
+                                successful_count += 1
+                            elif item_state == DthItemState.FAILED:
+                                failed_count += 1
+                            elif item_state == DthItemState.UNKNOWN:
+                                unknown_count += 1
+
+                            rec = {
+                                "run_id": run_id,
+                                "row_number": channel_item.row_number,
+                                "channel_number": channel_item.channel_number,
+                                "name": channel_item.name,
+                                "osd": channel_item.osd,
+                                "image": channel_item.image,
+                                "categories": channel_item.categories,
+                                "status": item_state.value,
+                                "attempt_count": 1,
+                                "duration_seconds": duration,
+                                "error_reason": reason,
+                                "verified_in_portal": verified,
+                                "started_at": ch_start,
+                                "completed_at": time.strftime("%H:%M:%S")
+                            }
+                            save_dth_channel_result(rec)
+                            channel_records.append(rec)
+                            DthAuditLogger.log_event("CHANNEL_UPDATED", run_id, channel_item.channel_number, {
+                                "status": item_state.value,
+                                "duration": duration,
+                                "reason": reason
+                            })
+
+                            if channel_delay_seconds > 0 and not self.stop_requested:
+                                await asyncio.sleep(channel_delay_seconds)
+                            continue
+
+                # Channel number NOT in portal:
                 if mode == DthExecutionMode.DRY_RUN:
                     successful_count += 1
                     processed_count += 1
@@ -302,8 +479,8 @@ class DthWorkflowRunner:
                     channel_records.append(rec)
                     continue
 
-                # LIVE MODE: Execute creation in portal
-                self.current_operation = f"Creating channel {channel_item.channel_number}: '{channel_item.name}'"
+                # LIVE MODE: Create channel on portal
+                self.current_operation = f"Creating Channel #{channel_item.channel_number}: '{channel_item.name}'"
                 self._broadcast_status()
 
                 item_state, reason, verified = await self.portal_controller.create_channel(channel_item)
@@ -312,6 +489,14 @@ class DthWorkflowRunner:
 
                 if item_state == DthItemState.SUCCESS:
                     successful_count += 1
+                    ch_key_lower = str(channel_item.channel_number).strip().lower()
+                    portal_nums.add(ch_key_lower)
+                    portal_names.add(channel_item.name.lower())
+                    portal_channels_map[ch_key_lower] = {
+                        "number": ch_key_lower,
+                        "name": channel_item.name,
+                        "row_id": f"row_{ch_key_lower}"
+                    }
                 elif item_state == DthItemState.FAILED:
                     failed_count += 1
                 elif item_state == DthItemState.UNKNOWN:

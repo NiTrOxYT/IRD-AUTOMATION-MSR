@@ -373,3 +373,420 @@ DAILY IRD SYNC FINISHED. Status: Processed 1/1 sites. (0 Action Points, 1 No Act
 20:27:50 | INFO  | IRD_Main | [PYWEBVIEW] UI JavaScript path: C:\IRD AUTO\app\ui\app.js
 20:27:50 | INFO  | IRD_Main | [PYWEBVIEW] UI JavaScript exists: True
 20:27:50 | INFO  | IRD_Main | Opening PyWebView desktop window...
+20:31:48 | INFO  | IRD_Seed | Database already contains 18 sites. Checking port assignments...
+20:31:48 | INFO  | IRD_Main | IRD Sync Automation server started at http://127.0.0.1:18492
+20:31:49 | INFO  | IRD_Main | [PYWEBVIEW] Creating desktop window
+20:31:49 | INFO  | IRD_Main | [PYWEBVIEW] UI HTML path: C:\IRD AUTO\app\ui\index.html
+20:31:49 | INFO  | IRD_Main | [PYWEBVIEW] UI HTML exists: True
+20:31:49 | INFO  | IRD_Main | [PYWEBVIEW] UI JavaScript path: C:\IRD AUTO\app\ui\app.js
+20:31:49 | INFO  | IRD_Main | [PYWEBVIEW] UI JavaScript exists: True
+20:31:49 | INFO  | IRD_Main | Opening PyWebView desktop window...
+20:44:16 | INFO  | IRD_Seed | Database already contains 18 sites. Checking port assignments...
+20:44:17 | INFO  | DTH_PortalController | [DTH] Starting creation for Channel 101: 'News 24'...
+20:44:18 | INFO  | DTH_PortalController | [DTH] Browser closed.
+20:44:18 | INFO  | DTH_PortalController | [DTH] Starting creation for Channel 101: 'News 24'...
+20:44:18 | INFO  | DTH_PortalController | [DTH] Browser closed.
+20:44:18 | INFO  | DTH_PortalController | [DTH] Starting creation for Channel 101: 'News 24'...
+20:44:19 | WARNING | DTH_PortalController | [DTH] Timeout while saving channel 101. Entering reconciliation...
+20:44:19 | INFO  | DTH_PortalController | [DTH] Reconciliation confirmed channel 101 was created successfully.
+20:44:19 | INFO  | DTH_PortalController | [DTH] Browser closed.
+20:44:19 | INFO  | DTH_PortalController | [DTH] Starting creation for Channel 101: 'News 24'...
+20:44:20 | WARNING | DTH_PortalController | [DTH] Timeout while saving channel 101. Entering reconciliation...
+20:44:20 | WARNING | DTH_PortalController | [DTH] Reconciliation could not confirm save for channel 101.
+20:44:20 | INFO  | DTH_PortalController | [DTH] Browser closed.
+20:44:20 | WARNING | DTH_PortalController | [DTH] Emergency stop triggered. Aborting browser session...
+20:44:20 | INFO  | DTH_PortalController | [DTH] Browser closed.
+20:44:20 | INFO  | DTH_PortalController | [DTH] Browser closed.
+20:44:20 | INFO  | DTH_PortalController | [DTH] Browser closed.
+20:44:20 | INFO  | DTH_Audit | [AUDIT] RUN_STARTED | Run #8 | Ch: N/A | {"site": "WH Bhubaneswar", "filename": "channels.csv", "mode": "DRY_RUN", "image_dir": "C:\\Users\\souri\\AppData\\Local\\Temp\\tmp6x12vc4v"}
+20:44:20 | INFO  | DTH_PortalController | [DTH] Initializing Playwright Browser (type: chromium, headless: True)...
+20:44:20 | INFO  | asyncio | execute program 'C:\\Users\\souri\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages\\playwright\\driver\\node.exe': <_WindowsSubprocessTransport pid=2720 running stdin=<_ProactorWritePipeTransport fd=2796 read=<_OverlappedFuture pending cb=[_ProactorWritePipeTransport._pipe_closed()] created at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\windows_events.py:479>> stdout=<_ProactorReadPipeTransport fd=2708 read=<_OverlappedFuture pending cb=[_ProactorReadPipeTransport._loop_reading()] created at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\windows_events.py:502>>>
+20:44:23 | INFO  | DTH_PortalController | [DTH] Browser initialized successfully.
+20:44:23 | INFO  | DTH_PortalController | [DTH] Navigating to URL: http://localhost:18002/zmp/main-menu.do
+20:44:25 | ERROR | DTH_PortalController | [DTH] Navigation failed: Page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:18002/zmp/main-menu.do
+Call log:
+  - navigating to "http://localhost:18002/zmp/main-menu.do", waiting until "domcontentloaded"
+
+20:44:25 | INFO  | DTH_ReportGenerator | [DTH] Reports exported successfully: C:\IRD AUTO\reports\dth\2026-10-13_dth_run_8.csv and C:\IRD AUTO\reports\dth\2026-10-13_dth_run_8.json
+20:44:25 | INFO  | DTH_Audit | [AUDIT] RUN_COMPLETED | Run #8 | Ch: N/A | {"status": "COMPLETED", "total": 2, "successful": 2, "failed": 0, "skipped": 0}
+20:44:26 | INFO  | asyncio | <_WindowsSubprocessTransport pid=2720 running stdin=<_ProactorWritePipeTransport closed> stdout=<_ProactorReadPipeTransport closed>> exited with return code 0
+20:44:26 | INFO  | DTH_PortalController | [DTH] Browser closed.
+20:44:26 | INFO  | DTH_ReportGenerator | [DTH] Reports exported successfully: C:\IRD AUTO\reports\dth\2026-10-13_dth_run_999.csv and C:\IRD AUTO\reports\dth\2026-10-13_dth_run_999.json
+20:44:43 | INFO  | IRD_Seed | Database already contains 18 sites. Checking port assignments...
+20:44:43 | INFO  | IRD_Main | [PHASE17][API] START SYNC request received
+20:44:43 | INFO  | IRD_Main | [PHASE17][API] Trace ID: STARTSYNC-1791904483898
+20:44:43 | INFO  | IRD_Main | [PHASE17][API] Request body: {'site_ids': [22], 'dry_run': True}
+20:44:43 | INFO  | IRD_Main | [API] START SYNC request received
+20:44:43 | INFO  | IRD_Main | [PHASE17][API] Selected site IDs: [22]
+20:44:43 | INFO  | IRD_Main | [PHASE17][API] dry_run: True
+20:44:43 | INFO  | IRD_Main | [PHASE17][API] Calling workflow runner
+20:44:43 | INFO  | IRD_Main | [API] Selected site IDs: [22]
+20:44:43 | INFO  | IRD_Main | [API] Automation start requested
+20:44:43 | INFO  | IRD_Main | [PHASE17][API] BEFORE scheduling runner
+20:44:43 | INFO  | IRD_Main | [PHASE17][API] AFTER scheduling runner
+20:44:43 | INFO  | IRD_Main | [PHASE17][API] Background task created
+20:44:43 | INFO  | IRD_Main | [PHASE17][API] Background task ID: 2557074425408
+20:44:43 | INFO  | IRD_Main | [API] Automation runner started
+20:44:43 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] ENTRY FUNCTION CALLED
+20:44:43 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Workflow entry reached
+20:44:43 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Trace ID: STARTSYNC-1791904483898
+20:44:43 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Selected site IDs: [22]
+20:44:43 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Target sites resolved: ['ITC Grand Chola']
+20:44:43 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Number of sites: 1
+20:44:43 | INFO  | IRD_WorkflowRunner | Created new batch run #55 for 1 sites.
+20:44:43 | INFO  | IRD_WorkflowRunner | [RUNNER] Automation workflow starting
+20:44:43 | INFO  | IRD_WorkflowRunner | [RUNNER] Sites queued: 1
+20:44:43 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Starting site: ITC Grand Chola (#22)
+20:44:43 | INFO  | IRD_WorkflowRunner | [RUNNER] Starting site: ITC Grand Chola (#22)
+20:44:43 | INFO  | IRD_WorkflowRunner | 
+==========================================
+20:44:43 | INFO  | IRD_WorkflowRunner | [1/1] STARTING SITE: ITC Grand Chola
+20:44:43 | INFO  | IRD_WorkflowRunner | ==========================================
+20:44:43 | INFO  | IRD_WorkflowRunner | DRY RUN executed for site 'ITC Grand Chola'.
+20:44:43 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] ENTRY FUNCTION CALLED
+20:44:43 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Workflow entry reached
+20:44:43 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Trace ID: None
+20:44:43 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Selected site IDs: [22]
+20:44:43 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Target sites resolved: ['ITC Grand Chola']
+20:44:43 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Number of sites: 1
+20:44:43 | INFO  | IRD_WorkflowRunner | Created new batch run #56 for 1 sites.
+20:44:43 | INFO  | IRD_WorkflowRunner | [RUNNER] Automation workflow starting
+20:44:43 | INFO  | IRD_WorkflowRunner | [RUNNER] Sites queued: 1
+20:44:43 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Starting site: ITC Grand Chola (#22)
+20:44:43 | INFO  | IRD_WorkflowRunner | [RUNNER] Starting site: ITC Grand Chola (#22)
+20:44:43 | INFO  | IRD_WorkflowRunner | 
+==========================================
+20:44:43 | INFO  | IRD_WorkflowRunner | [1/1] STARTING SITE: ITC Grand Chola
+20:44:43 | INFO  | IRD_WorkflowRunner | ==========================================
+20:44:43 | INFO  | IRD_WorkflowRunner | DRY RUN executed for site 'ITC Grand Chola'.
+20:44:45 | INFO  | IRD_ReportGenerator | Generated reports in folder: C:\IRD AUTO\reports
+20:44:45 | INFO  | IRD_WorkflowRunner | 
+DAILY IRD SYNC FINISHED. Status: Processed 1/1 sites. (0 Action Points, 1 No Action Point, 0 Failed)
+
+20:45:48 | INFO  | IRD_Seed | Database already contains 18 sites. Checking port assignments...
+20:45:49 | INFO  | IRD_Main | IRD Sync Automation server started at http://127.0.0.1:18492
+20:45:49 | INFO  | IRD_Main | [PYWEBVIEW] Creating desktop window
+20:45:49 | INFO  | IRD_Main | [PYWEBVIEW] UI HTML path: C:\IRD AUTO\app\ui\index.html
+20:45:49 | INFO  | IRD_Main | [PYWEBVIEW] UI HTML exists: True
+20:45:49 | INFO  | IRD_Main | [PYWEBVIEW] UI JavaScript path: C:\IRD AUTO\app\ui\app.js
+20:45:49 | INFO  | IRD_Main | [PYWEBVIEW] UI JavaScript exists: True
+20:45:49 | INFO  | IRD_Main | Opening PyWebView desktop window...
+22:02:49 | INFO  | IRD_Seed | Database already contains 18 sites. Checking port assignments...
+22:02:50 | INFO  | IRD_Main | IRD Sync Automation server started at http://127.0.0.1:18492
+22:02:50 | INFO  | IRD_Main | [PYWEBVIEW] Creating desktop window
+22:02:50 | INFO  | IRD_Main | [PYWEBVIEW] UI HTML path: C:\IRD AUTO\app\ui\index.html
+22:02:50 | INFO  | IRD_Main | [PYWEBVIEW] UI HTML exists: True
+22:02:50 | INFO  | IRD_Main | [PYWEBVIEW] UI JavaScript path: C:\IRD AUTO\app\ui\app.js
+22:02:50 | INFO  | IRD_Main | [PYWEBVIEW] UI JavaScript exists: True
+22:02:50 | INFO  | IRD_Main | Opening PyWebView desktop window...
+22:58:32 | INFO  | IRD_Seed | Database already contains 18 sites. Checking port assignments...
+22:58:33 | INFO  | DTH_PortalController | [DTH] Starting creation for Channel 101: 'News 24'...
+22:58:34 | WARNING | asyncio | Executing <Task finished name='Task-45' coro=<TestDthPortalMocked.test_create_channel_portal_error() done, defined at C:\IRD AUTO\tests\test_dth_portal_mocked.py:66> result=None created at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\runners.py:100> took 0.172 seconds
+22:58:34 | INFO  | DTH_PortalController | [DTH] Browser closed.
+22:58:34 | INFO  | DTH_PortalController | [DTH] Starting creation for Channel 101: 'News 24'...
+22:58:35 | INFO  | DTH_PortalController | [DTH] Browser closed.
+22:58:35 | INFO  | DTH_PortalController | [DTH] Starting creation for Channel 101: 'News 24'...
+22:58:35 | WARNING | DTH_PortalController | [DTH] Timeout while saving channel 101. Entering reconciliation...
+22:58:35 | INFO  | DTH_PortalController | [DTH] Reconciliation confirmed channel 101 was created successfully.
+22:58:35 | INFO  | DTH_PortalController | [DTH] Browser closed.
+22:58:35 | INFO  | DTH_PortalController | [DTH] Starting creation for Channel 101: 'News 24'...
+22:58:36 | WARNING | DTH_PortalController | [DTH] Timeout while saving channel 101. Entering reconciliation...
+22:58:36 | WARNING | DTH_PortalController | [DTH] Reconciliation could not confirm save for channel 101.
+22:58:36 | INFO  | DTH_PortalController | [DTH] Browser closed.
+22:58:36 | WARNING | DTH_PortalController | [DTH] Emergency stop triggered. Aborting browser session...
+22:58:36 | INFO  | DTH_PortalController | [DTH] Browser closed.
+22:58:36 | INFO  | DTH_PortalController | [DTH] Browser closed.
+22:58:36 | INFO  | DTH_PortalController | [DTH] Browser closed.
+22:58:36 | INFO  | DTH_Audit | [AUDIT] RUN_STARTED | Run #9 | Ch: N/A | {"site": "WH Bhubaneswar", "filename": "channels.csv", "mode": "DRY_RUN", "image_dir": "C:\\Users\\souri\\AppData\\Local\\Temp\\tmp6b78b_b0"}
+22:58:36 | INFO  | IRD_TunnelManager | 22:58:36 | [WH Bhubaneswar] Starting tunnel verification for WH Bhubaneswar: Local Port 18002 -> 103.243.40.46:8082
+22:58:37 | INFO  | IRD_TunnelManager | 22:58:37 | [WH Bhubaneswar] Launching Plink: C:\IRD AUTO\tools\putty\plink.exe -batch -N -ssh -P 22 -l sourik -pw ******** -L 18002:103.243.40.46:8082 111.93.205.187
+22:58:37 | INFO  | IRD_TunnelManager | 22:58:37 | [WH Bhubaneswar] Plink process started (PID: 16272)
+22:58:37 | WARNING | asyncio | Executing <Task pending name='Task-121' coro=<TestDthWorkflowAndReports.test_dry_run_execution() running at C:\IRD AUTO\tests\test_dth_workflow_and_reports.py:61> wait_for=<Future pending cb=[Task.task_wakeup()] created at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py:427> cb=[_run_until_complete_cb() at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py:180] created at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\runners.py:100> took 1.094 seconds
+22:58:38 | INFO  | IRD_TunnelManager | 22:58:38 | [WH Bhubaneswar] ✓ Reverse tunnel verified! TCP socket connected on 127.0.0.1:18002
+22:58:38 | INFO  | DTH_PortalController | [DTH] Initializing Playwright Browser (type: chromium, headless: True)...
+22:58:38 | INFO  | asyncio | execute program 'C:\\Users\\souri\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages\\playwright\\driver\\node.exe': <_WindowsSubprocessTransport pid=7820 running stdin=<_ProactorWritePipeTransport fd=848 read=<_OverlappedFuture pending cb=[_ProactorWritePipeTransport._pipe_closed()] created at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\windows_events.py:479>> stdout=<_ProactorReadPipeTransport fd=1344 read=<_OverlappedFuture pending cb=[_ProactorReadPipeTransport._loop_reading()] created at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\windows_events.py:502>>>
+22:58:40 | WARNING | asyncio | Executing <Task pending name='Task-121' coro=<TestDthWorkflowAndReports.test_dry_run_execution() running at C:\IRD AUTO\tests\test_dth_workflow_and_reports.py:61> wait_for=<Future pending cb=[Task.task_wakeup()] created at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py:427> cb=[_run_until_complete_cb() at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py:180, ProtocolCallback.__init__.<locals>.cb() at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\site-packages\playwright\_impl\_connection.py:264] created at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\runners.py:100> took 0.110 seconds
+22:58:42 | INFO  | DTH_PortalController | [DTH] Browser initialized successfully.
+22:58:42 | INFO  | DTH_WorkflowRunner | [DTH] Step: Opening http://127.0.0.1:18002/zmp/login.do...
+22:58:42 | INFO  | DTH_PortalController | [DTH] Navigating to URL: http://127.0.0.1:18002/zmp/login.do
+22:58:49 | INFO  | DTH_WorkflowRunner | [DTH] Step: Filling IDP credentials...
+22:58:49 | INFO  | DTH_PortalController | [DTH] Login form detected. Entering credentials...
+22:58:51 | INFO  | DTH_WorkflowRunner | [DTH] Step: Navigating to /zmp/manage-stb-channels.do...
+22:58:51 | INFO  | DTH_PortalController | [DTH] Navigating directly to http://127.0.0.1:18002/zmp/manage-stb-channels.do...
+22:58:51 | INFO  | DTH_PortalController | [DTH] Navigating to URL: http://127.0.0.1:18002/zmp/manage-stb-channels.do
+22:58:52 | INFO  | DTH_ReportGenerator | [DTH] Reports exported successfully: C:\IRD AUTO\reports\dth\2026-10-13_dth_run_9.csv and C:\IRD AUTO\reports\dth\2026-10-13_dth_run_9.json
+22:58:52 | INFO  | DTH_Audit | [AUDIT] RUN_COMPLETED | Run #9 | Ch: N/A | {"status": "COMPLETED", "total": 2, "successful": 2, "failed": 0, "skipped": 0}
+22:58:53 | INFO  | asyncio | <_WindowsSubprocessTransport pid=7820 running stdin=<_ProactorWritePipeTransport closed> stdout=<_ProactorReadPipeTransport closed>> exited with return code 0
+22:58:53 | INFO  | DTH_PortalController | [DTH] Browser closed.
+22:58:53 | INFO  | DTH_ReportGenerator | [DTH] Reports exported successfully: C:\IRD AUTO\reports\dth\2026-10-13_dth_run_999.csv and C:\IRD AUTO\reports\dth\2026-10-13_dth_run_999.json
+22:59:04 | INFO  | IRD_Seed | Database already contains 18 sites. Checking port assignments...
+22:59:04 | INFO  | IRD_Main | [PHASE17][API] START SYNC request received
+22:59:04 | INFO  | IRD_Main | [PHASE17][API] Trace ID: STARTSYNC-1791912544934
+22:59:04 | INFO  | IRD_Main | [PHASE17][API] Request body: {'site_ids': [22], 'dry_run': True}
+22:59:04 | INFO  | IRD_Main | [API] START SYNC request received
+22:59:04 | INFO  | IRD_Main | [PHASE17][API] Selected site IDs: [22]
+22:59:04 | INFO  | IRD_Main | [PHASE17][API] dry_run: True
+22:59:04 | INFO  | IRD_Main | [PHASE17][API] Calling workflow runner
+22:59:04 | INFO  | IRD_Main | [API] Selected site IDs: [22]
+22:59:04 | INFO  | IRD_Main | [API] Automation start requested
+22:59:04 | INFO  | IRD_Main | [PHASE17][API] BEFORE scheduling runner
+22:59:04 | INFO  | IRD_Main | [PHASE17][API] AFTER scheduling runner
+22:59:04 | INFO  | IRD_Main | [PHASE17][API] Background task created
+22:59:04 | INFO  | IRD_Main | [PHASE17][API] Background task ID: 2584106648960
+22:59:04 | INFO  | IRD_Main | [API] Automation runner started
+22:59:04 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] ENTRY FUNCTION CALLED
+22:59:04 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Workflow entry reached
+22:59:04 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Trace ID: STARTSYNC-1791912544934
+22:59:04 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Selected site IDs: [22]
+22:59:04 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Target sites resolved: ['ITC Grand Chola']
+22:59:04 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Number of sites: 1
+22:59:04 | INFO  | IRD_WorkflowRunner | Created new batch run #57 for 1 sites.
+22:59:04 | INFO  | IRD_WorkflowRunner | [RUNNER] Automation workflow starting
+22:59:04 | INFO  | IRD_WorkflowRunner | [RUNNER] Sites queued: 1
+22:59:04 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Starting site: ITC Grand Chola (#22)
+22:59:04 | INFO  | IRD_WorkflowRunner | [RUNNER] Starting site: ITC Grand Chola (#22)
+22:59:04 | INFO  | IRD_WorkflowRunner | 
+==========================================
+22:59:04 | INFO  | IRD_WorkflowRunner | [1/1] STARTING SITE: ITC Grand Chola
+22:59:04 | INFO  | IRD_WorkflowRunner | ==========================================
+22:59:04 | INFO  | IRD_WorkflowRunner | DRY RUN executed for site 'ITC Grand Chola'.
+22:59:05 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] ENTRY FUNCTION CALLED
+22:59:05 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Workflow entry reached
+22:59:05 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Trace ID: None
+22:59:05 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Selected site IDs: [22]
+22:59:05 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Target sites resolved: ['ITC Grand Chola']
+22:59:05 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Number of sites: 1
+22:59:05 | INFO  | IRD_WorkflowRunner | Created new batch run #58 for 1 sites.
+22:59:05 | INFO  | IRD_WorkflowRunner | [RUNNER] Automation workflow starting
+22:59:05 | INFO  | IRD_WorkflowRunner | [RUNNER] Sites queued: 1
+22:59:05 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Starting site: ITC Grand Chola (#22)
+22:59:05 | INFO  | IRD_WorkflowRunner | [RUNNER] Starting site: ITC Grand Chola (#22)
+22:59:05 | INFO  | IRD_WorkflowRunner | 
+==========================================
+22:59:05 | INFO  | IRD_WorkflowRunner | [1/1] STARTING SITE: ITC Grand Chola
+22:59:05 | INFO  | IRD_WorkflowRunner | ==========================================
+22:59:05 | INFO  | IRD_WorkflowRunner | DRY RUN executed for site 'ITC Grand Chola'.
+22:59:06 | INFO  | IRD_ReportGenerator | Generated reports in folder: C:\IRD AUTO\reports
+22:59:06 | INFO  | IRD_WorkflowRunner | 
+DAILY IRD SYNC FINISHED. Status: Processed 1/1 sites. (0 Action Points, 1 No Action Point, 0 Failed)
+
+23:00:40 | INFO  | IRD_Seed | Database already contains 18 sites. Checking port assignments...
+23:00:41 | INFO  | IRD_Main | IRD Sync Automation server started at http://127.0.0.1:18492
+23:00:41 | INFO  | IRD_Main | [PYWEBVIEW] Creating desktop window
+23:00:41 | INFO  | IRD_Main | [PYWEBVIEW] UI HTML path: C:\IRD AUTO\app\ui\index.html
+23:00:41 | INFO  | IRD_Main | [PYWEBVIEW] UI HTML exists: True
+23:00:41 | INFO  | IRD_Main | [PYWEBVIEW] UI JavaScript path: C:\IRD AUTO\app\ui\app.js
+23:00:41 | INFO  | IRD_Main | [PYWEBVIEW] UI JavaScript exists: True
+23:00:41 | INFO  | IRD_Main | Opening PyWebView desktop window...
+23:00:51 | INFO  | IRD_TunnelManager | 23:00:51 | [TAJ Puri Resort & Spa, Odisha] Starting tunnel verification for TAJ Puri Resort & Spa, Odisha: Local Port 18001 -> 128.185.59.82:80
+23:00:52 | INFO  | IRD_TunnelManager | 23:00:52 | [TAJ Puri Resort & Spa, Odisha] Launching Plink: C:\IRD AUTO\tools\putty\plink.exe -batch -N -ssh -P 22 -l sourik -pw ******** -L 18001:128.185.59.82:80 111.93.205.187
+23:00:52 | INFO  | IRD_TunnelManager | 23:00:52 | [TAJ Puri Resort & Spa, Odisha] Plink process started (PID: 8356)
+23:00:53 | INFO  | IRD_TunnelManager | 23:00:53 | [TAJ Puri Resort & Spa, Odisha] ✓ Reverse tunnel verified! TCP socket connected on 127.0.0.1:18001
+23:34:47 | INFO  | IRD_Seed | Database already contains 18 sites. Checking port assignments...
+23:34:52 | INFO  | DTH_PortalController | [DTH] Starting creation for Channel 101: 'News 24'...
+23:34:52 | WARNING | asyncio | Executing <Task finished name='Task-45' coro=<TestDthPortalMocked.test_create_channel_portal_error() done, defined at C:\IRD AUTO\tests\test_dth_portal_mocked.py:66> result=None created at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\runners.py:100> took 0.125 seconds
+23:34:52 | INFO  | DTH_PortalController | [DTH] Browser closed.
+23:34:52 | INFO  | DTH_PortalController | [DTH] Starting creation for Channel 101: 'News 24'...
+23:34:53 | INFO  | DTH_PortalController | [DTH] Browser closed.
+23:34:53 | INFO  | DTH_PortalController | [DTH] Starting creation for Channel 101: 'News 24'...
+23:34:53 | WARNING | DTH_PortalController | [DTH] Timeout while saving channel 101. Entering reconciliation...
+23:34:53 | INFO  | DTH_PortalController | [DTH] Reconciliation confirmed channel 101 was created successfully.
+23:34:53 | INFO  | DTH_PortalController | [DTH] Browser closed.
+23:34:54 | INFO  | DTH_PortalController | [DTH] Starting creation for Channel 101: 'News 24'...
+23:34:54 | WARNING | DTH_PortalController | [DTH] Timeout while saving channel 101. Entering reconciliation...
+23:34:54 | WARNING | DTH_PortalController | [DTH] Reconciliation could not confirm save for channel 101.
+23:34:54 | INFO  | DTH_PortalController | [DTH] Browser closed.
+23:34:54 | WARNING | DTH_PortalController | [DTH] Emergency stop triggered. Aborting browser session...
+23:34:54 | INFO  | DTH_PortalController | [DTH] Browser closed.
+23:34:54 | INFO  | DTH_PortalController | [DTH] Browser closed.
+23:34:54 | INFO  | DTH_PortalController | [DTH] Browser closed.
+23:34:55 | INFO  | DTH_Audit | [AUDIT] RUN_STARTED | Run #10 | Ch: N/A | {"site": "WH Bhubaneswar", "filename": "channels.csv", "mode": "DRY_RUN", "image_dir": "C:\\Users\\souri\\AppData\\Local\\Temp\\tmpb1rx89lq"}
+23:34:55 | INFO  | IRD_TunnelManager | 23:34:55 | [WH Bhubaneswar] Starting tunnel verification for WH Bhubaneswar: Local Port 18002 -> 103.243.40.46:8082
+23:34:56 | INFO  | IRD_TunnelManager | 23:34:56 | [WH Bhubaneswar] Launching Plink: C:\IRD AUTO\tools\putty\plink.exe -batch -N -ssh -P 22 -l sourik -pw ******** -L 18002:103.243.40.46:8082 111.93.205.187
+23:34:56 | INFO  | IRD_TunnelManager | 23:34:56 | [WH Bhubaneswar] Plink process started (PID: 18060)
+23:34:56 | WARNING | asyncio | Executing <Task pending name='Task-121' coro=<TestDthWorkflowAndReports.test_dry_run_execution() running at C:\IRD AUTO\tests\test_dth_workflow_and_reports.py:61> wait_for=<Future pending cb=[Task.task_wakeup()] created at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py:427> cb=[_run_until_complete_cb() at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py:180] created at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\runners.py:100> took 1.125 seconds
+23:34:57 | INFO  | IRD_TunnelManager | 23:34:57 | [WH Bhubaneswar] ✓ Reverse tunnel verified! TCP socket connected on 127.0.0.1:18002
+23:34:57 | INFO  | DTH_PortalController | [DTH] Initializing Playwright Browser (type: chromium, headless: True)...
+23:34:57 | INFO  | asyncio | execute program 'C:\\Users\\souri\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages\\playwright\\driver\\node.exe': <_WindowsSubprocessTransport pid=17772 running stdin=<_ProactorWritePipeTransport fd=1916 read=<_OverlappedFuture pending cb=[_ProactorWritePipeTransport._pipe_closed()] created at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\windows_events.py:479>> stdout=<_ProactorReadPipeTransport fd=1924 read=<_OverlappedFuture pending cb=[_ProactorReadPipeTransport._loop_reading()] created at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\windows_events.py:502>>>
+23:35:00 | INFO  | DTH_PortalController | [DTH] Browser initialized successfully.
+23:35:00 | INFO  | DTH_WorkflowRunner | [DTH] Step: Opening http://127.0.0.1:18002/zmp/login.do...
+23:35:00 | INFO  | DTH_PortalController | [DTH] Navigating to URL: http://127.0.0.1:18002/zmp/login.do
+23:35:07 | INFO  | DTH_WorkflowRunner | [DTH] Step: Filling IDP credentials...
+23:35:07 | INFO  | DTH_PortalController | [DTH] Login form detected. Entering credentials...
+23:35:09 | INFO  | DTH_WorkflowRunner | [DTH] Step: Navigating to /zmp/manage-stb-channels.do...
+23:35:09 | INFO  | DTH_PortalController | [DTH] Navigating directly to http://127.0.0.1:18002/zmp/manage-stb-channels.do...
+23:35:09 | INFO  | DTH_PortalController | [DTH] Navigating to URL: http://127.0.0.1:18002/zmp/manage-stb-channels.do
+23:35:10 | INFO  | DTH_ReportGenerator | [DTH] Reports exported successfully: C:\IRD AUTO\reports\dth\2026-10-13_dth_run_10.csv and C:\IRD AUTO\reports\dth\2026-10-13_dth_run_10.json
+23:35:10 | INFO  | DTH_Audit | [AUDIT] RUN_COMPLETED | Run #10 | Ch: N/A | {"status": "COMPLETED", "total": 2, "successful": 2, "failed": 0, "skipped": 0}
+23:35:11 | INFO  | asyncio | <_WindowsSubprocessTransport pid=17772 running stdin=<_ProactorWritePipeTransport closed> stdout=<_ProactorReadPipeTransport closed>> exited with return code 0
+23:35:11 | INFO  | DTH_PortalController | [DTH] Browser closed.
+23:35:11 | INFO  | DTH_ReportGenerator | [DTH] Reports exported successfully: C:\IRD AUTO\reports\dth\2026-10-13_dth_run_999.csv and C:\IRD AUTO\reports\dth\2026-10-13_dth_run_999.json
+23:35:21 | INFO  | IRD_Seed | Database already contains 18 sites. Checking port assignments...
+23:35:22 | INFO  | IRD_Main | [PHASE17][API] START SYNC request received
+23:35:22 | INFO  | IRD_Main | [PHASE17][API] Trace ID: STARTSYNC-1791914722614
+23:35:22 | INFO  | IRD_Main | [PHASE17][API] Request body: {'site_ids': [22], 'dry_run': True}
+23:35:22 | INFO  | IRD_Main | [API] START SYNC request received
+23:35:22 | INFO  | IRD_Main | [PHASE17][API] Selected site IDs: [22]
+23:35:22 | INFO  | IRD_Main | [PHASE17][API] dry_run: True
+23:35:22 | INFO  | IRD_Main | [PHASE17][API] Calling workflow runner
+23:35:22 | INFO  | IRD_Main | [API] Selected site IDs: [22]
+23:35:22 | INFO  | IRD_Main | [API] Automation start requested
+23:35:22 | INFO  | IRD_Main | [PHASE17][API] BEFORE scheduling runner
+23:35:22 | INFO  | IRD_Main | [PHASE17][API] AFTER scheduling runner
+23:35:22 | INFO  | IRD_Main | [PHASE17][API] Background task created
+23:35:22 | INFO  | IRD_Main | [PHASE17][API] Background task ID: 1748535379328
+23:35:22 | INFO  | IRD_Main | [API] Automation runner started
+23:35:22 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] ENTRY FUNCTION CALLED
+23:35:22 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Workflow entry reached
+23:35:22 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Trace ID: STARTSYNC-1791914722614
+23:35:22 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Selected site IDs: [22]
+23:35:22 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Target sites resolved: ['ITC Grand Chola']
+23:35:22 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Number of sites: 1
+23:35:22 | INFO  | IRD_WorkflowRunner | Created new batch run #59 for 1 sites.
+23:35:22 | INFO  | IRD_WorkflowRunner | [RUNNER] Automation workflow starting
+23:35:22 | INFO  | IRD_WorkflowRunner | [RUNNER] Sites queued: 1
+23:35:22 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Starting site: ITC Grand Chola (#22)
+23:35:22 | INFO  | IRD_WorkflowRunner | [RUNNER] Starting site: ITC Grand Chola (#22)
+23:35:22 | INFO  | IRD_WorkflowRunner | 
+==========================================
+23:35:22 | INFO  | IRD_WorkflowRunner | [1/1] STARTING SITE: ITC Grand Chola
+23:35:22 | INFO  | IRD_WorkflowRunner | ==========================================
+23:35:22 | INFO  | IRD_WorkflowRunner | DRY RUN executed for site 'ITC Grand Chola'.
+23:35:22 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] ENTRY FUNCTION CALLED
+23:35:22 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Workflow entry reached
+23:35:22 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Trace ID: None
+23:35:22 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Selected site IDs: [22]
+23:35:22 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Target sites resolved: ['ITC Grand Chola']
+23:35:22 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Number of sites: 1
+23:35:22 | INFO  | IRD_WorkflowRunner | Created new batch run #60 for 1 sites.
+23:35:22 | INFO  | IRD_WorkflowRunner | [RUNNER] Automation workflow starting
+23:35:22 | INFO  | IRD_WorkflowRunner | [RUNNER] Sites queued: 1
+23:35:22 | INFO  | IRD_WorkflowRunner | [PHASE17][RUNNER] Starting site: ITC Grand Chola (#22)
+23:35:22 | INFO  | IRD_WorkflowRunner | [RUNNER] Starting site: ITC Grand Chola (#22)
+23:35:22 | INFO  | IRD_WorkflowRunner | 
+==========================================
+23:35:22 | INFO  | IRD_WorkflowRunner | [1/1] STARTING SITE: ITC Grand Chola
+23:35:22 | INFO  | IRD_WorkflowRunner | ==========================================
+23:35:22 | INFO  | IRD_WorkflowRunner | DRY RUN executed for site 'ITC Grand Chola'.
+23:35:23 | INFO  | IRD_ReportGenerator | Generated reports in folder: C:\IRD AUTO\reports
+23:35:23 | INFO  | IRD_WorkflowRunner | 
+DAILY IRD SYNC FINISHED. Status: Processed 1/1 sites. (0 Action Points, 1 No Action Point, 0 Failed)
+
+23:36:24 | INFO  | IRD_Seed | Database already contains 18 sites. Checking port assignments...
+23:36:25 | INFO  | IRD_Main | IRD Sync Automation server started at http://127.0.0.1:18492
+23:36:25 | INFO  | IRD_Main | [PYWEBVIEW] Creating desktop window
+23:36:25 | INFO  | IRD_Main | [PYWEBVIEW] UI HTML path: C:\IRD AUTO\app\ui\index.html
+23:36:25 | INFO  | IRD_Main | [PYWEBVIEW] UI HTML exists: True
+23:36:25 | INFO  | IRD_Main | [PYWEBVIEW] UI JavaScript path: C:\IRD AUTO\app\ui\app.js
+23:36:25 | INFO  | IRD_Main | [PYWEBVIEW] UI JavaScript exists: True
+23:36:25 | INFO  | IRD_Main | Opening PyWebView desktop window...
+23:53:03 | INFO  | IRD_Seed | Database already contains 18 sites. Checking port assignments...
+23:53:07 | INFO  | DTH_PortalController | [DTH] Starting creation for Channel 101: 'News 24'...
+23:53:08 | INFO  | DTH_PortalController | [DTH] Browser closed.
+23:53:08 | INFO  | DTH_PortalController | [DTH] Starting creation for Channel 101: 'News 24'...
+23:53:09 | INFO  | DTH_PortalController | [DTH] Browser closed.
+23:53:09 | INFO  | DTH_PortalController | [DTH] Starting creation for Channel 101: 'News 24'...
+23:53:09 | WARNING | DTH_PortalController | [DTH] Timeout while saving channel 101. Entering reconciliation...
+23:53:09 | INFO  | DTH_PortalController | [DTH] Reconciliation confirmed channel 101 was created successfully.
+23:53:09 | INFO  | DTH_PortalController | [DTH] Browser closed.
+23:53:09 | INFO  | DTH_PortalController | [DTH] Starting creation for Channel 101: 'News 24'...
+23:53:10 | WARNING | DTH_PortalController | [DTH] Timeout while saving channel 101. Entering reconciliation...
+23:53:10 | WARNING | DTH_PortalController | [DTH] Reconciliation could not confirm save for channel 101.
+23:53:10 | INFO  | DTH_PortalController | [DTH] Browser closed.
+23:53:10 | WARNING | DTH_PortalController | [DTH] Emergency stop triggered. Aborting browser session...
+23:53:10 | INFO  | DTH_PortalController | [DTH] Browser closed.
+23:53:10 | INFO  | DTH_PortalController | [DTH] Browser closed.
+23:53:10 | INFO  | DTH_PortalController | [DTH] Browser closed.
+23:53:11 | INFO  | DTH_Audit | [AUDIT] RUN_STARTED | Run #11 | Ch: N/A | {"site": "WH Bhubaneswar", "filename": "channels.csv", "mode": "DRY_RUN", "image_dir": "C:\\Users\\souri\\AppData\\Local\\Temp\\tmp5x_j0dle"}
+23:53:11 | INFO  | IRD_TunnelManager | 23:53:11 | [WH Bhubaneswar] Starting tunnel verification for WH Bhubaneswar: Local Port 18002 -> 103.243.40.46:8082
+23:53:11 | INFO  | IRD_TunnelManager | 23:53:11 | [WH Bhubaneswar] Launching Plink: C:\IRD AUTO\tools\putty\plink.exe -batch -N -ssh -P 22 -l sourik -pw ******** -L 18002:103.243.40.46:8082 111.93.205.187
+23:53:11 | INFO  | IRD_TunnelManager | 23:53:11 | [WH Bhubaneswar] Plink process started (PID: 15936)
+23:53:12 | WARNING | asyncio | Executing <Task pending name='Task-120' coro=<TestDthWorkflowAndReports.test_dry_run_execution() running at C:\IRD AUTO\tests\test_dth_workflow_and_reports.py:61> wait_for=<Future pending cb=[Task.task_wakeup()] created at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py:427> cb=[_run_until_complete_cb() at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py:180] created at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\runners.py:100> took 1.109 seconds
+23:53:12 | INFO  | IRD_TunnelManager | 23:53:12 | [WH Bhubaneswar] ✓ Reverse tunnel verified! TCP socket connected on 127.0.0.1:18002
+23:53:12 | INFO  | DTH_PortalController | [DTH] Initializing Playwright Browser (type: chromium, headless: True)...
+23:53:12 | INFO  | asyncio | execute program 'C:\\Users\\souri\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages\\playwright\\driver\\node.exe': <_WindowsSubprocessTransport pid=20636 running stdin=<_ProactorWritePipeTransport fd=2764 read=<_OverlappedFuture pending cb=[_ProactorWritePipeTransport._pipe_closed()] created at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\windows_events.py:479>> stdout=<_ProactorReadPipeTransport fd=2768 read=<_OverlappedFuture pending cb=[_ProactorReadPipeTransport._loop_reading()] created at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\windows_events.py:502>>>
+23:53:15 | INFO  | DTH_PortalController | [DTH] Browser initialized successfully.
+23:53:15 | INFO  | DTH_WorkflowRunner | [DTH] Step: Opening http://127.0.0.1:18002/zmp/login.do...
+23:53:15 | INFO  | DTH_PortalController | [DTH] Navigating to URL: http://127.0.0.1:18002/zmp/login.do
+23:53:24 | INFO  | DTH_WorkflowRunner | [DTH] Step: Filling IDP credentials...
+23:53:24 | INFO  | DTH_PortalController | [DTH] Login form detected. Entering credentials...
+23:53:26 | INFO  | DTH_WorkflowRunner | [DTH] Step: Navigating to /zmp/manage-stb-channels.do...
+23:53:26 | INFO  | DTH_PortalController | [DTH] Navigating directly to http://127.0.0.1:18002/zmp/manage-stb-channels.do...
+23:53:26 | INFO  | DTH_PortalController | [DTH] Navigating to URL: http://127.0.0.1:18002/zmp/manage-stb-channels.do
+23:53:30 | INFO  | DTH_ReportGenerator | [DTH] Reports exported successfully: C:\IRD AUTO\reports\dth\2026-10-13_dth_run_11.csv and C:\IRD AUTO\reports\dth\2026-10-13_dth_run_11.json
+23:53:30 | INFO  | DTH_Audit | [AUDIT] RUN_COMPLETED | Run #11 | Ch: N/A | {"status": "COMPLETED", "total": 2, "successful": 2, "failed": 0, "skipped": 0}
+23:53:30 | INFO  | asyncio | <_WindowsSubprocessTransport pid=20636 running stdin=<_ProactorWritePipeTransport closed> stdout=<_ProactorReadPipeTransport closed>> exited with return code 0
+23:53:30 | INFO  | DTH_PortalController | [DTH] Browser closed.
+23:53:30 | INFO  | DTH_ReportGenerator | [DTH] Reports exported successfully: C:\IRD AUTO\reports\dth\2026-10-13_dth_run_999.csv and C:\IRD AUTO\reports\dth\2026-10-13_dth_run_999.json
+23:55:31 | INFO  | IRD_Seed | Database already contains 18 sites. Checking port assignments...
+23:55:35 | INFO  | DTH_PortalController | [DTH] Starting creation for Channel 101: 'News 24'...
+23:55:36 | INFO  | DTH_PortalController | [DTH] Browser closed.
+23:55:36 | INFO  | DTH_PortalController | [DTH] Starting creation for Channel 101: 'News 24'...
+23:55:36 | INFO  | DTH_PortalController | [DTH] Browser closed.
+23:55:36 | INFO  | DTH_PortalController | [DTH] Starting creation for Channel 101: 'News 24'...
+23:55:37 | WARNING | DTH_PortalController | [DTH] Timeout while saving channel 101. Entering reconciliation...
+23:55:37 | INFO  | DTH_PortalController | [DTH] Reconciliation confirmed channel 101 was created successfully.
+23:55:37 | INFO  | DTH_PortalController | [DTH] Browser closed.
+23:55:37 | INFO  | DTH_PortalController | [DTH] Starting creation for Channel 101: 'News 24'...
+23:55:37 | WARNING | DTH_PortalController | [DTH] Timeout while saving channel 101. Entering reconciliation...
+23:55:37 | WARNING | DTH_PortalController | [DTH] Reconciliation could not confirm save for channel 101.
+23:55:37 | INFO  | DTH_PortalController | [DTH] Browser closed.
+23:55:38 | WARNING | DTH_PortalController | [DTH] Emergency stop triggered. Aborting browser session...
+23:55:38 | INFO  | DTH_PortalController | [DTH] Browser closed.
+23:55:38 | INFO  | DTH_PortalController | [DTH] Browser closed.
+23:55:38 | INFO  | DTH_PortalController | [DTH] Browser closed.
+23:55:38 | INFO  | DTH_Audit | [AUDIT] RUN_STARTED | Run #12 | Ch: N/A | {"site": "WH Bhubaneswar", "filename": "channels.csv", "mode": "DRY_RUN", "image_dir": "C:\\Users\\souri\\AppData\\Local\\Temp\\tmp7dkx7ow9"}
+23:55:38 | INFO  | IRD_TunnelManager | 23:55:38 | [WH Bhubaneswar] Starting tunnel verification for WH Bhubaneswar: Local Port 18002 -> 103.243.40.46:8082
+23:55:39 | INFO  | IRD_TunnelManager | 23:55:39 | [WH Bhubaneswar] Launching Plink: C:\IRD AUTO\tools\putty\plink.exe -batch -N -ssh -P 22 -l sourik -pw ******** -L 18002:103.243.40.46:8082 111.93.205.187
+23:55:39 | INFO  | IRD_TunnelManager | 23:55:39 | [WH Bhubaneswar] Plink process started (PID: 15308)
+23:55:39 | WARNING | asyncio | Executing <Task pending name='Task-120' coro=<TestDthWorkflowAndReports.test_dry_run_execution() running at C:\IRD AUTO\tests\test_dth_workflow_and_reports.py:61> wait_for=<Future pending cb=[Task.task_wakeup()] created at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py:427> cb=[_run_until_complete_cb() at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py:180] created at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\runners.py:100> took 1.110 seconds
+23:55:40 | INFO  | IRD_TunnelManager | 23:55:40 | [WH Bhubaneswar] ✓ Reverse tunnel verified! TCP socket connected on 127.0.0.1:18002
+23:55:40 | INFO  | DTH_PortalController | [DTH] Initializing Playwright Browser (type: chromium, headless: True)...
+23:55:40 | INFO  | asyncio | execute program 'C:\\Users\\souri\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages\\playwright\\driver\\node.exe': <_WindowsSubprocessTransport pid=3568 running stdin=<_ProactorWritePipeTransport fd=1580 read=<_OverlappedFuture pending cb=[_ProactorWritePipeTransport._pipe_closed()] created at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\windows_events.py:479>> stdout=<_ProactorReadPipeTransport fd=1588 read=<_OverlappedFuture pending cb=[_ProactorReadPipeTransport._loop_reading()] created at C:\Users\souri\AppData\Local\Programs\Python\Python311\Lib\asyncio\windows_events.py:502>>>
+23:55:41 | INFO  | DTH_PortalController | [DTH] Browser initialized successfully.
+23:55:41 | INFO  | DTH_WorkflowRunner | [DTH] Step: Opening http://127.0.0.1:18002/zmp/login.do...
+23:55:41 | INFO  | DTH_PortalController | [DTH] Navigating to URL: http://127.0.0.1:18002/zmp/login.do
+23:55:45 | INFO  | DTH_WorkflowRunner | [DTH] Step: Filling IDP credentials...
+23:55:45 | INFO  | DTH_PortalController | [DTH] Login form detected. Entering credentials...
+23:55:46 | INFO  | DTH_WorkflowRunner | [DTH] Step: Navigating to /zmp/manage-stb-channels.do...
+23:55:46 | INFO  | DTH_PortalController | [DTH] Navigating directly to http://127.0.0.1:18002/zmp/manage-stb-channels.do...
+23:55:46 | INFO  | DTH_PortalController | [DTH] Navigating to URL: http://127.0.0.1:18002/zmp/manage-stb-channels.do
+23:55:48 | INFO  | DTH_ReportGenerator | [DTH] Reports exported successfully: C:\IRD AUTO\reports\dth\2026-10-13_dth_run_12.csv and C:\IRD AUTO\reports\dth\2026-10-13_dth_run_12.json
+23:55:48 | INFO  | DTH_Audit | [AUDIT] RUN_COMPLETED | Run #12 | Ch: N/A | {"status": "COMPLETED", "total": 2, "successful": 2, "failed": 0, "skipped": 0}
+23:55:48 | INFO  | asyncio | <_WindowsSubprocessTransport pid=3568 running stdin=<_ProactorWritePipeTransport closed> stdout=<_ProactorReadPipeTransport closed>> exited with return code 0
+23:55:48 | INFO  | DTH_PortalController | [DTH] Browser closed.
+23:55:48 | INFO  | DTH_ReportGenerator | [DTH] Reports exported successfully: C:\IRD AUTO\reports\dth\2026-10-13_dth_run_999.csv and C:\IRD AUTO\reports\dth\2026-10-13_dth_run_999.json
+23:56:58 | INFO  | IRD_Seed | Database already contains 18 sites. Checking port assignments...
+23:56:59 | INFO  | IRD_Main | IRD Sync Automation server started at http://127.0.0.1:18492
+23:56:59 | INFO  | IRD_Main | [PYWEBVIEW] Creating desktop window
+23:56:59 | INFO  | IRD_Main | [PYWEBVIEW] UI HTML path: C:\IRD AUTO\app\ui\index.html
+23:56:59 | INFO  | IRD_Main | [PYWEBVIEW] UI HTML exists: True
+23:56:59 | INFO  | IRD_Main | [PYWEBVIEW] UI JavaScript path: C:\IRD AUTO\app\ui\app.js
+23:56:59 | INFO  | IRD_Main | [PYWEBVIEW] UI JavaScript exists: True
+23:56:59 | INFO  | IRD_Main | Opening PyWebView desktop window...
+23:57:33 | INFO  | DTH_Audit | [AUDIT] RUN_STARTED | Run #13 | Ch: N/A | {"site": "TAJ Puri Resort & Spa, Odisha", "filename": "dth_channel_template - dth_channel_template.csv.csv", "mode": "LIVE", "image_dir": "C:\\IRD AUTO\\data\\channel_logo"}
+23:57:33 | INFO  | IRD_TunnelManager | 23:57:33 | [TAJ Puri Resort & Spa, Odisha] Starting tunnel verification for TAJ Puri Resort & Spa, Odisha: Local Port 18001 -> 128.185.59.82:80
+23:57:34 | INFO  | IRD_TunnelManager | 23:57:34 | [TAJ Puri Resort & Spa, Odisha] Launching Plink: C:\IRD AUTO\tools\putty\plink.exe -batch -N -ssh -P 22 -l sourik -pw ******** -L 18001:128.185.59.82:80 111.93.205.187
+23:57:34 | INFO  | IRD_TunnelManager | 23:57:34 | [TAJ Puri Resort & Spa, Odisha] Plink process started (PID: 18460)
+23:57:35 | INFO  | IRD_TunnelManager | 23:57:35 | [TAJ Puri Resort & Spa, Odisha] ✓ Reverse tunnel verified! TCP socket connected on 127.0.0.1:18001
+23:57:35 | INFO  | DTH_PortalController | [DTH] Initializing Playwright Browser (type: chromium, headless: True)...
+23:57:36 | INFO  | DTH_PortalController | [DTH] Browser initialized successfully.
+23:57:36 | INFO  | DTH_WorkflowRunner | [DTH] Step: Opening http://127.0.0.1:18001/zmp/login.do...
+23:57:36 | INFO  | DTH_PortalController | [DTH] Navigating to URL: http://127.0.0.1:18001/zmp/login.do
+23:58:06 | ERROR | DTH_PortalController | [DTH] Navigation failed: Page.goto: Timeout 30000ms exceeded.
+Call log:
+  - navigating to "http://127.0.0.1:18001/zmp/login.do", waiting until "domcontentloaded"
+
+23:58:06 | INFO  | DTH_WorkflowRunner | [DTH] Step: Navigating to /zmp/manage-stb-channels.do...
+23:58:06 | INFO  | DTH_PortalController | [DTH] Navigating directly to http://127.0.0.1:18001/zmp/manage-stb-channels.do...
+23:58:06 | INFO  | DTH_PortalController | [DTH] Navigating to URL: http://127.0.0.1:18001/zmp/manage-stb-channels.do
+23:58:36 | ERROR | DTH_PortalController | [DTH] Navigation failed: Page.goto: Timeout 30000ms exceeded.
+Call log:
+  - navigating to "http://127.0.0.1:18001/zmp/manage-stb-channels.do", waiting until "domcontentloaded"
+
+23:58:36 | INFO  | DTH_PortalController | [DTH] Navigating to DTH Channel Configuration via menu...
+00:00:17 | INFO  | DTH_PortalController | [DTH] Starting creation for Channel 101: 'DD National'...
+00:00:17 | INFO  | DTH_Audit | [AUDIT] CHANNEL_PROCESSED | Run #13 | Ch: 101 | {"status": "FAILED", "duration": 0.07, "reason": "Channel number input field not found on portal"}
+00:00:18 | INFO  | DTH_ReportGenerator | [DTH] Reports exported successfully: C:\IRD AUTO\reports\dth\2026-10-13_dth_run_13.csv and C:\IRD AUTO\reports\dth\2026-10-13_dth_run_13.json
+00:00:18 | INFO  | DTH_Audit | [AUDIT] RUN_COMPLETED | Run #13 | Ch: N/A | {"status": "COMPLETED", "total": 1, "successful": 0, "failed": 1, "skipped": 0}
+00:00:18 | INFO  | DTH_PortalController | [DTH] Browser closed.

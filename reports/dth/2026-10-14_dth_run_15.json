@@ -1,0 +1,60 @@
+{
+  "summary": {
+    "id": 15,
+    "run_date": "2026-10-14",
+    "start_time": "00:07:34",
+    "end_time": "00:07:47",
+    "mode": "DRY_RUN",
+    "status": "COMPLETED",
+    "filename": "channels.csv",
+    "total_channels": 2,
+    "processed_channels": 2,
+    "successful_channels": 2,
+    "failed_channels": 0,
+    "skipped_duplicates": 0,
+    "invalid_channels": 0,
+    "unknown_channels": 0,
+    "site_id": 67,
+    "site_name": "WH Bhubaneswar"
+  },
+  "channels": [
+    {
+      "run_id": 15,
+      "row_number": 2,
+      "channel_number": "101",
+      "name": "DD National",
+      "osd": "DD National",
+      "image": "dd.png",
+      "categories": [
+        "all",
+        "News"
+      ],
+      "status": "READY",
+      "attempt_count": 0,
+      "duration_seconds": 0.0,
+      "error_reason": "Dry run preview: Ready to create",
+      "verified_in_portal": false,
+      "started_at": "00:07:47",
+      "completed_at": "00:07:47"
+    },
+    {
+      "run_id": 15,
+      "row_number": 3,
+      "channel_number": "102",
+      "name": "Star Sports",
+      "osd": "Star Sports",
+      "image": "star.png",
+      "categories": [
+        "all",
+        "Sports"
+      ],
+      "status": "READY",
+      "attempt_count": 0,
+      "duration_seconds": 0.0,
+      "error_reason": "Dry run preview: Ready to create",
+      "verified_in_portal": false,
+      "started_at": "00:07:47",
+      "completed_at": "00:07:47"
+    }
+  ]
+}

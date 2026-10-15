@@ -782,6 +782,130 @@ class TunnelManager:
                         proc.kill()
                 except Exception:
                     pass
+
+    async def start_and_verify_tunnel(self, site: Any, timeout_seconds: int = 30, keep_running: bool = True) -> Tuple[bool, str, List[str]]:
+        """
+        Starts an SSH reverse tunnel (-L local_port:site_ip:site_port) via Plink for any IRD or DTH site,
+        verifies that the local port starts listening on 127.0.0.1, and returns (success, message, logs).
+        """
+        logs: List[str] = []
+        site_id = getattr(site, "id", None)
+        site_name = getattr(site, "name", "Site")
+        local_port = getattr(site, "local_port", 18001) or 18001
+
+        # Resolve target site IP and port with fallbacks
+        raw_site_ip = getattr(site, "site_ip", "")
+        if not raw_site_ip or raw_site_ip == "None":
+            raw_site_ip = getattr(site, "remote_host", "")
+        site_ip = raw_site_ip if (raw_site_ip and raw_site_ip != "None") else "127.0.0.1"
+
+        raw_site_port = getattr(site, "site_port", 0) or getattr(site, "remote_port", 0) or 80
+        site_port = int(raw_site_port) if raw_site_port else 80
+
+        def log(msg: str):
+            line = f"{time.strftime('%H:%M:%S')} | [{site_name}] {msg}"
+            logs.append(line)
+            logger.info(line)
+
+        log(f"Starting tunnel verification for {site_name}: Local Port {local_port} -> {site_ip}:{site_port}")
+
+        # Check if local port is ALREADY open and responsive
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.settimeout(0.5)
+                if s.connect_ex(("127.0.0.1", local_port)) == 0:
+                    log(f"Local port 127.0.0.1:{local_port} is already active and listening.")
+                    return True, f"Tunnel active on 127.0.0.1:{local_port}", logs
+        except Exception:
+            pass
+
+        # If a process was previously recorded for this site, check if it's alive
+        tunnel_key = site_id if site_id is not None else local_port
+        if tunnel_key in self.active_tunnels:
+            if self.is_tunnel_process_alive(tunnel_key):
+                log("Tunnel process already recorded and running.")
+                for _ in range(6):
+                    try:
+                        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                            s.settimeout(0.5)
+                            if s.connect_ex(("127.0.0.1", local_port)) == 0:
+                                return True, f"Tunnel active on 127.0.0.1:{local_port}", logs
+                    except Exception:
+                        pass
+                    await asyncio.sleep(0.5)
+
+        # Check Plink executable
+        detected = putty_manager.detect_executables()
+        plink_path = detected.get("plink")
+        if not plink_path or not os.path.exists(plink_path):
+            err = "Bundled Plink executable not found at tools/putty/plink.exe"
+            log(f"ERROR: {err}")
+            return False, err, logs
+
+        # Build plink command
+        try:
+            cmd = putty_manager.build_plink_command(site, plink_path)
+            scrubbed_cmd = putty_manager.scrub_sensitive_info(" ".join(cmd))
+            log(f"Launching Plink: {scrubbed_cmd}")
+
+            proc = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                stdin=subprocess.DEVNULL,
+                text=True,
+                shell=False
+            )
+            pid = proc.pid
+            log(f"Plink process started (PID: {pid})")
+
+            self.active_tunnels[tunnel_key] = {
+                "process": proc,
+                "pid": pid,
+                "site": site,
+                "start_time": time.time(),
+                "status": "CONNECTING",
+                "cmd": scrubbed_cmd
+            }
+        except Exception as e:
+            err = f"Failed to launch Plink process: {e}"
+            log(f"ERROR: {err}")
+            return False, err, logs
+
+        # Monitor process and local port
+        start_wait = time.time()
+        while time.time() - start_wait < timeout_seconds:
+            # Check if process terminated prematurely
+            if proc.poll() is not None:
+                out = proc.stdout.read() if proc.stdout else ""
+                err = proc.stderr.read() if proc.stderr else ""
+                combined = (out + " " + err).strip()
+                scrubbed = putty_manager.scrub_sensitive_info(combined)
+                log(f"ERROR: Plink process exited with code {proc.returncode}: {scrubbed}")
+                if tunnel_key in self.active_tunnels:
+                    self.active_tunnels[tunnel_key]["status"] = "FAILED"
+                return False, f"Plink exited ({proc.returncode}): {scrubbed or 'SSH connection failed'}", logs
+
+            # Check if local port listener is active
+            try:
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                    s.settimeout(0.5)
+                    if s.connect_ex(("127.0.0.1", local_port)) == 0:
+                        log(f"✓ Reverse tunnel verified! TCP socket connected on 127.0.0.1:{local_port}")
+                        if tunnel_key in self.active_tunnels:
+                            self.active_tunnels[tunnel_key]["status"] = "RUNNING"
+                        return True, f"Reverse tunnel connected on 127.0.0.1:{local_port}", logs
+            except Exception:
+                pass
+
+            await asyncio.sleep(0.5)
+
+        # Timed out
+        log(f"ERROR: Tunnel start timed out after {timeout_seconds}s waiting for 127.0.0.1:{local_port}")
+        if not keep_running:
+            self.stop_tunnel(site)
+        return False, f"Tunnel timed out after {timeout_seconds}s waiting for local port {local_port}", logs
+
     async def test_remote_site_connectivity(self, site: Any) -> Dict[str, Any]:
         """
         Executes real Office Server (111.93.205.187) -> Site IP remote TCP & HTTP connectivity test.
