@@ -17,18 +17,96 @@ VALID_IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".bmp", ".webp"}
 
 DEFAULT_PORTAL_CATEGORIES = [
     "all",
-    "Entertainment",
+    "most-viewed",
+    "infotainment",
     "News",
+    "Entertainment",
     "Sports",
     "Movies",
     "Music",
     "Kids",
-    "Infotainment",
-    "Lifestyle",
+    "Spiritual",
     "Regional",
-    "Religious",
-    "General"
+    "General",
+    "news",
+    "sports",
+    "movies",
+    "music",
+    "kids",
+    "spiritual",
+    "regional",
+    "knowledge-and-lifestyle",
+    "hindi",
+    "international",
+    "hindi-entertainment",
+    "english-entertainment",
+    "hindi-news",
+    "english-news",
+    "hindi-movies",
+    "english-movies",
+    "others",
+    "hotel-videos"
 ]
+
+PORTAL_CATEGORY_ALIASES: Dict[str, str] = {
+    # Most Viewed (primary default portal category)
+    "most viewed": "most-viewed",
+    "most-view": "most-viewed",
+    "most-viewed": "most-viewed",
+    "mostviewed": "most-viewed",
+    "popular": "most-viewed",
+    "general": "most-viewed",
+    "common": "most-viewed",
+
+    # Infotainment (primary default portal category)
+    "infotainment": "infotainment",
+    "info": "infotainment",
+    "documentary": "infotainment",
+
+    # Entertainment
+    "entertainment": "hindi-entertainment",
+    "hindi entertainment": "hindi-entertainment",
+    "english entertainment": "english-entertainment",
+
+    # Spiritual / Religious
+    "religious": "spiritual",
+    "spiritual": "spiritual",
+    "devotional": "spiritual",
+    "bhakti": "spiritual",
+    "religion": "spiritual",
+
+    # Knowledge & Lifestyle
+    "lifestyle": "knowledge-and-lifestyle",
+    "knowledge and lifestyle": "knowledge-and-lifestyle",
+    "knowledge-and-lifestyle": "knowledge-and-lifestyle",
+    "knowledge": "knowledge-and-lifestyle",
+
+    # News
+    "news": "news",
+    "english news": "english-news",
+    "hindi news": "hindi-news",
+
+    # Movies
+    "movies": "movies",
+    "movie": "movies",
+    "cinema": "movies",
+    "english movies": "english-movies",
+    "hindi movies": "hindi-movies",
+
+    # Sports
+    "sports": "sports",
+    "sport": "sports",
+
+    # Music
+    "music": "music",
+
+    # Kids
+    "kids": "kids",
+    "cartoon": "kids",
+
+    # Regional
+    "regional": "regional",
+}
 
 
 def infer_category_from_name(
@@ -38,33 +116,39 @@ def infer_category_from_name(
     """
     Intelligently infers a single relevant portal category from channel name.
     Ensures channels always get a relevant genre matching portal options.
+    Defaults to 'most-viewed' or 'infotainment' if no specific genre matches.
     """
     name_clean = (channel_name or "").lower().strip()
 
     genre_keywords = [
-        ("Sports", ["sport", "cricket", "football", "fifa", "espn", "ten ", "ten1", "ten2", "ten3", "sony ten", "star sports", "dd sports"]),
-        ("News", ["news", "aaj tak", "samachar", "cnn", "bbc", "ndtv", "zee news", "republic", "times now", "abp", "cnbc", "wion", "dd news", "india today"]),
-        ("Movies", ["cinema", "movie", "film", "max", "gold", "star gold", "zee cinema", "action", "hbo", "wb", "pictures", "talkies", "fliks", "flix"]),
-        ("Music", ["music", "mtv", "zoom", "vh1", "b4u music", "9xm", "9x jalwa", "mastiii", "zing", "mtv beats", "b4u"]),
-        ("Kids", ["kids", "cartoon", "pogo", "nick", "disney", "hungama", "sonic", "animax", "baby", "discovery kids", "junior"]),
-        ("Infotainment", ["discovery", "nat geo", "geog", "history", "animal planet", "tlc", "sci", "investigation"]),
-        ("Lifestyle", ["lifestyle", "food", "cook", "travel", "fox life", "fashion", "living", "care"]),
-        ("Religious", ["bhakti", "divya", "aastha", "sadhna", "sanskar", "peace", "islam", "god", "shikhar", "darshan", "vrinda", "arihant"]),
-        ("Regional", ["bengali", "bangla", "tamil", "telugu", "kannada", "malayalam", "marathi", "punjabi", "gujarati", "odia", "bhojpuri", "urdu", "kavya", "sun"]),
-        ("Entertainment", ["tv", "plus", "colors", "sony", "star plus", "zee tv", "sab", "dangal", "bindass", "gemini", "etv", "asianet", "surya", "vijay"])
+        ("sports", ["sport", "cricket", "football", "fifa", "espn", "ten ", "ten1", "ten2", "ten3", "sony ten", "star sports", "dd sports"]),
+        ("news", ["news", "aaj tak", "samachar", "cnn", "bbc", "ndtv", "zee news", "republic", "times now", "abp", "cnbc", "wion", "dd news", "india today"]),
+        ("movies", ["cinema", "movie", "film", "max", "gold", "star gold", "zee cinema", "action", "hbo", "wb", "pictures", "talkies", "fliks", "flix"]),
+        ("music", ["music", "mtv", "zoom", "vh1", "b4u music", "9xm", "9x jalwa", "mastiii", "zing", "mtv beats", "b4u"]),
+        ("kids", ["kids", "cartoon", "pogo", "nick", "disney", "hungama", "sonic", "animax", "baby", "discovery kids", "junior"]),
+        ("infotainment", ["discovery", "nat geo", "geog", "history", "animal planet", "tlc", "sci", "investigation"]),
+        ("knowledge-and-lifestyle", ["lifestyle", "food", "cook", "travel", "fox life", "fashion", "living", "care"]),
+        ("spiritual", ["bhakti", "divya", "aastha", "sadhna", "sanskar", "peace", "islam", "god", "shikhar", "darshan", "vrinda", "arihant"]),
+        ("regional", ["bengali", "bangla", "tamil", "telugu", "kannada", "malayalam", "marathi", "punjabi", "gujarati", "odia", "bhojpuri", "urdu", "kavya", "sun"]),
+        ("hindi-entertainment", ["tv", "plus", "colors", "sony", "star plus", "zee tv", "sab", "dangal", "bindass", "gemini", "etv", "asianet", "surya", "vijay"])
     ]
 
     for genre, keywords in genre_keywords:
         if any(kw in name_clean for kw in keywords):
             if allowed_categories:
+                # 1. Exact or case-insensitive match
                 match = next((c for c in allowed_categories if c.lower() == genre.lower()), None)
                 if match:
                     return match
+                # 2. Check partial match (e.g. 'news' matches 'News', 'hindi-entertainment' matches 'Entertainment')
+                partial = next((c for c in allowed_categories if c.lower() != "all" and (genre.lower() in c.lower() or c.lower() in genre.lower())), None)
+                if partial:
+                    return partial
             return genre
 
-    # Default fallback
+    # Default fallback: prefer 'most-viewed' and 'infotainment'
     if allowed_categories:
-        for fallback in ["General", "Entertainment", "News", "Movies"]:
+        for fallback in ["most-viewed", "infotainment", "news", "movies", "sports"]:
             match = next((c for c in allowed_categories if c.lower() == fallback.lower()), None)
             if match:
                 return match
@@ -72,7 +156,7 @@ def infer_category_from_name(
         if non_all:
             return non_all[0]
 
-    return "General"
+    return "most-viewed"
 
 
 def normalize_categories(
@@ -110,12 +194,22 @@ def normalize_categories(
         # User requirement: Automation must only select 'all' and ONLY ONE other relevant category
         chosen_cat: Optional[str] = None
 
-        # 1. Try to pick first matching token against allowed portal categories
+        # 1. Try to pick first matching token against allowed portal categories (including aliases)
         for token in non_all_tokens:
             tok_lower = token.lower()
             if allowed_map is not None:
                 if tok_lower in allowed_map:
                     chosen_cat = allowed_map[tok_lower]
+                    break
+                # Check alias mapping
+                alias = PORTAL_CATEGORY_ALIASES.get(tok_lower)
+                if alias and alias in allowed_map:
+                    chosen_cat = allowed_map[alias]
+                    break
+                # Check partial match
+                partial_match = next((allowed_map[k] for k in allowed_map if k != "all" and (k in tok_lower or tok_lower in k)), None)
+                if partial_match:
+                    chosen_cat = partial_match
                     break
             else:
                 chosen_cat = token
@@ -131,6 +225,18 @@ def normalize_categories(
         # 3. If no non-all category specified in file, infer from channel name
         if not chosen_cat and channel_name:
             chosen_cat = infer_category_from_name(channel_name, allowed_categories)
+
+        # 4. If still no category resolved, fallback to 'most-viewed' or 'infotainment'
+        if not chosen_cat:
+            if allowed_categories:
+                chosen_cat = next((c for c in allowed_categories if c.lower() == "most-viewed"), None)
+                if not chosen_cat:
+                    chosen_cat = next((c for c in allowed_categories if c.lower() == "infotainment"), None)
+                if not chosen_cat:
+                    non_all = [c for c in allowed_categories if c.lower() != "all"]
+                    chosen_cat = non_all[0] if non_all else "most-viewed"
+            else:
+                chosen_cat = "most-viewed"
 
         if chosen_cat and chosen_cat.lower() != "all":
             final_categories.append(chosen_cat)
@@ -148,7 +254,14 @@ def normalize_categories(
                         seen_lower.add(tok_lower)
                         final_categories.append(c_name)
                 else:
-                    errors.append(f"Unknown portal category '{token}'. Available: {', '.join(allowed_categories or [])}")
+                    alias = PORTAL_CATEGORY_ALIASES.get(tok_lower)
+                    if alias and alias in allowed_map:
+                        c_name = allowed_map[alias]
+                        if c_name.lower() not in seen_lower:
+                            seen_lower.add(c_name.lower())
+                            final_categories.append(c_name)
+                    else:
+                        errors.append(f"Unknown portal category '{token}'. Available: {', '.join(allowed_categories or [])}")
             else:
                 if tok_lower not in seen_lower:
                     seen_lower.add(tok_lower)

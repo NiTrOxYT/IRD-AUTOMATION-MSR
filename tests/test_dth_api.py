@@ -9,6 +9,7 @@ from app.dth_automation.router import (
     validate_file,
     get_execution_status,
     get_history,
+    get_run_details_by_id,
     get_categories,
     get_selectors,
     update_selector
@@ -103,6 +104,42 @@ class TestDthApi(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(hist["success"])
         self.assertIsInstance(hist["runs"], list)
 
+    async def test_run_details_endpoint(self):
+        from app.database.db import create_dth_run, save_dth_channel_result
+        run_id = create_dth_run({
+            "run_date": "2026-10-15",
+            "start_time": "12:00:00",
+            "end_time": "12:01:00",
+            "site_id": 1,
+            "site_name": "TestSite",
+            "mode": "DRY_RUN",
+            "filename": "test.csv",
+            "total_channels": 1,
+            "successful_channels": 1,
+            "status": "COMPLETED"
+        })
+        save_dth_channel_result({
+            "run_id": run_id,
+            "row_number": 1,
+            "channel_number": "101",
+            "name": "Test Channel",
+            "osd": "Test OSD",
+            "image": "test.png",
+            "categories": ["all", "News"],
+            "status": "SUCCESS"
+        })
+
+        res = await get_run_details_by_id(run_id)
+        self.assertTrue(res["success"])
+        self.assertIn("run", res)
+        self.assertIn("items", res)
+        self.assertIn("channels", res)
+        self.assertEqual(res["run"]["id"], run_id)
+        self.assertEqual(res["run"]["site_name"], "TestSite")
+        self.assertEqual(len(res["items"]), 1)
+        self.assertEqual(res["items"][0]["channel_number"], "101")
+
 
 if __name__ == "__main__":
     unittest.main()
+

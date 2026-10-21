@@ -763,7 +763,7 @@ class DthPortalController:
             relevant_category = infer_category_from_name(channel_name)
 
         if not relevant_category:
-            relevant_category = "General"
+            relevant_category = "most-viewed"
 
         try:
             res = await self.page.evaluate('''({ rowSel, otherCat }) => {
@@ -782,7 +782,7 @@ class DthPortalController:
                     const val = (cb.value || '').trim().toLowerCase();
 
                     const isAll = (txt === "all" || val === "all");
-                    const isOther = targetOther && (txt === targetOther || val === targetOther || (targetOther.length > 3 && txt.includes(targetOther)));
+                    const isOther = targetOther && (txt === targetOther || val === targetOther || (targetOther.length > 3 && (txt.includes(targetOther) || targetOther.includes(txt))));
 
                     if (isAll && !allChecked) {
                         allChecked = true;
@@ -814,7 +814,7 @@ class DthPortalController:
                     }
                 });
 
-                // If targetOther wasn't found in labels, pick first available non-all category checkbox
+                // If targetOther wasn't found in labels, prioritize default portal categories: most-viewed or infotainment
                 if (!otherChecked && labels.length > 1) {
                     for (let i = 0; i < labels.length; i++) {
                         const lbl = labels[i];
@@ -822,7 +822,7 @@ class DthPortalController:
                         if (!cb) continue;
                         const txt = (lbl.innerText || lbl.textContent || '').trim().toLowerCase();
                         const val = (cb.value || '').trim().toLowerCase();
-                        if (txt !== "all" && val !== "all") {
+                        if (txt.includes("most-viewed") || val.includes("most-viewed") || txt.includes("infotainment") || val.includes("infotainment")) {
                             cb.checked = true;
                             otherChecked = true;
                             if (window.jQuery) {
@@ -830,6 +830,24 @@ class DthPortalController:
                                 window.jQuery(cb).trigger("change");
                             }
                             break;
+                        }
+                    }
+                    if (!otherChecked) {
+                        for (let i = 0; i < labels.length; i++) {
+                            const lbl = labels[i];
+                            const cb = lbl.querySelector('input[type="checkbox"]');
+                            if (!cb) continue;
+                            const txt = (lbl.innerText || lbl.textContent || '').trim().toLowerCase();
+                            const val = (cb.value || '').trim().toLowerCase();
+                            if (txt !== "all" && val !== "all") {
+                                cb.checked = true;
+                                otherChecked = true;
+                                if (window.jQuery) {
+                                    window.jQuery(cb).parent().addClass("multiselect-on");
+                                    window.jQuery(cb).trigger("change");
+                                }
+                                break;
+                            }
                         }
                     }
                 }

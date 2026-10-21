@@ -1106,6 +1106,76 @@ NOT TESTED
           </div>
         </div>
 
+        <!-- Validation Breakdown & Details Card -->
+        <div id="dth-validation-breakdown" class="glass-panel" style="display: none; margin-bottom: 20px; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: var(--radius-md); padding: 18px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #38bdf8;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              <h3 style="margin: 0; font-size: 15px; font-weight: 700;">Validation Summary & Detailed Breakdown</h3>
+              <span id="dth-validation-badge-status" class="status-badge badge-ready">VALIDATED</span>
+            </div>
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-dth-toggle-breakdown" style="padding: 4px 10px; font-size: 11px;">Minimize</button>
+          </div>
+
+          <div id="dth-breakdown-body">
+            <!-- 3 Columns Summary Cards -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-bottom: 14px;">
+              <!-- VALID ROWS CARD -->
+              <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-sm); padding: 14px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                  <span style="font-weight: 700; color: #34d399; font-size: 13px;">✓ Valid Rows Ready</span>
+                  <span id="dth-detail-valid-count" class="status-badge" style="background: rgba(16, 185, 129, 0.25); color: #34d399; font-size: 12px;">0</span>
+                </div>
+                <p id="dth-detail-valid-msg" style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">
+                  Channels verified with valid channel number, name, mandatory 'all' category, and logo.
+                </p>
+                <button type="button" id="btn-filter-show-valid" class="btn btn-sm" style="background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); font-size: 11px;">
+                  Show Valid Rows Only
+                </button>
+              </div>
+
+              <!-- INVALID ROWS CARD -->
+              <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: var(--radius-sm); padding: 14px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                  <span style="font-weight: 700; color: #f87171; font-size: 13px;">✕ Invalid Rows Found</span>
+                  <span id="dth-detail-invalid-count" class="status-badge" style="background: rgba(239, 68, 68, 0.25); color: #f87171; font-size: 12px;">0</span>
+                </div>
+                <p id="dth-detail-invalid-msg" style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">
+                  Records with missing fields or unresolved errors that will prevent creation.
+                </p>
+                <button type="button" id="btn-filter-show-invalid" class="btn btn-sm" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); font-size: 11px;">
+                  Show Invalid Rows Only
+                </button>
+              </div>
+
+              <!-- OTHERS / DUPLICATES CARD -->
+              <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: var(--radius-sm); padding: 14px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                  <span style="font-weight: 700; color: #fbbf24; font-size: 13px;">⚠ Skipped Duplicates & Others</span>
+                  <span id="dth-detail-duplicate-count" class="status-badge" style="background: rgba(245, 158, 11, 0.25); color: #fbbf24; font-size: 12px;">0</span>
+                </div>
+                <p id="dth-detail-duplicate-msg" style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">
+                  Channels already existing in portal or duplicate rows within the uploaded file.
+                </p>
+                <button type="button" id="btn-filter-show-duplicates" class="btn btn-sm" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); font-size: 11px;">
+                  Show Duplicates Only
+                </button>
+              </div>
+            </div>
+
+            <!-- Detailed Issue List (Appears if there are invalid rows or warnings) -->
+            <div id="dth-invalid-rows-list-container" style="display: none; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: var(--radius-sm); padding: 12px;">
+              <h4 style="margin: 0 0 8px 0; font-size: 12px; color: #f87171; display: flex; align-items: center; gap: 6px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Itemized Error Details for Invalid Records:
+              </h4>
+              <div id="dth-invalid-rows-items" style="max-height: 160px; overflow-y: auto; font-size: 12px; font-family: var(--font-mono); display: flex; flex-direction: column; gap: 4px;">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Live Progress Status Bar -->
         <div class="glass-panel" style="margin-bottom: 20px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
@@ -1122,9 +1192,22 @@ NOT TESTED
 
         <!-- Channels Table Preview & Live Results -->
         <div class="glass-panel">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-            <h3>2. Channel Items Preview & Verification Table</h3>
-            <div style="display: flex; gap: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+              <h3 style="margin: 0;">2. Channel Items Preview & Verification Table</h3>
+              
+              <!-- Tabbed Row Filters -->
+              <div class="dth-table-filters" role="tablist">
+                <button type="button" class="btn-table-filter active" data-filter="all" id="btn-filter-dth-all">All (<span id="dth-filter-count-all">0</span>)</button>
+                <button type="button" class="btn-table-filter" data-filter="valid" id="btn-filter-dth-valid">Valid (<span id="dth-filter-count-valid">0</span>)</button>
+                <button type="button" class="btn-table-filter" data-filter="invalid" id="btn-filter-dth-invalid">Invalid (<span id="dth-filter-count-invalid">0</span>)</button>
+                <button type="button" class="btn-table-filter" data-filter="duplicates" id="btn-filter-dth-duplicates">Duplicates (<span id="dth-filter-count-duplicates">0</span>)</button>
+                <button type="button" class="btn-table-filter" data-filter="others" id="btn-filter-dth-others">Others (<span id="dth-filter-count-others">0</span>)</button>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <input type="text" id="dth-table-search" class="form-control" placeholder="Search preview..." style="width: 170px; padding: 5px 10px; font-size: 12px;">
               <button id="btn-dth-export-report-csv" class="btn btn-secondary btn-sm" disabled>Download Run CSV</button>
               <button id="btn-dth-export-report-json" class="btn btn-secondary btn-sm" disabled>Download Run JSON</button>
             </div>

@@ -1924,7 +1924,9 @@ const dthState = {
   uploadedFilePath: null,
   lastRunId: null,
   validationData: null,
-  isExecuting: false
+  isExecuting: false,
+  activeFilter: 'all',
+  searchQuery: ''
 };
 
 function initDthTab() {
@@ -2076,6 +2078,43 @@ function bindDthEvents() {
       if (dthState.lastRunId) window.open(`/api/dth/reports/${dthState.lastRunId}/json`, '_blank');
     };
   }
+
+  // 9. Table Row Filters & Search
+  ['all', 'valid', 'invalid', 'duplicates', 'others'].forEach(filterKey => {
+    const btn = document.getElementById(`btn-filter-dth-${filterKey}`);
+    if (btn) btn.onclick = () => setDthTableFilter(filterKey);
+  });
+
+  const btnShowValid = document.getElementById('btn-filter-show-valid');
+  if (btnShowValid) btnShowValid.onclick = () => setDthTableFilter('valid');
+
+  const btnShowInvalid = document.getElementById('btn-filter-show-invalid');
+  if (btnShowInvalid) btnShowInvalid.onclick = () => setDthTableFilter('invalid');
+
+  const btnShowDupl = document.getElementById('btn-filter-show-duplicates');
+  if (btnShowDupl) btnShowDupl.onclick = () => setDthTableFilter('duplicates');
+
+  const searchInput = document.getElementById('dth-table-search');
+  if (searchInput) {
+    searchInput.oninput = (e) => {
+      dthState.searchQuery = e.target.value;
+      if (dthState.validationData) {
+        renderDthPreviewTable(dthState.validationData.items, dthState.validationData.validation_results);
+      }
+    };
+  }
+
+  const btnToggleBreakdown = document.getElementById('btn-dth-toggle-breakdown');
+  if (btnToggleBreakdown) {
+    btnToggleBreakdown.onclick = () => {
+      const body = document.getElementById('dth-breakdown-body');
+      if (body) {
+        const isHidden = body.style.display === 'none';
+        body.style.display = isHidden ? 'block' : 'none';
+        btnToggleBreakdown.textContent = isHidden ? 'Minimize' : 'Expand';
+      }
+    };
+  }
 }
 
 async function uploadDthFile(file) {
@@ -2132,6 +2171,7 @@ async function runDthValidation() {
     if (res.ok && data.success) {
       dthState.validationData = data;
       updateDthKpis(data);
+      updateDthValidationBreakdown(data);
       renderDthPreviewTable(data.items, data.validation_results);
       if (lblStatus) lblStatus.textContent = `Validation finished: ${data.valid_rows} ready, ${data.invalid_rows} invalid, ${data.duplicate_rows} duplicates.`;
     } else {
@@ -2157,6 +2197,107 @@ function updateDthKpis(data) {
   if (elDuplicates) elDuplicates.textContent = data.duplicate_rows || 0;
 }
 
+function setDthTableFilter(filter) {
+  dthState.activeFilter = filter;
+  const filterBtns = document.querySelectorAll('.btn-table-filter');
+  filterBtns.forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-filter') === filter);
+  });
+  if (dthState.validationData) {
+    renderDthPreviewTable(dthState.validationData.items, dthState.validationData.validation_results);
+  }
+}
+
+function updateDthValidationBreakdown(data) {
+  const panel = document.getElementById('dth-validation-breakdown');
+  if (!panel) return;
+
+  panel.style.display = 'block';
+
+  // Badge status
+  const badge = document.getElementById('dth-validation-badge-status');
+  if (badge) {
+    if (data.invalid_rows > 0) {
+      badge.textContent = `${data.invalid_rows} ERRORS`;
+      badge.className = 'status-badge badge-dth-invalid';
+    } else {
+      badge.textContent = 'ALL VALID';
+      badge.className = 'status-badge badge-dth-ready';
+    }
+  }
+
+  // Counts
+  const elValidCount = document.getElementById('dth-detail-valid-count');
+  const elInvalidCount = document.getElementById('dth-detail-invalid-count');
+  const elDuplCount = document.getElementById('dth-detail-duplicate-count');
+
+  if (elValidCount) elValidCount.textContent = data.valid_rows || 0;
+  if (elInvalidCount) elInvalidCount.textContent = data.invalid_rows || 0;
+  if (elDuplCount) elDuplCount.textContent = data.duplicate_rows || 0;
+
+  // Description messages
+  const elValidMsg = document.getElementById('dth-detail-valid-msg');
+  if (elValidMsg) {
+    elValidMsg.textContent = `${data.valid_rows || 0} channels passed number, name, mandatory 'all' category, and logo checks. Ready for live creation.`;
+  }
+
+  const elInvalidMsg = document.getElementById('dth-detail-invalid-msg');
+  if (elInvalidMsg) {
+    if (data.invalid_rows > 0) {
+      elInvalidMsg.textContent = `${data.invalid_rows} channels have validation errors. Review itemized details below or filter the table.`;
+    } else {
+      elInvalidMsg.textContent = "✓ 0 errors! All rows are completely valid.";
+    }
+  }
+
+  const elDuplMsg = document.getElementById('dth-detail-duplicate-msg');
+  if (elDuplMsg) {
+    if (data.duplicate_rows > 0) {
+      elDuplMsg.textContent = `${data.duplicate_rows} duplicate channels found. Under CREATE ONLY rules, these will be skipped to prevent duplicates.`;
+    } else {
+      elDuplMsg.textContent = "0 duplicate channels detected in this batch.";
+    }
+  }
+
+  // Itemized Invalid List
+  const listContainer = document.getElementById('dth-invalid-rows-list-container');
+  const listItems = document.getElementById('dth-invalid-rows-items');
+
+  if (listContainer && listItems) {
+    const invalidItems = [];
+    if (data.items && data.validation_results) {
+      data.items.forEach((item, idx) => {
+        const vr = data.validation_results[idx];
+        if (vr && vr.status === 'INVALID') {
+          invalidItems.push({ item, vr });
+        }
+      });
+    }
+
+    if (invalidItems.length > 0) {
+      listContainer.style.display = 'block';
+      let html = '';
+      invalidItems.forEach(({ item, vr }) => {
+        const errText = vr.errors && vr.errors.length ? vr.errors.join('; ') : 'Validation error';
+        html += `
+          <div style="padding: 6px 10px; background: rgba(239, 68, 68, 0.12); border-left: 3px solid #ef4444; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+            <div>
+              <strong style="color: #f87171;">Row #${item.row_number}</strong>
+              <span style="color: #ffffff; font-weight: 600; margin: 0 4px;">[Ch ${escapeHtml(item.channel_number || 'N/A')} - ${escapeHtml(item.name || 'Unnamed')}]:</span>
+              <span style="color: #fca5a5;">${escapeHtml(errText)}</span>
+            </div>
+            <button type="button" class="btn btn-sm" onclick="setDthTableFilter('invalid')" style="padding: 2px 8px; font-size: 10px; background: rgba(239, 68, 68, 0.3); color: #fff; border: 1px solid rgba(239, 68, 68, 0.5); border-radius: 3px; cursor: pointer;">Show</button>
+          </div>
+        `;
+      });
+      listItems.innerHTML = html;
+    } else {
+      listContainer.style.display = 'none';
+      listItems.innerHTML = '';
+    }
+  }
+}
+
 function renderDthPreviewTable(items, results) {
   const tbody = document.getElementById('tbody-dth-channels');
   if (!tbody) return;
@@ -2166,11 +2307,81 @@ function renderDthPreviewTable(items, results) {
     return;
   }
 
-  let html = '';
+  // 1. Calculate live counts
+  let countValid = 0;
+  let countInvalid = 0;
+  let countDuplicates = 0;
+  let countOthers = 0;
+
   items.forEach((item, idx) => {
     const vr = results && results[idx] ? results[idx] : null;
     const status = vr ? vr.status : 'PENDING';
+    if (status === 'READY' || status === 'SUCCESS') countValid++;
+    else if (status === 'INVALID' || status === 'FAILED') countInvalid++;
+    else if (status === 'SKIPPED_DUPLICATE') countDuplicates++;
+    else countOthers++;
+  });
+
+  // Update filter count tags
+  const elFAll = document.getElementById('dth-filter-count-all');
+  const elFValid = document.getElementById('dth-filter-count-valid');
+  const elFInvalid = document.getElementById('dth-filter-count-invalid');
+  const elFDupl = document.getElementById('dth-filter-count-duplicates');
+  const elFOthers = document.getElementById('dth-filter-count-others');
+
+  if (elFAll) elFAll.textContent = items.length;
+  if (elFValid) elFValid.textContent = countValid;
+  if (elFInvalid) elFInvalid.textContent = countInvalid;
+  if (elFDupl) elFDupl.textContent = countDuplicates;
+  if (elFOthers) elFOthers.textContent = countOthers;
+
+  // 2. Filter items according to activeFilter and searchQuery
+  const filter = dthState.activeFilter || 'all';
+  const query = (dthState.searchQuery || '').toLowerCase().trim();
+
+  const filtered = [];
+  items.forEach((item, idx) => {
+    const vr = results && results[idx] ? results[idx] : null;
+    const status = vr ? vr.status : 'PENDING';
+
+    // Status filter
+    let matchStatus = true;
+    if (filter === 'valid') matchStatus = (status === 'READY' || status === 'SUCCESS');
+    else if (filter === 'invalid') matchStatus = (status === 'INVALID' || status === 'FAILED');
+    else if (filter === 'duplicates') matchStatus = (status === 'SKIPPED_DUPLICATE');
+    else if (filter === 'others') matchStatus = !['READY', 'SUCCESS', 'INVALID', 'FAILED', 'SKIPPED_DUPLICATE'].includes(status);
+
+    if (!matchStatus) return;
+
+    // Search query filter
+    if (query) {
+      const num = String(item.channel_number || '').toLowerCase();
+      const name = String(item.name || '').toLowerCase();
+      const osd = String(item.osd || '').toLowerCase();
+      const cats = (item.categories || []).join(' ').toLowerCase();
+      const details = vr ? (vr.errors.join(' ') + ' ' + vr.warnings.join(' ')).toLowerCase() : '';
+      if (!num.includes(query) && !name.includes(query) && !osd.includes(query) && !cats.includes(query) && !details.includes(query)) {
+        return;
+      }
+    }
+
+    filtered.push({ item, vr, idx });
+  });
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 30px;">No rows matching filter "${filter}"${query ? ` and query "${escapeHtml(query)}"` : ''}.</td></tr>`;
+    return;
+  }
+
+  let html = '';
+  filtered.forEach(({ item, vr }) => {
+    const status = vr ? vr.status : 'PENDING';
     const statusClass = getDthStatusBadgeClass(status);
+
+    let rowClass = '';
+    if (status === 'INVALID' || status === 'FAILED') rowClass = 'dth-row-invalid';
+    else if (status === 'SKIPPED_DUPLICATE') rowClass = 'dth-row-duplicate';
+    else if (status === 'READY' || status === 'SUCCESS') rowClass = 'dth-row-ready';
 
     const categories = item.categories || [];
     const catBadges = categories.map(c => {
@@ -2181,7 +2392,7 @@ function renderDthPreviewTable(items, results) {
     const details = vr ? (vr.errors.length ? vr.errors.join('; ') : (vr.warnings.length ? vr.warnings.join('; ') : 'OK')) : '';
 
     html += `
-      <tr>
+      <tr class="${rowClass}">
         <td>${item.row_number}</td>
         <td><strong>${escapeHtml(item.channel_number)}</strong></td>
         <td>${escapeHtml(item.name)}</td>
@@ -2189,8 +2400,8 @@ function renderDthPreviewTable(items, results) {
         <td>${catBadges}</td>
         <td><small style="color: var(--accent-cyan); font-weight: 500;">${escapeHtml(item.image)}</small></td>
         <td><span class="status-badge ${statusClass}">${escapeHtml(status)}</span></td>
-        <td>${status === 'SKIPPED_DUPLICATE' ? 'ALREADY IN PORTAL' : '-'}</td>
-        <td style="font-size: 12px; color: ${status === 'INVALID' ? 'var(--accent-red)' : 'var(--text-muted)'};">${escapeHtml(details)}</td>
+        <td>${status === 'SKIPPED_DUPLICATE' ? 'ALREADY IN PORTAL' : (status === 'SUCCESS' ? 'YES' : '-')}</td>
+        <td style="font-size: 12px; color: ${status === 'INVALID' || status === 'FAILED' ? 'var(--accent-red)' : 'var(--text-muted)'};">${escapeHtml(details)}</td>
       </tr>
     `;
   });
@@ -2906,12 +3117,17 @@ async function openDthRunDetails(runId) {
 
   try {
     const res = await fetch(`/api/dth/runs/${runId}`);
-    if (!res.ok) throw new Error("Could not fetch run details");
+    if (!res.ok) throw new Error(`Could not fetch run details (Status: ${res.status})`);
     const data = await res.json();
-    const run = data.run;
-    const items = data.items || [];
+    const run = data.run || data.data?.run || data.data || data;
+    const items = data.items || data.channels || data.data?.items || data.data?.channels || [];
 
-    if (title) title.textContent = `DTH Run #${run.id} Details (${run.run_date || ''} - ${run.status})`;
+    if (!run || (run.id === undefined && run.id === null)) {
+      throw new Error(`Run #${runId} details are unavailable`);
+    }
+
+    const currentRunId = run.id || runId;
+    if (title) title.textContent = `DTH Run #${currentRunId} Details (${run.run_date || ''} - ${run.status || 'UNKNOWN'})`;
 
     const elSite = document.getElementById('modal-dth-run-site');
     const elMode = document.getElementById('modal-dth-run-mode');
@@ -2922,28 +3138,30 @@ async function openDthRunDetails(runId) {
 
     if (elSite) elSite.textContent = run.site_name || 'FNB';
     if (elMode) elMode.textContent = run.mode || 'DRY_RUN';
-    if (elTot) elTot.textContent = run.total_channels || 0;
-    if (elSucc) elSucc.textContent = run.successful_channels || 0;
-    if (elSkip) elSkip.textContent = run.skipped_duplicates || 0;
-    if (elFail) elFail.textContent = (run.failed_channels || 0) + (run.invalid_channels || 0);
+    if (elTot) elTot.textContent = run.total_channels ?? 0;
+    if (elSucc) elSucc.textContent = run.successful_channels ?? 0;
+    if (elSkip) elSkip.textContent = run.skipped_duplicates ?? 0;
+    const failedChannels = (Number(run.failed_channels) || 0) + (Number(run.invalid_channels) || 0);
+    if (elFail) elFail.textContent = failedChannels;
 
     const btnCsv = document.getElementById('btn-modal-dth-download-csv');
     const btnJson = document.getElementById('btn-modal-dth-download-json');
-    if (btnCsv) btnCsv.href = `/api/dth/reports/${run.id}/csv`;
-    if (btnJson) btnJson.href = `/api/dth/reports/${run.id}/json`;
+    if (btnCsv) btnCsv.href = `/api/dth/reports/${currentRunId}/csv`;
+    if (btnJson) btnJson.href = `/api/dth/reports/${currentRunId}/json`;
 
     // Populate row items
     const tbody = document.getElementById('tbody-modal-dth-channels');
     if (tbody) {
-      if (items.length === 0) {
+      if (!items || items.length === 0) {
         tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 25px;">No channel row records found for this run.</td></tr>`;
       } else {
         let html = '';
         items.forEach((item, idx) => {
-          const statusClass = getDthStatusBadgeClass(item.status);
-          const catBadges = (item.categories || []).map(c => `<span class="dth-cat-tag ${c.toLowerCase() === 'all' ? 'mandatory' : ''}">${escapeHtml(c)}</span>`).join(' ');
-          const dur = item.duration_seconds ? `${item.duration_seconds.toFixed(1)}s` : '-';
-          const verified = item.verified ? '<span style="color: var(--accent-green);">YES</span>' : '<span style="color: var(--text-muted);">NO</span>';
+          const statusClass = typeof getDthStatusBadgeClass === 'function' ? getDthStatusBadgeClass(item.status) : 'badge-dth-ready';
+          const rawCats = Array.isArray(item.categories) ? item.categories : (typeof item.categories === 'string' ? [item.categories] : []);
+          const catBadges = rawCats.map(c => `<span class="dth-cat-tag ${String(c).toLowerCase() === 'all' ? 'mandatory' : ''}">${escapeHtml(String(c))}</span>`).join(' ');
+          const dur = (item.duration_seconds !== null && item.duration_seconds !== undefined) ? `${Number(item.duration_seconds).toFixed(1)}s` : '-';
+          const verified = item.verified ? '<span style="color: var(--accent-green); font-weight: 600;">YES</span>' : '<span style="color: var(--text-muted);">NO</span>';
 
           html += `
             <tr>
@@ -2951,8 +3169,8 @@ async function openDthRunDetails(runId) {
               <td><strong>${escapeHtml(item.channel_number || '')}</strong></td>
               <td>${escapeHtml(item.name || '')}</td>
               <td>${escapeHtml(item.osd || '')}</td>
-              <td>${catBadges}</td>
-              <td><span class="status-badge ${statusClass}">${item.status}</span></td>
+              <td>${catBadges || '-'}</td>
+              <td><span class="status-badge ${statusClass}">${escapeHtml(item.status || 'UNKNOWN')}</span></td>
               <td>${verified}</td>
               <td><small>${dur}</small></td>
               <td style="font-size: 12px; color: ${item.status === 'FAILED' ? 'var(--accent-red)' : 'var(--text-muted)'};">${escapeHtml(item.details || '-')}</td>
@@ -2963,6 +3181,7 @@ async function openDthRunDetails(runId) {
       }
     }
   } catch (e) {
+    if (title) title.textContent = `DTH Run #${runId} Details (Failed to load)`;
     alert("Error opening run details: " + e.message);
   }
 }

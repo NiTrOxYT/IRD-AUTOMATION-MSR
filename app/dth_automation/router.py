@@ -600,12 +600,19 @@ async def get_history(limit: int = Query(default=30, ge=1, le=100)):
 
 
 @dth_router.get("/runs/{run_id}")
+@dth_router.get("/history/{run_id}")
 async def get_run_details_by_id(run_id: int):
     """Returns detailed summary and row-level results for a specific DTH run."""
     details = get_dth_run_details(run_id)
     if not details:
         raise HTTPException(status_code=404, detail=f"DTH Run #{run_id} not found.")
-    return {"success": True, "data": details}
+    return {
+        "success": True,
+        "run": details.get("run"),
+        "items": details.get("channels", []),
+        "channels": details.get("channels", []),
+        "data": details,
+    }
 
 
 @dth_router.get("/reports/{run_id}/csv")
@@ -613,6 +620,12 @@ async def download_csv_report(run_id: int):
     """Downloads execution CSV report for a given run ID."""
     dth_reports_dir = REPORTS_DIR / "dth"
     matches = list(dth_reports_dir.glob(f"*_dth_run_{run_id}.csv"))
+    if not matches:
+        details = get_dth_run_details(run_id)
+        if details and details.get("run"):
+            from app.dth_automation.report_generator import export_dth_reports
+            export_dth_reports(details["run"], details.get("channels", []))
+            matches = list(dth_reports_dir.glob(f"*_dth_run_{run_id}.csv"))
     if not matches:
         raise HTTPException(status_code=404, detail=f"CSV report for Run #{run_id} not found.")
     return FileResponse(path=str(matches[0]), filename=matches[0].name, media_type="text/csv")
@@ -623,6 +636,12 @@ async def download_json_report(run_id: int):
     """Downloads execution JSON report for a given run ID."""
     dth_reports_dir = REPORTS_DIR / "dth"
     matches = list(dth_reports_dir.glob(f"*_dth_run_{run_id}.json"))
+    if not matches:
+        details = get_dth_run_details(run_id)
+        if details and details.get("run"):
+            from app.dth_automation.report_generator import export_dth_reports
+            export_dth_reports(details["run"], details.get("channels", []))
+            matches = list(dth_reports_dir.glob(f"*_dth_run_{run_id}.json"))
     if not matches:
         raise HTTPException(status_code=404, detail=f"JSON report for Run #{run_id} not found.")
     return FileResponse(path=str(matches[0]), filename=matches[0].name, media_type="application/json")
