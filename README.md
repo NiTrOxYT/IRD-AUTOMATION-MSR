@@ -1,4 +1,4 @@
-# IRD AUTO
+<p align="center"> IRD AUTO </p>
 
 ### Intelligent Restaurant & Hotel Configuration Automation
 
