@@ -254,6 +254,77 @@ def init_db():
     );
     """)
 
+    # Action Point Runs Table
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS action_point_runs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        run_date TEXT NOT NULL,
+        start_time TEXT NOT NULL,
+        end_time TEXT,
+        mode TEXT DEFAULT 'DRY_RUN',
+        status TEXT DEFAULT 'PENDING',
+        filename TEXT NOT NULL,
+        site_id INTEGER NOT NULL,
+        site_name TEXT NOT NULL,
+        total_rows INTEGER DEFAULT 0,
+        action_point_rows INTEGER DEFAULT 0,
+        processed_rows INTEGER DEFAULT 0,
+        successful_rows INTEGER DEFAULT 0,
+        failed_rows INTEGER DEFAULT 0,
+        skipped_rows INTEGER DEFAULT 0,
+        blocked_rows INTEGER DEFAULT 0,
+        error_message TEXT DEFAULT '',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    """)
+
+    # Action Point Item Results Table
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS action_point_item_results (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        run_id INTEGER NOT NULL,
+        row_number INTEGER NOT NULL,
+        item_code TEXT NOT NULL,
+        item_name TEXT NOT NULL,
+        requested_category TEXT NOT NULL,
+        requested_subcategory TEXT NOT NULL,
+        original_status TEXT NOT NULL,
+        classification TEXT NOT NULL,
+        status TEXT DEFAULT 'PENDING',
+        failure_reason TEXT DEFAULT '',
+        category_created INTEGER DEFAULT 0,
+        subcategory_created INTEGER DEFAULT 0,
+        subcategory_verified INTEGER DEFAULT 0,
+        item_found INTEGER DEFAULT 0,
+        restaurant_verified INTEGER DEFAULT 0,
+        portal_verified INTEGER DEFAULT 0,
+        screenshot_path TEXT DEFAULT '',
+        started_at TEXT,
+        completed_at TEXT,
+        duration_seconds REAL DEFAULT 0.0,
+        FOREIGN KEY (run_id) REFERENCES action_point_runs (id) ON DELETE CASCADE
+    );
+    """)
+
+    cursor.execute("PRAGMA table_info(action_point_item_results)")
+    ap_cols = [row[1] for row in cursor.fetchall()]
+    new_ap_cols = [
+        ("subcategory_created", "INTEGER DEFAULT 0"),
+        ("item_checkbox_selected", "INTEGER DEFAULT 0"),
+        ("category_selected", "INTEGER DEFAULT 0"),
+        ("subcategory_selected", "INTEGER DEFAULT 0"),
+        ("subcategory_skipped", "INTEGER DEFAULT 0"),
+        ("restaurant_selected", "INTEGER DEFAULT 0"),
+        ("configure_submitted", "INTEGER DEFAULT 0"),
+        ("persisted_verified", "INTEGER DEFAULT 0")
+    ]
+    for col_name, col_def in new_ap_cols:
+        if col_name not in ap_cols:
+            try:
+                cursor.execute(f"ALTER TABLE action_point_item_results ADD COLUMN {col_name} {col_def}")
+            except Exception:
+                pass
+
 
     # Non-destructive Migration for Sites Table Tunnel Fields
     cursor.execute("PRAGMA table_info(sites)")
@@ -1608,4 +1679,167 @@ def get_controller_dashboard_metrics() -> Dict[str, Any]:
         "failed_runs": failed_runs,
         "recent_runs": recent
     }
+
+
+# ==============================================================================
+# ACTION POINT CONFIGURATION DATABASE OPERATIONS
+# ==============================================================================
+
+def create_action_point_run(
+    run_date: str,
+    start_time: str,
+    mode: str,
+    filename: str,
+    site_id: int,
+    site_name: str,
+    total_rows: int = 0,
+    action_point_rows: int = 0
+) -> int:
+    """Inserts a new Action Point execution run record."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+    INSERT INTO action_point_runs (
+        run_date, start_time, mode, status, filename, site_id, site_name,
+        total_rows, action_point_rows, processed_rows, successful_rows,
+        failed_rows, skipped_rows, blocked_rows
+    ) VALUES (?, ?, ?, 'IN_PROGRESS', ?, ?, ?, ?, ?, 0, 0, 0, 0, 0)
+    """, (run_date, start_time, mode, filename, site_id, site_name, total_rows, action_point_rows))
+    run_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+    return run_id
+
+
+def update_action_point_run(
+    run_id: int,
+    end_time: Optional[str] = None,
+    status: Optional[str] = None,
+    processed_rows: Optional[int] = None,
+    successful_rows: Optional[int] = None,
+    failed_rows: Optional[int] = None,
+    skipped_rows: Optional[int] = None,
+    blocked_rows: Optional[int] = None,
+    error_message: Optional[str] = None
+):
+    """Updates status, counts, and completion time of an Action Point run."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    updates = []
+    params = []
+    if end_time is not None:
+        updates.append("end_time = ?")
+        params.append(end_time)
+    if status is not None:
+        updates.append("status = ?")
+        params.append(status)
+    if processed_rows is not None:
+        updates.append("processed_rows = ?")
+        params.append(processed_rows)
+    if successful_rows is not None:
+        updates.append("successful_rows = ?")
+        params.append(successful_rows)
+    if failed_rows is not None:
+        updates.append("failed_rows = ?")
+        params.append(failed_rows)
+    if skipped_rows is not None:
+        updates.append("skipped_rows = ?")
+        params.append(skipped_rows)
+    if blocked_rows is not None:
+        updates.append("blocked_rows = ?")
+        params.append(blocked_rows)
+    if error_message is not None:
+        updates.append("error_message = ?")
+        params.append(error_message)
+
+    if updates:
+        params.append(run_id)
+        cursor.execute(f"UPDATE action_point_runs SET {', '.join(updates)} WHERE id = ?", tuple(params))
+        conn.commit()
+    conn.close()
+
+
+def save_action_point_item_result(run_id: int, result: Any) -> int:
+    """Inserts a single item's execution outcome."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    status_str = result.status.value if hasattr(result.status, "value") else str(result.status)
+    class_str = result.classification.value if hasattr(result.classification, "value") else str(result.classification)
+
+    cursor.execute("""
+    INSERT INTO action_point_item_results (
+        run_id, row_number, item_code, item_name, requested_category,
+        requested_subcategory, original_status, classification, status,
+        failure_reason, category_created, subcategory_created, subcategory_verified, item_found,
+        item_checkbox_selected, category_selected, subcategory_selected, subcategory_skipped,
+        restaurant_selected, configure_submitted, persisted_verified,
+        restaurant_verified, portal_verified, screenshot_path, started_at,
+        completed_at, duration_seconds
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        run_id,
+        result.row_number,
+        result.item_code,
+        result.item_name,
+        result.requested_category,
+        result.requested_subcategory,
+        result.original_status,
+        class_str,
+        status_str,
+        result.failure_reason,
+        1 if result.category_created else 0,
+        1 if getattr(result, "subcategory_created", False) else 0,
+        1 if result.subcategory_verified else 0,
+        1 if result.item_found else 0,
+        1 if getattr(result, "item_checkbox_selected", False) else 0,
+        1 if getattr(result, "category_selected", False) else 0,
+        1 if getattr(result, "subcategory_selected", False) else 0,
+        1 if getattr(result, "subcategory_skipped", False) else 0,
+        1 if getattr(result, "restaurant_selected", False) else 0,
+        1 if getattr(result, "configure_submitted", False) else 0,
+        1 if getattr(result, "persisted_verified", False) else 0,
+        1 if result.restaurant_verified else 0,
+        1 if result.portal_verified else 0,
+        result.screenshot_path or "",
+        result.started_at or "",
+        result.completed_at or "",
+        getattr(result, "duration_seconds", 0.0)
+    ))
+    res_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+    return res_id
+
+
+def get_action_point_runs(limit: int = 50) -> List[Dict[str, Any]]:
+    """Retrieves recent Action Point runs ordered by most recent first."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM action_point_runs ORDER BY id DESC LIMIT ?", (limit,))
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def get_action_point_run_details(run_id: int) -> Optional[Dict[str, Any]]:
+    """Retrieves full details and item results for a given Action Point run."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM action_point_runs WHERE id = ?", (run_id,))
+    run_row = cursor.fetchone()
+    if not run_row:
+        conn.close()
+        return None
+
+    run_dict = dict(run_row)
+
+    cursor.execute("SELECT * FROM action_point_item_results WHERE run_id = ? ORDER BY row_number ASC", (run_id,))
+    item_rows = cursor.fetchall()
+    run_dict["items"] = [dict(it) for it in item_rows]
+
+    conn.close()
+    return run_dict
 

@@ -129,6 +129,18 @@ controller_workflow_runner.add_status_listener(on_controller_workflow_status)
 # Register Controller Automation Router
 app.include_router(controller_router, prefix="/api/controller", tags=["Controller Configuration"])
 
+# Hook Action Point workflow status changes to WebSocket broadcast
+from app.action_point_automation.router import action_point_router
+from app.action_point_automation.workflow_runner import action_point_workflow_runner
+
+def on_action_point_workflow_status(status_payload: dict):
+    safe_broadcast({"type": "action_point_status", "data": status_payload})
+
+action_point_workflow_runner.add_status_listener(on_action_point_workflow_status)
+
+# Register Action Point Automation Router
+app.include_router(action_point_router, prefix="/api/action-point", tags=["IRD Action Point Configuration"])
+
 
 # --- REST API ENDPOINTS ---
 

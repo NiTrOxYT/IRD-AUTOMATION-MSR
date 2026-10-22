@@ -70,6 +70,10 @@
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
             <span>Diagnostics</span>
           </button>
+          <button class="nav-btn" data-tab="action-point-config" id="nav-btn-action-point-config">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            <span>Action Point Config</span>
+          </button>
         </div>
 
         <!-- DTH Automation Module Navigation -->
@@ -831,6 +835,195 @@ NOT TESTED
               </thead>
               <tbody id="tbody-diagnostics">
                 <!-- Rendered dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB: IRD ACTION POINT CONFIGURATION -->
+      <section id="tab-action-point-config" class="tab-page">
+        <div class="page-header">
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <h1 style="margin: 0;">IRD Action Point Configuration</h1>
+              <span class="status-badge" style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid #3b82f6;">MODULE: IRD SYNC</span>
+              <span class="status-badge badge-ready" style="background: rgba(34, 197, 94, 0.2); color: #4ade80;">PORTAL: FNB / ZMP</span>
+            </div>
+            <p class="subtitle">Automated Category Management & Food Item Configuration on Hotel FNB Portals</p>
+          </div>
+          <div class="action-bar" style="flex-wrap: wrap; gap: 8px;">
+            <select id="ap-site-select" class="form-control" style="min-width: 220px; background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.15); color: #fff; padding: 6px 12px; border-radius: 6px; font-weight: 500;">
+              <option value="">-- Select Target Hotel Site --</option>
+            </select>
+            <input type="file" id="ap-file-input" accept=".csv, .xlsx" style="display: none;">
+            <button id="ap-btn-select-file" class="btn btn-secondary">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Upload CSV / XLSX
+            </button>
+            <button id="ap-btn-clear" class="btn btn-secondary" style="display: none;">Clear</button>
+            <button id="ap-btn-dry-run" class="btn btn-warning" disabled>Dry Run (Safety Check)</button>
+            <button id="ap-btn-live-execute" class="btn btn-primary btn-glow" disabled style="background: #2563eb;">Live Execute</button>
+            <button id="ap-btn-stop" class="btn btn-danger" style="display: none;">Stop Execution</button>
+          </div>
+        </div>
+
+        <!-- File Upload Status / Notice Card -->
+        <div id="ap-file-card" class="glass-panel" style="margin-bottom: 20px; display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="background: rgba(59, 130, 246, 0.15); padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(59, 130, 246, 0.3);">
+                <span id="ap-file-name" style="font-weight: 600; color: #93c5fd; font-family: monospace;">data.xlsx</span>
+              </div>
+              <span id="ap-file-stats" style="font-size: 13px; color: #94a3b8;">0 rows detected</span>
+            </div>
+            <div id="ap-report-buttons" style="display: none; gap: 8px;">
+              <button id="ap-btn-export-xlsx" class="btn btn-secondary btn-sm">Export XLSX</button>
+              <button id="ap-btn-export-csv" class="btn btn-secondary btn-sm">Export CSV</button>
+              <button id="ap-btn-export-json" class="btn btn-secondary btn-sm">Export JSON</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Execution Progress Card -->
+        <div id="ap-progress-panel" class="glass-panel" style="margin-bottom: 20px; display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span class="status-dot" id="ap-status-dot" style="background: #3b82f6;"></span>
+              <span id="ap-status-operation" style="font-weight: 600; color: #f8fafc;">Execution Status: Idle</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 14px;">
+              <div id="ap-status-current-item" style="font-size: 13px; color: #38bdf8; font-family: monospace;">Current: None</div>
+              <span id="ap-progress-percentage" style="font-size: 13px; font-weight: bold; color: #4ade80;">0%</span>
+            </div>
+          </div>
+          <div class="progress-bar-wrap" style="height: 8px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden; margin-bottom: 12px;">
+            <div id="ap-progress-bar-fill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #3b82f6, #10b981); transition: width 0.3s ease;"></div>
+          </div>
+          <!-- Terminal Mini Log for Action Point -->
+          <div id="ap-terminal-log" style="height: 140px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 10px; font-family: monospace; font-size: 12px; overflow-y: auto; color: #cbd5e1;">
+            <div style="color: #64748b;">[READY] Select hotel site and file to begin...</div>
+          </div>
+        </div>
+
+        <!-- Metric KPI Cards Grid -->
+        <div class="metrics-grid" style="margin-bottom: 24px;">
+          <div class="metric-card">
+            <span class="metric-title">Total Rows</span>
+            <span class="metric-value" id="ap-stat-total">0</span>
+            <span class="metric-sub">Items In Input</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-title">Category Updates</span>
+            <span class="metric-value color-active" id="ap-stat-action-points">0</span>
+            <span class="metric-sub">Valid Action Points</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-title">Successful</span>
+            <span class="metric-value color-completed" id="ap-stat-success">0</span>
+            <span class="metric-sub">Configured & Verified</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-title">Blocked</span>
+            <span class="metric-value color-action" id="ap-stat-blocked">0</span>
+            <span class="metric-sub">Prerequisite Missing</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-title">Skipped</span>
+            <span class="metric-value" id="ap-stat-skipped" style="color: #94a3b8;">0</span>
+            <span class="metric-sub">Unsupported Status</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-title">Failed</span>
+            <span class="metric-value color-failed" id="ap-stat-failed">0</span>
+            <span class="metric-sub">Errors Encountered</span>
+          </div>
+        </div>
+
+        <!-- Data Preview & Execution Results Container -->
+        <div class="glass-panel" style="margin-bottom: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+            <div style="display: flex; gap: 8px;">
+              <button id="ap-tab-btn-preview" class="btn btn-secondary btn-sm active" style="font-weight: 600;">Data Preview</button>
+              <button id="ap-tab-btn-results" class="btn btn-secondary btn-sm" style="font-weight: 600;">Execution Results</button>
+              <button id="ap-tab-btn-history" class="btn btn-secondary btn-sm" style="font-weight: 600;">Run History</button>
+            </div>
+            <div id="ap-table-filter-info" style="font-size: 12px; color: #94a3b8;">Showing all rows</div>
+          </div>
+
+          <!-- 1. Data Preview Table -->
+          <div id="ap-table-preview-wrap" class="table-responsive">
+            <table class="data-table" id="ap-table-preview">
+              <thead>
+                <tr>
+                  <th width="60">Row</th>
+                  <th width="120">Item Code</th>
+                  <th>Item Name</th>
+                  <th width="110">Price</th>
+                  <th>Category</th>
+                  <th>Sub-Category</th>
+                  <th width="160">Status</th>
+                  <th>Classification / Validation</th>
+                </tr>
+              </thead>
+              <tbody id="ap-tbody-preview">
+                <tr>
+                  <td colspan="8" style="text-align: center; color: #64748b; padding: 30px;">
+                    No file uploaded yet. Click <strong>[ Upload CSV / XLSX ]</strong> above to inspect action points.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- 2. Execution Results Table -->
+          <div id="ap-table-results-wrap" class="table-responsive" style="display: none;">
+            <table class="data-table" id="ap-table-results">
+              <thead>
+                <tr>
+                  <th width="60">Row</th>
+                  <th width="120">Item Code</th>
+                  <th>Item Name</th>
+                  <th>Category</th>
+                  <th>Sub-Category</th>
+                  <th width="140">Execution Status</th>
+                  <th>Outcome / Verification Reason</th>
+                  <th width="90">Screenshot</th>
+                </tr>
+              </thead>
+              <tbody id="ap-tbody-results">
+                <tr>
+                  <td colspan="8" style="text-align: center; color: #64748b; padding: 30px;">
+                    No execution results yet. Run a Dry Run or Live Execute to view item outcomes.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- 3. Run History Table -->
+          <div id="ap-table-history-wrap" class="table-responsive" style="display: none;">
+            <table class="data-table" id="ap-table-history">
+              <thead>
+                <tr>
+                  <th width="60">ID</th>
+                  <th>Date & Time</th>
+                  <th>Hotel Site</th>
+                  <th>Filename</th>
+                  <th width="100">Mode</th>
+                  <th width="120">Status</th>
+                  <th width="80">Total</th>
+                  <th width="80">Success</th>
+                  <th width="80">Failed</th>
+                  <th width="110">Reports</th>
+                </tr>
+              </thead>
+              <tbody id="ap-tbody-history">
+                <tr>
+                  <td colspan="10" style="text-align: center; color: #64748b; padding: 20px;">
+                    Loading history...
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -1868,6 +2061,48 @@ NOT TESTED
       <div class="modal-footer">
         <button class="btn btn-secondary" id="btn-cancel-confirm-run">CANCEL</button>
         <button class="btn btn-primary btn-glow" id="btn-proceed-real-run">START BATCH RUN</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTION POINT LIVE RUN CONFIRMATION MODAL -->
+  <div class="modal-overlay" id="ap-confirm-modal" style="z-index: 10000; pointer-events: auto;">
+    <div class="modal-card" style="border-color: rgba(239, 68, 68, 0.4); max-width: 520px; pointer-events: auto;">
+      <div class="modal-header" style="background: rgba(239, 68, 68, 0.15); border-bottom-color: rgba(239, 68, 68, 0.3);">
+        <h3 style="color: var(--accent-red); margin: 0; display: flex; align-items: center; gap: 8px;">
+          <span>⚠️</span> Confirm Live Production Execution
+        </h3>
+        <button class="btn-icon" id="ap-modal-btn-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 14px; color: #cbd5e1; line-height: 1.5; margin-bottom: 16px;">
+          You are about to execute <strong>LIVE MUTATIONS</strong> on the selected hotel portal. This will create food categories, create subcategories, and assign food items in production.
+        </p>
+        <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px; padding: 12px; margin-bottom: 16px; font-size: 13px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+            <span style="color: #94a3b8;">Target Site:</span>
+            <strong id="ap-modal-site-name" style="color: #60a5fa;">--</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+            <span style="color: #94a3b8;">Input File:</span>
+            <strong id="ap-modal-filename" style="color: #f1f5f9; font-family: monospace;">--</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+            <span style="color: #94a3b8;">Action Points to Configure:</span>
+            <strong id="ap-modal-action-points" style="color: #4ade80;">0</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: #94a3b8;">Target Restaurant:</span>
+            <strong style="color: #38bdf8;">IRD - DEFAULT</strong>
+          </div>
+        </div>
+        <p style="font-size: 12px; color: #f87171; font-weight: 500; margin: 0;">
+          Please confirm you wish to commit these live changes to the active hotel portal.
+        </p>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button class="btn btn-secondary" id="ap-modal-btn-cancel">Cancel</button>
+        <button class="btn btn-danger btn-glow" id="ap-modal-btn-confirm" style="background: #dc2626; cursor: pointer;">Yes, Start Live Execution</button>
       </div>
     </div>
   </div>

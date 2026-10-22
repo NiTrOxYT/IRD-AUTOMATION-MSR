@@ -230,6 +230,7 @@ function navigateToTab(tabId) {
   if (tabId === 'history') safeInit('loadHistory', loadHistory);
   if (tabId === 'settings') safeInit('loadSettingsTabs', () => { loadPuTTYInfo(); loadOfficeSshSettings(); loadGlobalTunnelSettings(); });
   if (tabId === 'diagnostics') safeInit('loadDiagnostics', () => { scanWindows(); loadPackageHealth(); });
+  if (tabId === 'action-point-config') safeInit('initActionPointConfigTab', initActionPointConfigTab);
 
   // DTH Pages lazy component loaders
   if (tabId === 'dth-dashboard') safeInit('loadDthDashboard', loadDthDashboard);
@@ -395,6 +396,8 @@ function initWebSocket() {
           updateDthStatusUI(msg.data);
         } else if (msg.type === 'controller_status') {
           updateControllerStatusUI(msg.data);
+        } else if (msg.type === 'action_point_status') {
+          updateActionPointStatusUI(msg.data);
         }
       } catch (e) {
         console.error("Error parsing WS message:", e);
@@ -550,6 +553,7 @@ async function loadSites() {
     updateBackendBadge(true);
     renderQueueTable();
     populateTestSiteDropdown();
+    populateActionPointSites();
     updateMetricsSummary();
   } catch (e) {
     updateBackendBadge(false);
@@ -4078,4 +4082,516 @@ window.closeControllerRunModal = closeControllerRunModal;
 window.saveControllerSettingsUI = saveControllerSettingsUI;
 window.initControllerProvisionTab = initControllerProvisionTab;
 window.loadControllerSettings = loadControllerSettings;
+
+
+// ==============================================================================
+// IRD ACTION POINT CONFIGURATION FRONTEND CONTROLLER
+// ==============================================================================
+
+let currentActionPointFile = null;
+let currentActionPointItems = [];
+let currentActionPointSummary = null;
+let currentActionPointRunId = null;
+
+function populateActionPointSites() {
+  const sel = document.getElementById('ap-site-select');
+  if (!sel) return;
+  const currentVal = sel.value;
+  sel.innerHTML = '<option value="">-- Select Target Hotel Site --</option>';
+  sitesList.forEach(s => {
+    if (s.enabled !== false) {
+      const opt = document.createElement('option');
+      opt.value = s.id;
+      opt.textContent = `${s.name} (${s.site_ip || 'Port ' + s.local_port})`;
+      sel.appendChild(opt);
+    }
+  });
+  if (currentVal) sel.value = currentVal;
+}
+
+function initActionPointConfigTab() {
+  populateActionPointSites();
+
+  // Sub-tabs switching
+  const btnPrev = document.getElementById('ap-tab-btn-preview');
+  const btnRes = document.getElementById('ap-tab-btn-results');
+  const btnHist = document.getElementById('ap-tab-btn-history');
+  const wrapPrev = document.getElementById('ap-table-preview-wrap');
+  const wrapRes = document.getElementById('ap-table-results-wrap');
+  const wrapHist = document.getElementById('ap-table-history-wrap');
+
+  function switchApSubTab(activeBtn, activeWrap) {
+    [btnPrev, btnRes, btnHist].forEach(b => b && b.classList.remove('active'));
+    [wrapPrev, wrapRes, wrapHist].forEach(w => w && (w.style.display = 'none'));
+    if (activeBtn) activeBtn.classList.add('active');
+    if (activeWrap) activeWrap.style.display = 'block';
+  }
+
+  if (btnPrev) btnPrev.onclick = () => switchApSubTab(btnPrev, wrapPrev);
+  if (btnRes) btnRes.onclick = () => switchApSubTab(btnRes, wrapRes);
+  if (btnHist) {
+    btnHist.onclick = () => {
+      switchApSubTab(btnHist, wrapHist);
+      loadActionPointHistory();
+    };
+  }
+
+  // Site select change
+  const siteSel = document.getElementById('ap-site-select');
+  if (siteSel) {
+    siteSel.onchange = () => updateActionPointButtonStates();
+  }
+
+  // File Upload
+  const btnSelectFile = document.getElementById('ap-btn-select-file');
+  const fileInput = document.getElementById('ap-file-input');
+  if (btnSelectFile && fileInput) {
+    btnSelectFile.onclick = () => fileInput.click();
+    fileInput.onchange = handleActionPointFileUpload;
+  }
+
+  // Clear button
+  const btnClear = document.getElementById('ap-btn-clear');
+  if (btnClear) {
+    btnClear.onclick = clearActionPointState;
+  }
+
+  // Dry Run button
+  const btnDryRun = document.getElementById('ap-btn-dry-run');
+  if (btnDryRun) {
+    btnDryRun.onclick = () => startActionPointRun('DRY_RUN');
+  }
+
+  // Live Execute button
+  const btnLive = document.getElementById('ap-btn-live-execute');
+  if (btnLive) {
+    btnLive.onclick = openActionPointConfirmModal;
+  }
+
+  // Confirmation Modal
+  const modal = document.getElementById('ap-confirm-modal');
+  const btnModalClose = document.getElementById('ap-modal-btn-close');
+  const btnModalCancel = document.getElementById('ap-modal-btn-cancel');
+  const btnModalConfirm = document.getElementById('ap-modal-btn-confirm');
+  if (btnModalClose) {
+    btnModalClose.onclick = closeActionPointConfirmModal;
+  }
+  if (btnModalCancel) {
+    btnModalCancel.onclick = closeActionPointConfirmModal;
+  }
+  if (btnModalConfirm) {
+    btnModalConfirm.onclick = () => {
+      closeActionPointConfirmModal();
+      startActionPointRun('LIVE');
+    };
+  }
+  if (modal) {
+    modal.onclick = (e) => {
+      if (e.target === modal) {
+        closeActionPointConfirmModal();
+      }
+    };
+  }
+
+  // Stop button
+  const btnStop = document.getElementById('ap-btn-stop');
+  if (btnStop) {
+    btnStop.onclick = stopActionPointRun;
+  }
+
+  // Report Export buttons
+  const btnExpXlsx = document.getElementById('ap-btn-export-xlsx');
+  const btnExpCsv = document.getElementById('ap-btn-export-csv');
+  const btnExpJson = document.getElementById('ap-btn-export-json');
+  if (btnExpXlsx) btnExpXlsx.onclick = () => downloadActionPointReport('xlsx');
+  if (btnExpCsv) btnExpCsv.onclick = () => downloadActionPointReport('csv');
+  if (btnExpJson) btnExpJson.onclick = () => downloadActionPointReport('json');
+}
+
+function updateActionPointButtonStates() {
+  const siteId = document.getElementById('ap-site-select')?.value;
+  const hasFile = !!currentActionPointFile;
+  const btnDry = document.getElementById('ap-btn-dry-run');
+  const btnLive = document.getElementById('ap-btn-live-execute');
+  const btnClear = document.getElementById('ap-btn-clear');
+
+  const ready = !!(siteId && hasFile);
+  if (btnDry) btnDry.disabled = !ready;
+  if (btnLive) btnLive.disabled = !ready;
+  if (btnClear) btnClear.style.display = hasFile ? 'inline-block' : 'none';
+}
+
+function clearActionPointState() {
+  currentActionPointFile = null;
+  currentActionPointItems = [];
+  currentActionPointSummary = null;
+  const fileInput = document.getElementById('ap-file-input');
+  if (fileInput) fileInput.value = '';
+
+  const fileCard = document.getElementById('ap-file-card');
+  if (fileCard) fileCard.style.display = 'none';
+
+  // Reset KPI cards
+  ['ap-stat-total', 'ap-stat-action-points', 'ap-stat-success', 'ap-stat-blocked', 'ap-stat-skipped', 'ap-stat-failed'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = '0';
+  });
+
+  const tbody = document.getElementById('ap-tbody-preview');
+  if (tbody) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #64748b; padding: 30px;">No file uploaded yet. Click <strong>[ Upload CSV / XLSX ]</strong> above to inspect action points.</td></tr>`;
+  }
+  updateActionPointButtonStates();
+}
+
+async function handleActionPointFileUpload(e) {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  const term = document.getElementById('ap-terminal-log');
+  if (term) term.innerHTML = `<div style="color: #60a5fa;">[UPLOAD] Ingesting and validating ${file.name}...</div>`;
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  try {
+    const res = await fetch('/api/action-point/upload', {
+      method: 'POST',
+      body: formData
+    });
+
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      const errs = data.structural_errors?.join('; ') || data.detail || 'File validation failed.';
+      alert(`Validation Error: ${errs}`);
+      if (term) term.innerHTML += `<div style="color: #f87171;">[ERROR] ${errs}</div>`;
+      return;
+    }
+
+    currentActionPointFile = data.filename;
+    currentActionPointItems = data.items || [];
+    currentActionPointSummary = data.summary || {};
+
+    // Update File info card
+    const fileCard = document.getElementById('ap-file-card');
+    const fileName = document.getElementById('ap-file-name');
+    const fileStats = document.getElementById('ap-file-stats');
+    if (fileCard) fileCard.style.display = 'block';
+    if (fileName) fileName.textContent = data.filename;
+    if (fileStats) {
+      fileStats.textContent = `${data.summary.total_rows} rows | ${data.summary.action_point_rows} Category Updates | ${data.summary.unsupported_status_rows} other status`;
+    }
+
+    // Update Metric Cards
+    const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    setVal('ap-stat-total', data.summary.total_rows);
+    setVal('ap-stat-action-points', data.summary.action_point_rows);
+    setVal('ap-stat-skipped', data.summary.unsupported_status_rows);
+    setVal('ap-stat-blocked', 0);
+    setVal('ap-stat-failed', data.summary.invalid_rows);
+    setVal('ap-stat-success', 0);
+
+    // Render Preview Table
+    renderActionPointPreviewTable(currentActionPointItems);
+
+    if (term) {
+      term.innerHTML += `<div style="color: #4ade80;">[SUCCESS] Ingested ${data.summary.total_rows} rows (${data.summary.action_point_rows} Category Updates). Ready to execute.</div>`;
+    }
+
+    updateActionPointButtonStates();
+  } catch (err) {
+    alert(`Upload error: ${err.message}`);
+    if (term) term.innerHTML += `<div style="color: #f87171;">[ERROR] ${err.message}</div>`;
+  }
+}
+
+function renderActionPointPreviewTable(items) {
+  const tbody = document.getElementById('ap-tbody-preview');
+  if (!tbody) return;
+
+  if (!items || items.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #64748b; padding: 30px;">No rows found in file.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = items.map(it => {
+    let statusBadge = '<span class="status-badge badge-ready">Category Update</span>';
+    if (it.classification === 'UNSUPPORTED_STATUS') {
+      statusBadge = `<span class="status-badge" style="background: rgba(148, 163, 184, 0.2); color: #94a3b8;">${it.original_status || 'Unknown'} (Skip)</span>`;
+    } else if (it.classification === 'INVALID_DATA' || !it.is_valid) {
+      statusBadge = `<span class="status-badge badge-failed">Invalid</span>`;
+    }
+
+    let validationInfo = '<span style="color: #4ade80;">✓ Valid</span>';
+    if (!it.is_valid && it.validation_errors && it.validation_errors.length > 0) {
+      validationInfo = `<span style="color: #f87171;">✕ ${it.validation_errors.join('; ')}</span>`;
+    }
+
+    return `
+      <tr>
+        <td>${it.row_number}</td>
+        <td><code>${it.item_code}</code></td>
+        <td><strong>${it.item_name}</strong></td>
+        <td>₹${it.item_price || '0'}</td>
+        <td>${it.category}</td>
+        <td>${it.subcategory}</td>
+        <td>${statusBadge}</td>
+        <td>${validationInfo}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function openActionPointConfirmModal() {
+  const siteSel = document.getElementById('ap-site-select');
+  if (!siteSel || !siteSel.value) {
+    alert("Please select a target hotel site first.");
+    return;
+  }
+  if (!currentActionPointFile) {
+    alert("Please upload an Action Point CSV/XLSX file first.");
+    return;
+  }
+
+  const siteName = siteSel.options[siteSel.selectedIndex]?.text || 'Selected Site';
+  const modalSite = document.getElementById('ap-modal-site-name');
+  const modalFile = document.getElementById('ap-modal-filename');
+  const modalPts = document.getElementById('ap-modal-action-points');
+  const modal = document.getElementById('ap-confirm-modal');
+
+  if (modalSite) modalSite.textContent = siteName;
+  if (modalFile) modalFile.textContent = currentActionPointFile;
+  if (modalPts) modalPts.textContent = currentActionPointSummary?.action_point_rows || 0;
+
+  if (modal) {
+    modal.classList.add('active');
+    modal.style.display = 'flex';
+    modal.style.pointerEvents = 'auto';
+  }
+}
+
+function closeActionPointConfirmModal() {
+  const modal = document.getElementById('ap-confirm-modal');
+  if (modal) {
+    modal.classList.remove('active');
+    modal.style.display = 'none';
+  }
+}
+
+async function startActionPointRun(mode) {
+  const siteId = document.getElementById('ap-site-select')?.value;
+  if (!siteId || !currentActionPointFile) return;
+
+  const btnDry = document.getElementById('ap-btn-dry-run');
+  const btnLive = document.getElementById('ap-btn-live-execute');
+  const btnStop = document.getElementById('ap-btn-stop');
+
+  if (btnDry) btnDry.disabled = true;
+  if (btnLive) btnLive.disabled = true;
+  if (btnStop) btnStop.style.display = 'inline-block';
+
+  // Show progress panel & switch to Results tab
+  const progPanel = document.getElementById('ap-progress-panel');
+  if (progPanel) progPanel.style.display = 'block';
+
+  const btnRes = document.getElementById('ap-tab-btn-results');
+  if (btnRes) btnRes.click();
+
+  // Clear previous results in table
+  const tbodyRes = document.getElementById('ap-tbody-results');
+  if (tbodyRes) {
+    tbodyRes.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #38bdf8; padding: 30px;">Executing ${mode}... Waiting for initial browser connection and verification...</td></tr>`;
+  }
+
+  const term = document.getElementById('ap-terminal-log');
+  if (term) term.innerHTML = `<div style="color: #60a5fa;">[START] Triggering ${mode} execution for site ID ${siteId}...</div>`;
+
+  try {
+    const res = await fetch('/api/action-point/run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        site_id: parseInt(siteId, 10),
+        filename: currentActionPointFile,
+        mode: mode,
+        items: currentActionPointItems
+      })
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      alert(`Execution Error: ${data.detail || data.message}`);
+      if (btnDry) btnDry.disabled = false;
+      if (btnLive) btnLive.disabled = false;
+      if (btnStop) btnStop.style.display = 'none';
+    }
+  } catch (err) {
+    alert(`Run error: ${err.message}`);
+    if (btnDry) btnDry.disabled = false;
+    if (btnLive) btnLive.disabled = false;
+    if (btnStop) btnStop.style.display = 'none';
+  }
+}
+
+async function stopActionPointRun() {
+  const btnStop = document.getElementById('ap-btn-stop');
+  if (btnStop) btnStop.disabled = true;
+
+  try {
+    await fetch('/api/action-point/stop', { method: 'POST' });
+  } catch (e) {
+    console.error("Stop action point error:", e);
+  }
+}
+
+function updateActionPointStatusUI(data) {
+  if (!data) return;
+
+  const progPanel = document.getElementById('ap-progress-panel');
+  if (progPanel) progPanel.style.display = 'block';
+
+  const dot = document.getElementById('ap-status-dot');
+  const opEl = document.getElementById('ap-status-operation');
+  const itemEl = document.getElementById('ap-status-current-item');
+  const pctEl = document.getElementById('ap-progress-percentage');
+  const barEl = document.getElementById('ap-progress-bar-fill');
+  const term = document.getElementById('ap-terminal-log');
+
+  if (dot) dot.style.background = data.is_running ? '#3b82f6' : (data.status === 'COMPLETED' ? '#22c55e' : '#ef4444');
+  if (opEl) opEl.textContent = `${data.mode || 'DRY_RUN'}: ${data.operation || data.status}`;
+  if (itemEl) itemEl.textContent = data.current_item || 'None';
+  if (pctEl) pctEl.textContent = `${Math.round(data.progress_percentage || 0)}%`;
+  if (barEl) barEl.style.width = `${data.progress_percentage || 0}%`;
+
+  if (data.run_id) currentActionPointRunId = data.run_id;
+
+  if (term && (data.message || data.operation)) {
+    const line = document.createElement('div');
+    line.textContent = `[${new Date().toLocaleTimeString()}] ${data.message || data.operation}`;
+    term.appendChild(line);
+    term.scrollTop = term.scrollHeight;
+  }
+
+  // Row update
+  if (data.last_processed_row) {
+    appendActionPointResultRow(data);
+  }
+
+  // Completion
+  if (data.completed || !data.is_running) {
+    const btnStop = document.getElementById('ap-btn-stop');
+    if (btnStop) btnStop.style.display = 'none';
+    updateActionPointButtonStates();
+
+    const reportBox = document.getElementById('ap-report-buttons');
+    if (reportBox && currentActionPointRunId) {
+      reportBox.style.display = 'flex';
+    }
+
+    if (data.summary) {
+      const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+      setVal('ap-stat-total', data.summary.total_rows);
+      setVal('ap-stat-success', data.summary.successful_rows);
+      setVal('ap-stat-failed', data.summary.failed_rows);
+      setVal('ap-stat-skipped', data.summary.skipped_rows);
+      setVal('ap-stat-blocked', data.summary.blocked_rows);
+    }
+  }
+}
+
+function appendActionPointResultRow(data) {
+  const tbody = document.getElementById('ap-tbody-results');
+  if (!tbody) return;
+
+  const item = currentActionPointItems.find(it => it.row_number === data.last_processed_row);
+  const itemCode = item?.item_code || 'N/A';
+  const itemName = item?.item_name || 'N/A';
+  const cat = item?.category || 'N/A';
+  const sub = item?.subcategory || 'N/A';
+  const st = data.last_status || 'PROCESSED';
+  const reason = data.last_reason || '';
+
+  let badge = '<span class="status-badge badge-ready">SUCCESS</span>';
+  if (st === 'DRY_RUN') badge = '<span class="status-badge badge-ready" style="background: rgba(59, 130, 246, 0.2); color: #60a5fa;">DRY RUN</span>';
+  else if (st === 'FAILED') badge = '<span class="status-badge badge-failed">FAILED</span>';
+  else if (st === 'BLOCKED') badge = '<span class="status-badge" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b;">BLOCKED</span>';
+  else if (st.includes('SKIPPED')) badge = '<span class="status-badge" style="background: rgba(148, 163, 184, 0.2); color: #94a3b8;">SKIPPED</span>';
+
+  if (tbody.children.length === 1 && tbody.children[0].textContent.includes('Executing')) {
+    tbody.innerHTML = '';
+  }
+
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td>${data.last_processed_row}</td>
+    <td><code>${itemCode}</code></td>
+    <td>${itemName}</td>
+    <td>${cat}</td>
+    <td>${sub}</td>
+    <td>${badge}</td>
+    <td style="font-size: 13px; color: ${st === 'FAILED' ? '#f87171' : '#cbd5e1'};">${reason || '—'}</td>
+    <td><span style="color: #64748b; font-size: 12px;">Saved</span></td>
+  `;
+  tbody.appendChild(tr);
+}
+
+async function loadActionPointHistory() {
+  const tbody = document.getElementById('ap-tbody-history');
+  if (!tbody) return;
+  tbody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: #64748b; padding: 20px;">Loading history...</td></tr>`;
+
+  try {
+    const res = await fetch('/api/action-point/history');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const runs = await res.json();
+
+    if (!runs || runs.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: #64748b; padding: 20px;">No Action Point runs recorded yet.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = runs.map(r => {
+      const modeBadge = `<span class="status-badge" style="background: rgba(59, 130, 246, 0.2); color: #60a5fa;">${r.mode}</span>`;
+      let statusBadge = '<span class="status-badge badge-ready">COMPLETED</span>';
+      if (r.status === 'FAILED') statusBadge = '<span class="status-badge badge-failed">FAILED</span>';
+      else if (r.status === 'COMPLETED_WITH_ERRORS') statusBadge = '<span class="status-badge" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b;">ERRORS</span>';
+
+      return `
+        <tr>
+          <td>#${r.id}</td>
+          <td>${r.start_time}</td>
+          <td><strong>${r.site_name}</strong></td>
+          <td><code>${r.filename}</code></td>
+          <td>${modeBadge}</td>
+          <td>${statusBadge}</td>
+          <td>${r.total_rows}</td>
+          <td style="color: #4ade80;">${r.successful_rows}</td>
+          <td style="color: ${r.failed_rows > 0 ? '#f87171' : '#94a3b8'};">${r.failed_rows}</td>
+          <td>
+            <a href="/api/action-point/runs/${r.id}/report/xlsx" class="btn btn-secondary btn-sm" style="padding: 2px 6px; font-size: 11px;" target="_blank">XLSX</a>
+            <a href="/api/action-point/runs/${r.id}/report/csv" class="btn btn-secondary btn-sm" style="padding: 2px 6px; font-size: 11px;" target="_blank">CSV</a>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  } catch (e) {
+    tbody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: #f87171; padding: 20px;">Failed loading history: ${e.message}</td></tr>`;
+  }
+}
+
+function downloadActionPointReport(fmt) {
+  if (!currentActionPointRunId) {
+    alert("No active run report to download.");
+    return;
+  }
+  window.open(`/api/action-point/runs/${currentActionPointRunId}/report/${fmt}`, '_blank');
+}
+
+// Global exports for Action Point handlers
+window.initActionPointConfigTab = initActionPointConfigTab;
+window.populateActionPointSites = populateActionPointSites;
+window.startActionPointRun = startActionPointRun;
+window.stopActionPointRun = stopActionPointRun;
+window.loadActionPointHistory = loadActionPointHistory;
+window.downloadActionPointReport = downloadActionPointReport;
 
